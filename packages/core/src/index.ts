@@ -7,3 +7,5 @@ export interface FoundationIdentity {
 export function foundationIdentity(): FoundationIdentity {
   return { name: FOUNDATION_NAME };
 }
+
+export * as config from './config/index.js';
