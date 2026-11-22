@@ -23,7 +23,11 @@ export default defineConfig({
   database: {
     url: env('DATABASE_URL'),
     ssl: envBool('DATABASE_SSL', false),
-    pool: { max: envInt('DB_POOL_MAX', 10) },
+    pool: {
+      max: envInt('DB_POOL_MAX', 10),
+      idleTimeoutMs: envInt('DB_POOL_IDLE_TIMEOUT_MS', 300_000),
+      connectTimeoutMs: envInt('DB_POOL_CONNECT_TIMEOUT_MS', 10_000),
+    },
   },
 
   logging: {

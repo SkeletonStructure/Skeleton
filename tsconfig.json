@@ -3,6 +3,6 @@
   "compilerOptions": {
     "noEmit": true
   },
-  "files": ["vitest.config.ts", "skeleton.config.example.ts"],
+  "files": ["drizzle.config.ts", "vitest.config.ts", "skeleton.config.example.ts"],
   "references": [{ "path": "./packages/core" }]
 }

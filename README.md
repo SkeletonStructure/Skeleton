@@ -4,7 +4,7 @@ A self-hosted, MIT-licensed backend foundation built as a modular monolith. This
 
 ## Status
 
-- Milestone M2 — core configuration and validation.
+- Milestone M3 — PostgreSQL database infrastructure.
 - No production-readiness claim. Security review and release verification happen in milestone M10.
 
 ## Quick start
@@ -21,15 +21,18 @@ pnpm test
 
 ## Scripts
 
-| Script        | Command                                                              | Purpose                            |
-| ------------- | -------------------------------------------------------------------- | ---------------------------------- |
-| `typecheck`   | `tsc -b --pretty false`                                              | Type-check all TypeScript projects |
-| `lint`        | `biome check .`                                                      | Format check and lint              |
-| `format`      | `biome format --write .`                                             | Apply formatting                   |
-| `test`        | `vitest run`                                                         | Run unit tests once                |
-| `test:watch`  | `vitest`                                                             | Run tests in watch mode            |
-| `config:docs` | `tsc -b packages/core && node scripts/generate-config-reference.mjs` | Regenerate the config reference    |
-| `ci`          | `pnpm typecheck && pnpm lint && pnpm test`                           | Full local verification            |
+| Script             | Command                                                              | Purpose                            |
+| ------------------ | -------------------------------------------------------------------- | ---------------------------------- |
+| `typecheck`        | `tsc -b --pretty false`                                              | Type-check all TypeScript projects |
+| `lint`             | `biome check .`                                                      | Format check and lint              |
+| `format`           | `biome format --write .`                                             | Apply formatting                   |
+| `test`             | `vitest run`                                                         | Run all unit and integration tests |
+| `test:integration` | `vitest run packages/core/tests/database/integration.test.ts`        | Run the PostgreSQL container test  |
+| `test:watch`       | `vitest`                                                             | Run tests in watch mode            |
+| `config:docs`      | `tsc -b packages/core && node scripts/generate-config-reference.mjs` | Regenerate the config reference    |
+| `db:generate`      | `drizzle-kit generate --config drizzle.config.ts`                    | Generate a reviewed SQL migration  |
+| `db:migrate`       | `tsc -b packages/core && node scripts/skeleton.mjs db migrate`       | Apply migrations explicitly        |
+| `ci`               | `pnpm typecheck && pnpm lint && pnpm test`                           | Full local verification            |
 
 ## Configuration
 
@@ -57,13 +60,34 @@ Secret fields must be supplied with `env(...)`. Literal secrets in the config fi
 
 The full generated field list is in [`docs/config/reference.md`](./docs/config/reference.md). Regenerate it with `pnpm config:docs`.
 
+## Database
+
+The core package owns a single PostgreSQL pool and Drizzle instance. Applications initialize it once at startup and close it on shutdown; modules use `getDatabase()` and never create their own connections.
+
+```ts
+import { loadConfig } from '@skeletonstructure/core/config';
+import { closeDatabase, initializeDatabase } from '@skeletonstructure/core/database';
+
+const config = await loadConfig();
+await initializeDatabase(config.database);
+
+try {
+  // Start application work.
+} finally {
+  await closeDatabase();
+}
+```
+
+Migrations are explicit: use `pnpm db:generate` to create reviewed SQL and `pnpm db:migrate` to apply it. The baseline migration contains no application tables. See [`docs/database.md`](./docs/database.md) for lifecycle, transactions, health semantics, migration workflow, and limitations.
+
 ## Layout
 
 ```text
-packages/core/       mandatory core infrastructure, including config
+packages/core/       mandatory core infrastructure, including config and database
 apps/                demonstration applications (added in M9)
 templates/           starter application template
 docs/config/         generated configuration reference
+docs/database.md     database infrastructure guide
 docs/architecture/   architecture records and ADRs
 openapi/             generated public OpenAPI artifact (added in M5)
 .env.example         documented environment variables
@@ -75,6 +99,7 @@ skeleton.config.example.ts  example typed config
 - `CONTRIBUTING.md` — contribution workflow.
 - `SECURITY.md` — private vulnerability reporting and limitations.
 - `docs/config/reference.md` — every configuration field, default, and env var.
+- `docs/database.md` — database lifecycle, usage, migrations, and health checks.
 - `docs/architecture/adr/` — architecture decision records.
 
 The authoritative engineering blueprint lives in the `SkeletonStructure-blueprint` workspace during bootstrap and will be imported into `docs/architecture/` as the repository matures.

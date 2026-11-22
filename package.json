@@ -14,12 +14,17 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "config:docs": "tsc -b packages/core && node scripts/generate-config-reference.mjs",
+    "skeleton": "node scripts/skeleton.mjs",
+    "db:generate": "drizzle-kit generate --config drizzle.config.ts",
+    "db:migrate": "tsc -b packages/core && node scripts/skeleton.mjs db migrate",
+    "test:integration": "vitest run packages/core/tests/database/integration.test.ts",
     "ci": "pnpm typecheck && pnpm lint && pnpm test"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.6.8",
     "@skeletonstructure/core": "workspace:*",
     "@types/node": "^26.6.6",
+    "drizzle-kit": "^0.31.11",
     "typescript": "^7.0.2",
     "vitest": "^5.1.1"
   }

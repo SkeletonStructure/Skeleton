@@ -27,6 +27,8 @@ Secret fields can only be supplied through environment variables using `env(...)
 | `database.url` | `DATABASE_URL` | yes | yes | `postgres connection string` | — | PostgreSQL connection string; must be supplied through env |
 | `database.ssl` | `DATABASE_SSL` | no | no | `boolean` | `false` | Enable PostgreSQL TLS |
 | `database.pool.max` | `DB_POOL_MAX` | no | no | `integer` | `10` | Maximum number of pooled database connections |
+| `database.pool.idleTimeoutMs` | `DB_POOL_IDLE_TIMEOUT_MS` | no | no | `integer` | `300000` | Milliseconds an idle pooled connection may remain open |
+| `database.pool.connectTimeoutMs` | `DB_POOL_CONNECT_TIMEOUT_MS` | no | no | `integer` | `10000` | Milliseconds to wait for a connection from the pool |
 | `logging.level` | `LOG_LEVEL` | no | no | `trace \| debug \| info \| warn \| error` | `info` | Minimum log level |
 | `logging.format` | `LOG_FORMAT` | no | no | `json \| pretty` | `json` | Log output format; production requires json |
 | `logging.redact` | — | no | no | `string[]` | `password, token, cookie, authorization, databaseUrl` | Additional redaction keys; defaults cannot be removed |

@@ -43,6 +43,8 @@ export const configSchema = z
       pool: z
         .object({
           max: z.number().int().min(1).default(10),
+          idleTimeoutMs: z.number().int().min(1000).max(2_147_483_647).default(300_000),
+          connectTimeoutMs: z.number().int().min(1000).max(2_147_483_647).default(10_000),
         })
         .prefault({}),
     }),

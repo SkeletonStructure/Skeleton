@@ -1,0 +1,2 @@
+-- Core database baseline.
+-- Intentionally contains no application tables in M3.
