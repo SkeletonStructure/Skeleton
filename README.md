@@ -4,7 +4,8 @@ A self-hosted, MIT-licensed backend foundation built as a modular monolith. This
 
 ## Status
 
-- Milestone M8 — first business modules: catalog, products, inventory, and orders.
+- Milestone M9a — complete e-commerce demonstration on top of the M8 business modules.
+- M9b (restaurant demonstration), security review, and release verification are not started.
 - No production-readiness claim. Security review and release verification happen in milestone M10.
 
 ## Quick start
@@ -19,34 +20,41 @@ pnpm lint
 pnpm test
 ```
 
+To run the M9a e-commerce demo, follow [`apps/demo-ecommerce/README.md`](./apps/demo-ecommerce/README.md). In short, set its `DATABASE_URL`, then run `pnpm demo:ecommerce:migrate`, `pnpm demo:ecommerce:seed`, `pnpm demo:ecommerce:api`, and `pnpm demo:ecommerce:dev`. The seeded login and verification commands are documented there and in [`docs/m9.md`](./docs/m9.md).
+
 ## Scripts
 
-| Script                  | Command                                                              | Purpose                                  |
-| ----------------------- | -------------------------------------------------------------------- | ---------------------------------------- |
-| `typecheck`             | `tsc -b --pretty false`                                              | Type-check all TypeScript projects       |
-| `lint`                  | `biome check .`                                                      | Format check and lint                    |
-| `format`                | `biome format --write .`                                             | Apply formatting                         |
-| `test`                  | `vitest run`                                                         | Run all unit and integration tests       |
-| `test:contract`         | `vitest run packages/sdk/tests/contract.test.ts`                     | Run SDK boundary/contract tests          |
-| `test:integration`      | `vitest run packages/core/tests/database/integration.test.ts`        | Run the core PostgreSQL container test   |
-| `test:watch`            | `vitest`                                                             | Run tests in watch mode                  |
-| `sdk:generate`          | `node scripts/generate-sdk.mjs`                                      | Regenerate SDK types from OpenAPI        |
-| `sdk:check`             | `node scripts/check-sdk.mjs`                                         | Verify committed SDK types are current   |
-| `config:docs`           | `tsc -b packages/core && node scripts/generate-config-reference.mjs` | Regenerate the config reference          |
-| `db:generate`           | `drizzle-kit generate --config drizzle.config.ts`                    | Generate a reviewed core migration       |
-| `db:generate:users`     | `drizzle-kit generate --config drizzle.users.config.ts`              | Generate a reviewed users migration      |
-| `db:generate:auth`      | `drizzle-kit generate --config drizzle.auth.config.ts`               | Generate a reviewed auth migration       |
-| `db:generate:catalog`   | `drizzle-kit generate --config drizzle.catalog.config.ts`            | Generate a reviewed catalog migration    |
-| `db:generate:products`  | `drizzle-kit generate --config drizzle.products.config.ts`           | Generate a reviewed products migration   |
-| `db:generate:inventory` | `drizzle-kit generate --config drizzle.inventory.config.ts`          | Generate a reviewed inventory migration  |
-| `db:generate:orders`    | `drizzle-kit generate --config drizzle.orders.config.ts`             | Generate a reviewed orders migration     |
-| `db:migrate`            | `tsc -b && node scripts/migrate-modules.mjs`                         | Apply all M1–M8 migrations in order      |
-| `start`                 | `tsc -b && node scripts/skeleton.mjs start`                          | Start the composed M8 server             |
-| `skeleton`              | `node scripts/skeleton.mjs`                                          | Run `db migrate` or `start`              |
-| `auth:cleanup`          | `tsc -b && node scripts/cleanup-sessions.mjs`                        | Remove expired sessions and reset tokens |
-| `openapi:generate`      | `tsc -b && node scripts/generate-openapi.mjs`                        | Regenerate the public OpenAPI file       |
-| `openapi:check`         | `tsc -b && node scripts/check-openapi.mjs`                           | Verify the committed OpenAPI file        |
-| `ci`                    | `pnpm typecheck && pnpm lint && pnpm test`                           | Local type, lint, and test gate          |
+| Script                   | Command                                                              | Purpose                                  |
+| ------------------------ | -------------------------------------------------------------------- | ---------------------------------------- |
+| `typecheck`              | `tsc -b --pretty false`                                              | Type-check all TypeScript projects       |
+| `lint`                   | `biome check .`                                                      | Format check and lint                    |
+| `format`                 | `biome format --write .`                                             | Apply formatting                         |
+| `test`                   | `vitest run`                                                         | Run all unit and integration tests       |
+| `test:contract`          | `vitest run packages/sdk/tests/contract.test.ts`                     | Run SDK boundary/contract tests          |
+| `test:integration`       | `vitest run packages/core/tests/database/integration.test.ts`        | Run the core PostgreSQL container test   |
+| `test:watch`             | `vitest`                                                             | Run tests in watch mode                  |
+| `demo:ecommerce:migrate` | `pnpm --filter @skeletonstructure/demo-ecommerce db:migrate`         | Apply shared plus demo-cart migrations   |
+| `demo:ecommerce:seed`    | `pnpm --filter @skeletonstructure/demo-ecommerce db:seed`            | Seed the demo user and products          |
+| `demo:ecommerce:api`     | `pnpm --filter @skeletonstructure/demo-ecommerce api`                | Start the demo API                       |
+| `demo:ecommerce:dev`     | `pnpm --filter @skeletonstructure/demo-ecommerce dev`                | Start the demo storefront                |
+| `demo:ecommerce:verify`  | OpenAPI/client checks, integration tests, and Playwright happy path  | Verify the complete e-commerce demo      |
+| `sdk:generate`           | `node scripts/generate-sdk.mjs`                                      | Regenerate SDK types from OpenAPI        |
+| `sdk:check`              | `node scripts/check-sdk.mjs`                                         | Verify committed SDK types are current   |
+| `config:docs`            | `tsc -b packages/core && node scripts/generate-config-reference.mjs` | Regenerate the config reference          |
+| `db:generate`            | `drizzle-kit generate --config drizzle.config.ts`                    | Generate a reviewed core migration       |
+| `db:generate:users`      | `drizzle-kit generate --config drizzle.users.config.ts`              | Generate a reviewed users migration      |
+| `db:generate:auth`       | `drizzle-kit generate --config drizzle.auth.config.ts`               | Generate a reviewed auth migration       |
+| `db:generate:catalog`    | `drizzle-kit generate --config drizzle.catalog.config.ts`            | Generate a reviewed catalog migration    |
+| `db:generate:products`   | `drizzle-kit generate --config drizzle.products.config.ts`           | Generate a reviewed products migration   |
+| `db:generate:inventory`  | `drizzle-kit generate --config drizzle.inventory.config.ts`          | Generate a reviewed inventory migration  |
+| `db:generate:orders`     | `drizzle-kit generate --config drizzle.orders.config.ts`             | Generate a reviewed orders migration     |
+| `db:migrate`             | `tsc -b && node scripts/migrate-modules.mjs`                         | Apply all M1–M8 migrations in order      |
+| `start`                  | `tsc -b && node scripts/skeleton.mjs start`                          | Start the composed M8 server             |
+| `skeleton`               | `node scripts/skeleton.mjs`                                          | Run `db migrate` or `start`              |
+| `auth:cleanup`           | `tsc -b && node scripts/cleanup-sessions.mjs`                        | Remove expired sessions and reset tokens |
+| `openapi:generate`       | `tsc -b && node scripts/generate-openapi.mjs`                        | Regenerate the public OpenAPI file       |
+| `openapi:check`          | `tsc -b && node scripts/check-openapi.mjs`                           | Verify the committed OpenAPI file        |
+| `ci`                     | `pnpm typecheck && pnpm lint && pnpm test`                           | Local type, lint, and test gate          |
 
 ## Configuration
 
@@ -92,7 +100,7 @@ try {
 }
 ```
 
-Migrations are explicit and module-owned: use the matching `pnpm db:generate:*` script to create reviewed SQL. `pnpm db:migrate` applies core/users/auth, then catalog, products, inventory, and orders migrations in dependency order. The baseline migration contains no application tables. See [`docs/database.md`](./docs/database.md) for lifecycle, transactions, health semantics, migration workflow, and limitations.
+Migrations are explicit and module-owned: use the matching `pnpm db:generate:*` script to create reviewed SQL. `pnpm db:migrate` applies core/users/auth, then catalog, products, inventory, and orders migrations in dependency order. The baseline migration contains no application tables. The M9a demo adds one app-local cart migration through `pnpm demo:ecommerce:migrate`; it does not change the shared migration runner. See [`docs/database.md`](./docs/database.md) for lifecycle, transactions, health semantics, migration workflow, and limitations.
 
 ## Modules
 
@@ -109,7 +117,7 @@ const registry = composeModuleRegistry({
 const report = await registry.activate();
 ```
 
-Module route and permission declarations are validated before HTTP startup. M5 wires declared routes into Fastify; M6 supplies `users` and `auth`; M8 adds `catalog`, `products`, `inventory`, and `orders`, with `@skeletonstructure/app-composition` providing the explicit static wiring and startup ambiguity checks. See [`docs/modules.md`](./docs/modules.md) and [`docs/m8.md`](./docs/m8.md) for the full contract, lifecycle, and failure modes.
+Module route and permission declarations are validated before HTTP startup. M5 wires declared routes into Fastify; M6 supplies `users` and `auth`; M8 adds `catalog`, `products`, `inventory`, and `orders`, with `@skeletonstructure/app-composition` providing the explicit static wiring and startup ambiguity checks. M9a demonstrates app-local extension: the e-commerce cart is defined under `apps/demo-ecommerce/` and added through `additionalModules` without changing shared packages. See [`docs/modules.md`](./docs/modules.md), [`docs/m8.md`](./docs/m8.md), and [`docs/m9.md`](./docs/m9.md) for the full contract, lifecycle, and failure modes.
 
 ## API
 
@@ -127,7 +135,7 @@ await app.listen({ host: config.server.host, port: config.server.port });
 
 `GET /health/live` checks only process responsiveness. `GET /health/ready` returns `503` with a short reason code when config, database, migration, or injected readiness checks fail. `GET /v1/config/public` exposes only the frontend-safe allowlist.
 
-M6 implements sessions, login, CSRF, roles/permissions, and password reset behind that boundary. Protected routes still deny by default unless an injected authenticator supplies a principal; disabled modules register no routes rather than making them public. M8 adds catalog CRUD with validated expansion, separate product and inventory routes, and authenticated orders with idempotency and immutable snapshots. M7's SDK now covers catalog/products/inventory/orders namespaces derived from the committed OpenAPI artifact. See [`docs/api.md`](./docs/api.md), [`docs/auth.md`](./docs/auth.md), [`docs/sdk.md`](./docs/sdk.md), and [`docs/m8.md`](./docs/m8.md).
+M6 implements sessions, login, CSRF, roles/permissions, and password reset behind that boundary. Protected routes still deny by default unless an injected authenticator supplies a principal; disabled modules register no routes rather than making them public. M8 adds catalog CRUD with validated expansion, separate product and inventory routes, and authenticated orders with idempotency and immutable snapshots. M7's SDK now covers catalog/products/inventory/orders namespaces derived from the committed OpenAPI artifact. M9a adds demo-local cart routes with a separate OpenAPI artifact and typed client; checkout stops at order confirmation and captures no payment. See [`docs/api.md`](./docs/api.md), [`docs/auth.md`](./docs/auth.md), [`docs/sdk.md`](./docs/sdk.md), [`docs/m8.md`](./docs/m8.md), and [`docs/m9.md`](./docs/m9.md).
 
 ## Layout
 
@@ -142,7 +150,7 @@ packages/module-orders/    optional authenticated orders and snapshots
 packages/app-composition/  non-domain static M8 wiring and migration runner
 packages/sdk/          OpenAPI-derived browser-safe client and typed errors
 examples/              frontend-vanilla and frontend-react SDK examples
-apps/                  demonstration applications (added in M9)
+apps/                  demonstration applications (M9a: demo-ecommerce with an app-local cart)
 templates/           starter application template
 docs/config/         generated configuration reference
 docs/database.md     database infrastructure guide
@@ -165,6 +173,7 @@ skeleton.config.example.ts  example typed config
 - `docs/auth.md` — authentication, sessions, CSRF, password reset, authorization model, and cleanup.
 - `docs/sdk.md` — SDK initialization, auth/CSRF behavior, typed errors, and current limitations.
 - `docs/m8.md` — M8 module graph, routes, schemas, ports, order semantics, and limitations.
+- `docs/m9.md` — M9a e-commerce demo, reused modules, demo-local cart, payment seam, and verification.
 - `docs/architecture/adr/` — architecture decision records.
 
 The authoritative engineering blueprint lives in the `SkeletonStructure-blueprint` workspace during bootstrap and will be imported into `docs/architecture/` as the repository matures.

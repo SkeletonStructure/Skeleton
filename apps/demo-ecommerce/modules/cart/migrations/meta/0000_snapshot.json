@@ -1,0 +1,136 @@
+{
+  "id": "c7a89585-bc64-49fd-8bd0-370b0a62dbbc",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.demo_ecommerce_cart_items": {
+      "name": "demo_ecommerce_cart_items",
+      "schema": "",
+      "columns": {
+        "buyer_ref": {
+          "name": "buyer_ref",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "catalog_item_id": {
+          "name": "catalog_item_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "quantity": {
+          "name": "quantity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "demo_ecommerce_cart_items_buyer_ref_demo_ecommerce_carts_buyer_ref_fk": {
+          "name": "demo_ecommerce_cart_items_buyer_ref_demo_ecommerce_carts_buyer_ref_fk",
+          "tableFrom": "demo_ecommerce_cart_items",
+          "tableTo": "demo_ecommerce_carts",
+          "columnsFrom": [
+            "buyer_ref"
+          ],
+          "columnsTo": [
+            "buyer_ref"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "demo_ecommerce_cart_items_buyer_ref_catalog_item_id_pk": {
+          "name": "demo_ecommerce_cart_items_buyer_ref_catalog_item_id_pk",
+          "columns": [
+            "buyer_ref",
+            "catalog_item_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "demo_ecommerce_cart_items_quantity_check": {
+          "name": "demo_ecommerce_cart_items_quantity_check",
+          "value": "\"demo_ecommerce_cart_items\".\"quantity\" between 1 and 99"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.demo_ecommerce_carts": {
+      "name": "demo_ecommerce_carts",
+      "schema": "",
+      "columns": {
+        "buyer_ref": {
+          "name": "buyer_ref",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "last_idempotency_key": {
+          "name": "last_idempotency_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_order_id": {
+          "name": "last_order_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

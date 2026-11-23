@@ -31,7 +31,18 @@
     "openapi:generate": "tsc -b && node scripts/generate-openapi.mjs",
     "openapi:check": "tsc -b && node scripts/check-openapi.mjs",
     "test:integration": "vitest run packages/core/tests/database/integration.test.ts",
-    "ci": "pnpm typecheck && pnpm lint && pnpm test && pnpm test:contract && pnpm sdk:check"
+    "demo:ecommerce:api": "pnpm --filter @skeletonstructure/demo-ecommerce api",
+    "demo:ecommerce:dev": "pnpm --filter @skeletonstructure/demo-ecommerce dev",
+    "demo:ecommerce:migrate": "pnpm --filter @skeletonstructure/demo-ecommerce db:migrate",
+    "demo:ecommerce:seed": "pnpm --filter @skeletonstructure/demo-ecommerce db:seed",
+    "demo:ecommerce:openapi:generate": "pnpm --filter @skeletonstructure/demo-ecommerce openapi:generate",
+    "demo:ecommerce:openapi:check": "pnpm --filter @skeletonstructure/demo-ecommerce openapi:check",
+    "demo:ecommerce:client:generate": "pnpm --filter @skeletonstructure/demo-ecommerce client:generate",
+    "demo:ecommerce:client:check": "pnpm --filter @skeletonstructure/demo-ecommerce client:check",
+    "demo:ecommerce:test:integration": "pnpm --filter @skeletonstructure/demo-ecommerce test:integration",
+    "demo:ecommerce:test:e2e": "pnpm --filter @skeletonstructure/demo-ecommerce test:e2e",
+    "demo:ecommerce:verify": "pnpm demo:ecommerce:openapi:check && pnpm demo:ecommerce:client:check && pnpm demo:ecommerce:test:integration && pnpm demo:ecommerce:test:e2e",
+    "ci": "pnpm typecheck && pnpm lint && pnpm test && pnpm test:contract && pnpm sdk:check && pnpm demo:ecommerce:openapi:check && pnpm demo:ecommerce:client:check"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.6.8",

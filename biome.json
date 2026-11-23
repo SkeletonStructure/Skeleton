@@ -6,7 +6,11 @@
       "!**/dist",
       "!pnpm-lock.yaml",
       "!docs/config/reference.md",
-      "!openapi/openapi.json"
+      "!openapi/openapi.json",
+      "!apps/demo-ecommerce/openapi/demo-openapi.json",
+      "!apps/demo-ecommerce/modules/cart/migrations/meta",
+      "!apps/demo-ecommerce/test-results",
+      "!apps/demo-ecommerce/playwright-report"
     ]
   },
   "formatter": {

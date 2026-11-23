@@ -12,3 +12,4 @@ Use `adr/0000-template.md` for new architectural decisions.
 - [ADR 0004 — OpenAPI-derived thin SDK](./adr/0004-openapi-derived-thin-sdk.md)
 - [ADR 0005 — Static M8 composition and early port ambiguity checks](./adr/0005-m8-static-composition-and-port-ambiguity.md)
 - [ADR 0006 — Generic catalog extensions and immutable order snapshots](./adr/0006-generic-catalog-extensions-and-order-snapshots.md)
+- [ADR 0007 — Demo-local cart and deferred payment seam](./adr/0007-demo-local-cart-and-deferred-payment-seam.md)

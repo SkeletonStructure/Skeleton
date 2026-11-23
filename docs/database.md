@@ -127,6 +127,8 @@ pnpm skeleton db migrate
 
 `pnpm db:migrate` loads the same validated configuration as the application, initializes the shared database, applies core/users/auth, catalog, products, inventory, then orders migrations in dependency order, and closes the pool. `runM8Migrations(database)` from `@skeletonstructure/app-composition` is the programmatic equivalent; `runAuthUsersMigrations(database)` covers only the M6 subset. Production must not auto-migrate on startup; migration remains an explicit operator action.
 
+The M9a demonstration adds one app-local migration under `apps/demo-ecommerce/modules/cart/migrations/`. `pnpm demo:ecommerce:migrate` applies the shared M1–M8 migrations first, then `demo_ecommerce_carts` and `demo_ecommerce_cart_items`. The cart-item foreign key to shared `catalog_items` is written manually in the reviewed SQL so Drizzle Kit does not redeclare a table owned by `module-catalog`. Shared migration artifacts are unchanged.
+
 The runner obtains a dedicated client from the shared pool, takes a PostgreSQL advisory lock, applies migrations on that same client, then releases the lock and client. Concurrent migration processes therefore cannot race. Drizzle's internal `drizzle.__drizzle_migrations` table is the only table created by the baseline workflow.
 
 Module-owned tables and migrations arrived in M6 and expanded in M8. Disabling a module does not drop its tables. Product and inventory rows reference `catalog_items` with `ON DELETE RESTRICT`; order items also reference catalog items so historical lines cannot be orphaned. Auth sessions and password-reset tokens have a separate explicit cleanup job (`pnpm auth:cleanup`); destructive migration policy and deployment readiness enforcement are still operator responsibilities.
@@ -139,7 +141,8 @@ Ordinary unit tests use injected fake pools and migrators and do not require Pos
 - fresh migration and no-op re-run;
 - readiness health and clean pool shutdown;
 - users module constraints and ownership checks;
-- auth flows, session rotation, CSRF, reset tokens, and the authorization matrix.
+- auth flows, session rotation, CSRF, reset tokens, and the authorization matrix;
+- M9a fresh/repeated migration and seed runs, cart authz and ownership, checkout failure consistency, successful clearing, and idempotent replay.
 
 Run only that test with:
 

@@ -25,6 +25,7 @@
     { "path": "./packages/app-composition" },
     { "path": "./packages/sdk" },
     { "path": "./examples/frontend-vanilla" },
-    { "path": "./examples/frontend-react" }
+    { "path": "./examples/frontend-react" },
+    { "path": "./apps/demo-ecommerce" }
   ]
 }

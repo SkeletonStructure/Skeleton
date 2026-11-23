@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SkeletonStructure E-commerce Demo</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>SkeletonStructure Store</h1>
+        <p class="subtitle">M9a demonstration · orders stop at confirmation</p>
+      </div>
+      <div id="auth-panel" class="auth-panel"></div>
+    </header>
+
+    <main>
+      <div id="status" class="status" role="status" aria-live="polite"></div>
+
+      <section>
+        <h2>Products</h2>
+        <div id="products" class="grid"></div>
+      </section>
+
+      <section class="two-column">
+        <div>
+          <h2>Cart</h2>
+          <div id="cart" class="panel"></div>
+        </div>
+        <div>
+          <h2>Order history</h2>
+          <div id="orders" class="panel"></div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

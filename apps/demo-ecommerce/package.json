@@ -1,0 +1,49 @@
+{
+  "name": "@skeletonstructure/demo-ecommerce",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/src/server/index.js",
+  "types": "./dist/src/server/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/server/index.d.ts",
+      "import": "./dist/src/server/index.js"
+    }
+  },
+  "scripts": {
+    "api": "tsc -b && node scripts/start-server.mjs",
+    "start": "tsc -b && node scripts/start-server.mjs",
+    "dev": "vite --config vite.config.ts",
+    "build": "tsc -b && vite build --config vite.config.ts",
+    "db:migrate": "tsc -b && node scripts/migrate.mjs",
+    "db:seed": "tsc -b && node scripts/seed.mjs",
+    "test:integration": "vitest run --config vitest.config.ts",
+    "test:e2e": "tsc -b && playwright test --config playwright.config.ts",
+    "openapi:generate": "tsc -b && node scripts/generate-openapi.mjs",
+    "openapi:check": "tsc -b && node scripts/check-openapi.mjs",
+    "client:generate": "node scripts/generate-client.mjs",
+    "client:check": "node scripts/check-client.mjs"
+  },
+  "dependencies": {
+    "@skeletonstructure/app-composition": "workspace:*",
+    "@skeletonstructure/core": "workspace:*",
+    "@skeletonstructure/module-auth": "workspace:*",
+    "@skeletonstructure/module-catalog": "workspace:*",
+    "@skeletonstructure/module-inventory": "workspace:*",
+    "@skeletonstructure/module-orders": "workspace:*",
+    "@skeletonstructure/module-products": "workspace:*",
+    "@skeletonstructure/module-users": "workspace:*",
+    "@skeletonstructure/sdk": "workspace:*",
+    "fastify": "^5.12.8",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.0",
+    "@testcontainers/postgresql": "^12.2.2",
+    "drizzle-orm": "^0.45.4",
+    "testcontainers": "^12.2.2",
+    "vite": "^7.1.0",
+    "vitest": "^5.1.1"
+  }
+}

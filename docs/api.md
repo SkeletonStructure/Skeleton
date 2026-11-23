@@ -93,8 +93,10 @@ Secrets, database details, internal versions, file paths, and provider configura
 
 ## OpenAPI
 
-The committed artifact is `openapi/openapi.json`. It is generated from the real Fastify route registrations by `pnpm openapi:generate` and checked in CI by `pnpm openapi:check`. Routes tagged `internal` are excluded, so health endpoints do not appear in the public contract.
+The committed artifact for shared routes is `openapi/openapi.json`. It is generated from the real Fastify route registrations by `pnpm openapi:generate` and checked in CI by `pnpm openapi:check`. Routes tagged `internal` are excluded, so health endpoints do not appear in the public contract.
+
+Demo-local routes must not be added to that shared artifact. M9a generates a separate `apps/demo-ecommerce/openapi/demo-openapi.json` from the demo's real route registrations and checks it with `pnpm demo:ecommerce:openapi:check`. The same demo composition supplies a generated typed client for its cart routes; shared routes remain the public SDK's responsibility.
 
 ## Deferred
 
-M6 added real authentication, sessions, CSRF enforcement, and authorization data. M7 added an OpenAPI-derived `fetch` client; M8 adds catalog, product, inventory, and order routes to that contract. The adapter still does not add durable rate limiting or a Redis dependency. See [`m8.md`](./m8.md) for domain routes and [`sdk.md`](./sdk.md) for the client boundary.
+M6 added real authentication, sessions, CSRF enforcement, and authorization data. M7 added an OpenAPI-derived `fetch` client; M8 adds catalog, product, inventory, and order routes to that contract. M9a adds app-local cart routes and a separate demo contract, but no payment capture. The adapter still does not add durable rate limiting or a Redis dependency. See [`m8.md`](./m8.md) for shared domain routes, [`m9.md`](./m9.md) for the demo and payment seam, and [`sdk.md`](./sdk.md) for the client boundary.

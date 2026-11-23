@@ -117,9 +117,14 @@ try {
 
 - `examples/frontend-vanilla` — DOM API example using `textContent`.
 - `examples/frontend-react` — small React component using the same client.
+- `apps/demo-ecommerce` — M9a storefront using the SDK for every shared route and an app-local typed client only for demo cart routes.
 
-Both examples compile in CI and use only the SDK for backend communication.
+All examples compile in CI. The M9a storefront demonstrates the generated product-expansion types: `products.getAll()` forces `expand=product`, so `details.product` is typed without a cast.
+
+## Demo-local routes
+
+The public SDK intentionally does not contain demo-specific cart or restaurant routes. M9a generates a separate OpenAPI document and typed client under `apps/demo-ecommerce`; those files are checked with `pnpm demo:ecommerce:openapi:check` and `pnpm demo:ecommerce:client:check`. The demo passes the CSRF token from an SDK auth response into its cart client because the SDK keeps its own CSRF token private.
 
 ## Current limitation
 
-The SDK covers committed M8 routes only. It does not implement payment capture, guest checkout, admin operations, or demo-local cart/menu routes. Order pricing remains server-authoritative: the SDK exposes optional amount fields from the generated body type for protocol compatibility, but the server rejects them when a price resolver is enabled.
+The SDK covers committed shared routes only. It does not implement payment capture, guest checkout, admin operations, or demo-local cart/menu routes. Order pricing remains server-authoritative: the SDK exposes optional amount fields from the generated body type for protocol compatibility, but the server rejects them when a price resolver is enabled. M9a checkout stops at order confirmation and does not capture payment.

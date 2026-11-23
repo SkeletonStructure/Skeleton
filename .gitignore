@@ -7,3 +7,5 @@ coverage/
 !.env.example
 *.log
 .DS_Store
+apps/demo-ecommerce/test-results/
+apps/demo-ecommerce/playwright-report/
