@@ -13,6 +13,9 @@
     "format": "biome format --write .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:contract": "vitest run packages/sdk/tests/contract.test.ts",
+    "sdk:generate": "node scripts/generate-sdk.mjs",
+    "sdk:check": "node scripts/check-sdk.mjs",
     "config:docs": "tsc -b packages/core && node scripts/generate-config-reference.mjs",
     "skeleton": "node scripts/skeleton.mjs",
     "db:generate": "drizzle-kit generate --config drizzle.config.ts",
@@ -23,7 +26,7 @@
     "openapi:generate": "tsc -b && node scripts/generate-openapi.mjs",
     "openapi:check": "tsc -b && node scripts/check-openapi.mjs",
     "test:integration": "vitest run packages/core/tests/database/integration.test.ts",
-    "ci": "pnpm typecheck && pnpm lint && pnpm test"
+    "ci": "pnpm typecheck && pnpm lint && pnpm test && pnpm test:contract && pnpm sdk:check"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.6.8",

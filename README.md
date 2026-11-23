@@ -4,7 +4,7 @@ A self-hosted, MIT-licensed backend foundation built as a modular monolith. This
 
 ## Status
 
-- Milestone M6 — authentication and authorization modules.
+- Milestone M7 — OpenAPI-derived frontend SDK and examples.
 - No production-readiness claim. Security review and release verification happen in milestone M10.
 
 ## Quick start
@@ -27,8 +27,11 @@ pnpm test
 | `lint`              | `biome check .`                                                      | Format check and lint                    |
 | `format`            | `biome format --write .`                                             | Apply formatting                         |
 | `test`              | `vitest run`                                                         | Run all unit and integration tests       |
+| `test:contract`     | `vitest run packages/sdk/tests/contract.test.ts`                     | Run SDK boundary/contract tests          |
 | `test:integration`  | `vitest run packages/core/tests/database/integration.test.ts`        | Run the core PostgreSQL container test   |
 | `test:watch`        | `vitest`                                                             | Run tests in watch mode                  |
+| `sdk:generate`      | `node scripts/generate-sdk.mjs`                                      | Regenerate SDK types from OpenAPI        |
+| `sdk:check`         | `node scripts/check-sdk.mjs`                                         | Verify committed SDK types are current   |
 | `config:docs`       | `tsc -b packages/core && node scripts/generate-config-reference.mjs` | Regenerate the config reference          |
 | `db:generate`       | `drizzle-kit generate --config drizzle.config.ts`                    | Generate a reviewed core migration       |
 | `db:generate:users` | `drizzle-kit generate --config drizzle.users.config.ts`              | Generate a reviewed users migration      |
@@ -118,7 +121,7 @@ await app.listen({ host: config.server.host, port: config.server.port });
 
 `GET /health/live` checks only process responsiveness. `GET /health/ready` returns `503` with a short reason code when config, database, migration, or injected readiness checks fail. `GET /v1/config/public` exposes only the frontend-safe allowlist.
 
-M6 implements sessions, login, CSRF, roles/permissions, and password reset behind that boundary. Protected routes still deny by default unless an injected authenticator supplies a principal; disabled auth modules register no routes rather than making them public. See [`docs/api.md`](./docs/api.md) for HTTP details and [`docs/auth.md`](./docs/auth.md) for the authentication model, security trade-offs, and cleanup.
+M6 implements sessions, login, CSRF, roles/permissions, and password reset behind that boundary. Protected routes still deny by default unless an injected authenticator supplies a principal; disabled auth modules register no routes rather than making them public. M7 adds a small OpenAPI-derived client for these public endpoints; catalog/orders namespaces wait for the real M8 contracts. See [`docs/api.md`](./docs/api.md) for HTTP details, [`docs/auth.md`](./docs/auth.md) for the authentication model, and [`docs/sdk.md`](./docs/sdk.md) for client usage.
 
 ## Layout
 
@@ -126,7 +129,9 @@ M6 implements sessions, login, CSRF, roles/permissions, and password reset behin
 packages/core/       mandatory core infrastructure: config, database, modules, API, security
 packages/module-users/ optional user identity, profiles, roles, and permissions
 packages/module-auth/  optional sessions, login, CSRF, and password reset
-apps/                demonstration applications (added in M9)
+packages/sdk/          OpenAPI-derived browser-safe client and typed errors
+examples/              frontend-vanilla and frontend-react SDK examples
+apps/                  demonstration applications (added in M9)
 templates/           starter application template
 docs/config/         generated configuration reference
 docs/database.md     database infrastructure guide
@@ -147,6 +152,7 @@ skeleton.config.example.ts  example typed config
 - `docs/modules.md` — module contract, composition, lifecycle, and activation report.
 - `docs/api.md` — server composition, error model, permission hook, health, CORS, rate limits, and OpenAPI.
 - `docs/auth.md` — authentication, sessions, CSRF, password reset, authorization model, and cleanup.
+- `docs/sdk.md` — SDK initialization, auth/CSRF behavior, typed errors, and current limitations.
 - `docs/architecture/adr/` — architecture decision records.
 
 The authoritative engineering blueprint lives in the `SkeletonStructure-blueprint` workspace during bootstrap and will be imported into `docs/architecture/` as the repository matures.

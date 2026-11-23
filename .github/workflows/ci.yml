@@ -33,14 +33,23 @@ jobs:
       - name: Type-check
         run: pnpm typecheck
 
+      - name: Type-check SDK and examples
+        run: pnpm exec tsc -b packages/sdk examples/frontend-vanilla examples/frontend-react --pretty false
+
       - name: Lint and format check
         run: pnpm lint
 
       - name: Check OpenAPI artifact
         run: pnpm openapi:check
 
+      - name: Check generated SDK types
+        run: pnpm sdk:check
+
       - name: Test
         run: pnpm test
+
+      - name: Contract tests
+        run: pnpm test:contract
 
       - name: Dependency audit
         run: pnpm audit --audit-level=high

@@ -97,4 +97,4 @@ The committed artifact is `openapi/openapi.json`. It is generated from the real 
 
 ## Deferred
 
-M6 added real authentication, sessions, CSRF enforcement, and authorization data. M7+ add SDK generation, application modules, and domain routes. The adapter still does not add durable rate limiting or a Redis dependency.
+M6 added real authentication, sessions, CSRF enforcement, and authorization data. M7 added an OpenAPI-derived `fetch` client for these public routes; M8+ add application modules and domain routes. The adapter still does not add durable rate limiting or a Redis dependency. See [`sdk.md`](./sdk.md) for the client boundary.

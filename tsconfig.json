@@ -13,6 +13,9 @@
   "references": [
     { "path": "./packages/core" },
     { "path": "./packages/module-users" },
-    { "path": "./packages/module-auth" }
+    { "path": "./packages/module-auth" },
+    { "path": "./packages/sdk" },
+    { "path": "./examples/frontend-vanilla" },
+    { "path": "./examples/frontend-react" }
   ]
 }
