@@ -17,6 +17,10 @@
     "./database": {
       "types": "./dist/src/database/index.d.ts",
       "import": "./dist/src/database/index.js"
+    },
+    "./modules": {
+      "types": "./dist/src/modules/index.d.ts",
+      "import": "./dist/src/modules/index.js"
     }
   },
   "dependencies": {

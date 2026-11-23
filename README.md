@@ -4,7 +4,7 @@ A self-hosted, MIT-licensed backend foundation built as a modular monolith. This
 
 ## Status
 
-- Milestone M3 — PostgreSQL database infrastructure.
+- Milestone M4 — Core architecture and module registry.
 - No production-readiness claim. Security review and release verification happen in milestone M10.
 
 ## Quick start
@@ -80,6 +80,23 @@ try {
 
 Migrations are explicit: use `pnpm db:generate` to create reviewed SQL and `pnpm db:migrate` to apply it. The baseline migration contains no application tables. See [`docs/database.md`](./docs/database.md) for lifecycle, transactions, health semantics, migration workflow, and limitations.
 
+## Modules
+
+Optional modules are static, explicitly composed, and disabled unless enabled under `config.modules`. The registry validates definitions and dependencies, activates enabled modules in dependency order, and returns a redacted activation report. Core never imports a module, and modules receive only a controlled context containing config, the shared database, permission/route registrars, and declared dependency APIs.
+
+```ts
+import { composeModuleRegistry } from '@skeletonstructure/core/modules';
+
+const registry = composeModuleRegistry({
+  appConfig: config,
+  modules: [usersModule, catalogModule],
+});
+
+const report = await registry.activate();
+```
+
+M4 route registration is an in-memory contract for startup validation; Fastify, global hooks, and HTTP listening arrive in M5. See [`docs/modules.md`](./docs/modules.md) for the full contract, lifecycle, and failure modes.
+
 ## Layout
 
 ```text
@@ -88,6 +105,7 @@ apps/                demonstration applications (added in M9)
 templates/           starter application template
 docs/config/         generated configuration reference
 docs/database.md     database infrastructure guide
+docs/modules.md      module contract and registry guide
 docs/architecture/   architecture records and ADRs
 openapi/             generated public OpenAPI artifact (added in M5)
 .env.example         documented environment variables
@@ -100,6 +118,7 @@ skeleton.config.example.ts  example typed config
 - `SECURITY.md` — private vulnerability reporting and limitations.
 - `docs/config/reference.md` — every configuration field, default, and env var.
 - `docs/database.md` — database lifecycle, usage, migrations, and health checks.
+- `docs/modules.md` — module contract, composition, lifecycle, and activation report.
 - `docs/architecture/adr/` — architecture decision records.
 
 The authoritative engineering blueprint lives in the `SkeletonStructure-blueprint` workspace during bootstrap and will be imported into `docs/architecture/` as the repository matures.
