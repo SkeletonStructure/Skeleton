@@ -5,6 +5,7 @@ import type { Authenticator } from './types.js';
 
 interface RouteConfigLike {
   readonly permission?: unknown;
+  readonly requireAuth?: unknown;
 }
 
 /** Reads permission metadata attached by route registration. */
@@ -13,6 +14,11 @@ export function routePermission(request: FastifyRequest): string | undefined {
   return typeof config?.permission === 'string' && config.permission.length > 0
     ? config.permission
     : undefined;
+}
+
+function routeRequiresAuth(request: FastifyRequest): boolean {
+  const config = request.routeOptions.config as RouteConfigLike | undefined;
+  return config?.requireAuth === true;
 }
 
 /**
@@ -25,13 +31,13 @@ export function createPermissionGuard(authenticator: Authenticator | undefined) 
     _reply: FastifyReply,
   ): Promise<void> {
     const permission = routePermission(request);
-    if (permission === undefined) return;
+    if (permission === undefined && !routeRequiresAuth(request)) return;
 
     const principal = await authenticator?.authenticate(request);
     if (principal === undefined) {
       throw new HttpError({ status: 401, code: 'UNAUTHENTICATED' });
     }
-    if (!principal.permissions.includes(permission)) {
+    if (permission !== undefined && !principal.permissions.includes(permission)) {
       throw new HttpError({ status: 403, code: 'FORBIDDEN' });
     }
 

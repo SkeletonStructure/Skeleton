@@ -103,12 +103,14 @@ HTTP health endpoints are provided by the M5 API adapter; see [`api.md`](./api.m
 
 ## Migrations
 
-Migration SQL lives in `packages/core/migrations/` and is applied by Drizzle Kit's PostgreSQL migrator. The committed `0000_core_baseline` migration is intentionally empty: it establishes the workflow without introducing application tables.
+Core migration SQL lives in `packages/core/migrations/`. The committed `0000_core_baseline` migration is intentionally empty: it establishes the workflow without introducing application tables. M6 modules own their SQL in `packages/module-users/migrations/` and `packages/module-auth/migrations/`.
 
 Generate a reviewed SQL migration:
 
 ```bash
 pnpm db:generate --custom --name=add_example_table
+pnpm db:generate:users --custom --name=add_users_field
+pnpm db:generate:auth --custom --name=add_auth_index
 ```
 
 Apply migrations explicitly:
@@ -119,21 +121,21 @@ pnpm db:migrate
 pnpm skeleton db migrate
 ```
 
-`pnpm db:migrate` loads the same validated configuration as the application, initializes the shared database, applies migrations, and closes the pool. Production must not auto-migrate on startup; migration remains an explicit operator action.
+`pnpm db:migrate` loads the same validated configuration as the application, initializes the shared database, applies core, users, then auth migrations in dependency order, and closes the pool. `runAuthUsersMigrations(database)` is the programmatic equivalent. Production must not auto-migrate on startup; migration remains an explicit operator action.
 
 The runner obtains a dedicated client from the shared pool, takes a PostgreSQL advisory lock, applies migrations on that same client, then releases the lock and client. Concurrent migration processes therefore cannot race. Drizzle's internal `drizzle.__drizzle_migrations` table is the only table created by the baseline workflow.
 
-Module-owned tables and migrations will be added with their modules in later milestones. Disabling a module does not drop its tables. Destructive migration policy and readiness enforcement for enabled modules will be implemented with the module registry and deployment workflow; they are not claimed in M3.
+Module-owned tables and migrations arrived in M6. Disabling a module does not drop its tables. Auth sessions and password-reset tokens have a separate explicit cleanup job (`pnpm auth:cleanup`); destructive migration policy and deployment readiness enforcement are still operator responsibilities.
 
 ## Testing
 
-Ordinary unit tests use injected fake pools and migrators and do not require PostgreSQL. The integration test uses Testcontainers with `postgres:16-alpine` and verifies:
+Ordinary unit tests use injected fake pools and migrators and do not require PostgreSQL. Integration tests use Testcontainers with `postgres:16-alpine` and verify:
 
 - initialization against a real database;
-- fresh migration;
-- no-op re-run;
-- readiness health;
-- clean pool shutdown.
+- fresh migration and no-op re-run;
+- readiness health and clean pool shutdown;
+- users module constraints and ownership checks;
+- auth flows, session rotation, CSRF, reset tokens, and the authorization matrix.
 
 Run only that test with:
 
@@ -143,7 +145,7 @@ pnpm test:integration
 
 ## Known limitations
 
-- No module registry or per-module migration state exists yet.
+- Module migration ordering is explicit in the composition/migration script; there is no automatic discovery.
 - No destructive-migration flag or readiness gate for pending module migrations exists yet.
-- No HTTP health endpoints exist yet.
-- Backups, restore drills, and least-privilege database roles remain operator responsibilities.
+- HTTP health endpoints exist but do not report per-module migration state.
+- Backups, restore drills, least-privilege database roles, and cleanup scheduling remain operator responsibilities.

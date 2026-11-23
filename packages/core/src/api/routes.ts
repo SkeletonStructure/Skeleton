@@ -54,7 +54,9 @@ export async function registerResolvedRoutes(
           schema: withErrorSchemas(route.schema),
           config: {
             ...(route.permission === undefined ? {} : { permission: route.permission }),
+            ...(route.requireAuth === true ? { requireAuth: true } : {}),
             ...(route.moduleId === undefined ? {} : { moduleId: route.moduleId }),
+            ...(route.rateLimit === undefined ? {} : { rateLimit: route.rateLimit }),
           },
           handler: async (request, reply) => {
             const result = await route.handler(request, reply);

@@ -1,30 +1,27 @@
 # API infrastructure
 
-M5 adds the HTTP adapter around the existing M2 config, M3 database, and M4 module registry. It exposes core HTTP infrastructure only; it does not add application modules, sessions, or login flows.
+M5 added the HTTP adapter around the existing M2 config, M3 database, and M4 module registry. M6 keeps that adapter unchanged in purpose and supplies the optional `users` and `auth` modules that implement sessions, login, CSRF, and authorization. It still exposes only core HTTP infrastructure; module behavior lives in module packages.
 
 ## Composition
 
 ```ts
 import { loadConfig } from '@skeletonstructure/core/config';
 import { initializeDatabase } from '@skeletonstructure/core/database';
-import { composeModuleRegistry } from '@skeletonstructure/core/modules';
 import { createServer } from '@skeletonstructure/core/api';
+import { createAuthUsersComposition } from '@skeletonstructure/module-auth';
 
 const appConfig = await loadConfig();
 const database = await initializeDatabase(appConfig.database);
 
-const registry = composeModuleRegistry({
-  appConfig,
-  database,
-  modules: [], // explicit application composition in later milestones
-});
-const activationReport = await registry.activate();
+const composition = await createAuthUsersComposition({ appConfig, database });
 
 const app = await createServer({
   appConfig,
-  activationReport,
+  activationReport: composition.activationReport,
   database,
-  routeHandlers: [], // handlers for routes declared by activated modules
+  routeHandlers: composition.routeHandlers,
+  authenticator: composition.authenticator,
+  csrfGuard: composition.csrfGuard,
 });
 
 await app.listen({ host: appConfig.server.host, port: appConfig.server.port });
@@ -47,26 +44,27 @@ await app.listen({ host: appConfig.server.host, port: appConfig.server.port });
 
 ## Auth and permission hook
 
-M5 does not implement authentication. It defines the boundary that M6 will satisfy:
+An injected `Authenticator` resolves a request principal. M6's `auth` module provides one backed by opaque database sessions:
 
 ```ts
 await createServer({
   appConfig,
   activationReport,
   database,
-  authenticator: {
-    authenticate: async (request) => ({ id: 'user_123', permissions: ['catalog:read'] }),
-  },
+  authenticator: composition.authenticator,
+  csrfGuard: composition.csrfGuard,
 });
 ```
 
-Routes with a declared permission are guarded globally before the handler runs. Missing or invalid authentication returns `401 UNAUTHENTICATED`; an authenticated principal without the permission returns `403 FORBIDDEN`. Routes that declare an unknown permission cause startup to fail.
+Routes with a declared permission are guarded globally before the handler runs. Routes marked `requireAuth: true` require a principal but no permission key. Missing or invalid authentication returns `401 UNAUTHENTICATED`; an authenticated principal without the permission returns `403 FORBIDDEN`. Routes that declare an unknown permission cause startup to fail.
+
+The optional `csrfGuard` is applied globally to unsafe methods (`POST`, `PUT`, `PATCH`, `DELETE`) before the permission guard. It only challenges requests that present the session cookie; bearer-authenticated clients are not subject to the cookie CSRF check. See [`auth.md`](./auth.md) for the full session, CSRF, and authorization model.
 
 ## CORS and rate limiting
 
 CORS uses the existing M2 `security.cors` config. Origins must be exact `http(s)` origins. Wildcard origins are rejected, including when credentials are disabled. When no origins are configured, cross-origin headers are not emitted.
 
-Rate limiting uses `security.rateLimit` and is per-process in v0.1. Multi-instance deployments need a shared limiter before production scale. Limit breaches return `429 RATE_LIMITED` with the standard error envelope.
+Rate limiting uses `security.rateLimit` and is per-process in v0.1. Auth and password-reset routes declare a stricter per-route limit (10 requests per minute). Multi-instance deployments need a shared limiter before production scale. Limit breaches return `429 RATE_LIMITED` with the standard error envelope.
 
 ## Health endpoints
 
@@ -85,7 +83,7 @@ Migration state is injected as a `ReadinessCheck`; M5 does not create a new migr
     "appName": "SkeletonStructure",
     "apiBaseUrl": "/v1",
     "authMode": "session",
-    "publicModules": []
+    "publicModules": ["users", "auth"]
   },
   "meta": { "requestId": "req_..." }
 }
@@ -99,4 +97,4 @@ The committed artifact is `openapi/openapi.json`. It is generated from the real 
 
 ## Deferred
 
-M6 adds real authentication, sessions, CSRF enforcement, and authorization data. M7+ add SDK generation, application modules, and domain routes. M5 deliberately does not add a user model, durable rate limiting, or a Redis dependency.
+M6 added real authentication, sessions, CSRF enforcement, and authorization data. M7+ add SDK generation, application modules, and domain routes. The adapter still does not add durable rate limiting or a Redis dependency.

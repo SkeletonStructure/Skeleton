@@ -3,6 +3,16 @@
   "compilerOptions": {
     "noEmit": true
   },
-  "files": ["drizzle.config.ts", "vitest.config.ts", "skeleton.config.example.ts"],
-  "references": [{ "path": "./packages/core" }]
+  "files": [
+    "drizzle.config.ts",
+    "drizzle.users.config.ts",
+    "drizzle.auth.config.ts",
+    "vitest.config.ts",
+    "skeleton.config.example.ts"
+  ],
+  "references": [
+    { "path": "./packages/core" },
+    { "path": "./packages/module-users" },
+    { "path": "./packages/module-auth" }
+  ]
 }

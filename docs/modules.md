@@ -1,6 +1,6 @@
 # Module registry guide
 
-M4 introduces the module contract, a static composition helper, dependency/port validation, lifecycle ordering, and a redacted activation report. It does not add Fastify, HTTP listening, application modules, or domain functionality. M5 consumes the report to register routes in the API adapter; see [`api.md`](./api.md).
+M4 introduces the module contract, a static composition helper, dependency/port validation, lifecycle ordering, and a redacted activation report. M5 consumes the report to register routes in the API adapter. M6 supplies the first application modules, `users` and `auth`, without changing core's module boundary; see [`api.md`](./api.md) and [`auth.md`](./auth.md).
 
 ## Contract
 
@@ -20,7 +20,7 @@ Every optional module exports one `ModuleDefinition` from its `contract.ts`:
 | `register`     | Startup hook that receives the controlled `ModuleContext`.        |
 | `publicApi`    | In-process API returned by `ctx.use()` or a resolved port.        |
 
-`README.md` and module migrations, events, health contributors, and route handlers remain module-owned concerns in later milestones.
+A module package also owns its `README.md`, SQL migrations, schema, route handlers, and public API implementation. M6's `users` and `auth` packages follow that pattern: core defines the contracts, while the modules own the tables and use cases.
 
 ## Enablement and composition
 
@@ -39,6 +39,8 @@ const report = await registry.activate();
 ```
 
 `composeModuleRegistry()` delegates to `createModuleRegistry()` and `register()` for each explicit definition. A configured module that is enabled but not registered, duplicate definitions, and invalid definitions fail before activation. Disabled entries from M2 defaults are ignored.
+
+For the M6 pair, `createAuthUsersComposition()` from `@skeletonstructure/module-auth` performs the static composition in the correct order, returns the activation report, filters route handlers to those actually declared, and exposes the authenticator and CSRF guard for M5. Applications may still assemble their own explicit module list; core never discovers modules from disk.
 
 ## Activation lifecycle
 

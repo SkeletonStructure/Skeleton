@@ -1,3 +1,4 @@
+import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
 import swagger from '@fastify/swagger';
@@ -23,6 +24,14 @@ export async function createServer(options: ApiServerOptions): Promise<FastifyIn
     request.requestId = newRequestId();
     reply.header('x-request-id', request.requestId);
   });
+  const csrfGuard = resolved.csrfGuard;
+  if (csrfGuard !== undefined) {
+    app.addHook('preHandler', async (request) => {
+      if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method)) {
+        await csrfGuard.verify(request);
+      }
+    });
+  }
   app.addHook('preHandler', createPermissionGuard(resolved.authenticator));
 
   app.setErrorHandler((error, request, reply) => {
@@ -36,6 +45,8 @@ export async function createServer(options: ApiServerOptions): Promise<FastifyIn
     );
     reply.code(mapped.statusCode).send(mapped.body);
   });
+
+  await app.register(cookie);
 
   const corsConfig = resolved.appConfig.security.cors;
   await app.register(cors, {

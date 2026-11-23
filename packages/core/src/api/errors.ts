@@ -53,6 +53,7 @@ const SAFE_MESSAGES: Readonly<Record<ApiErrorCode, string>> = {
 export interface ApiErrorOptions {
   readonly status: number;
   readonly code: ApiErrorCode;
+  /** Safe, caller-facing message. Defaults to the stable message for the code. */
   readonly message?: string;
   readonly details?: readonly ValidationDetail[];
   readonly cause?: unknown;
@@ -62,16 +63,16 @@ export interface ApiErrorOptions {
 export class ApiError extends Error {
   readonly status: number;
   readonly code: ApiErrorCode;
+  readonly publicMessage?: string;
   readonly details?: readonly ValidationDetail[];
 
   constructor(options: ApiErrorOptions) {
-    super(
-      options.message ?? SAFE_MESSAGES[options.code],
-      options.cause === undefined ? undefined : { cause: options.cause },
-    );
+    const message = options.message ?? SAFE_MESSAGES[options.code];
+    super(message, options.cause === undefined ? undefined : { cause: options.cause });
     this.name = 'ApiError';
     this.status = options.status;
     this.code = options.code;
+    if (options.message !== undefined) this.publicMessage = message;
     if (options.details !== undefined) this.details = options.details;
   }
 }
@@ -138,11 +139,12 @@ function errorBody(
   code: ApiErrorCode,
   requestId: string,
   details?: readonly ValidationDetail[],
+  message?: string,
 ): ApiErrorBody {
   return {
     error: {
       code,
-      message: SAFE_MESSAGES[code],
+      message: message ?? SAFE_MESSAGES[code],
       ...(details === undefined ? {} : { details }),
       requestId,
     },
@@ -154,7 +156,7 @@ export function mapRequestError(error: unknown, requestId: string): MappedError 
   if (error instanceof ApiError) {
     return {
       statusCode: error.status,
-      body: errorBody(error.code, requestId, error.details),
+      body: errorBody(error.code, requestId, error.details, error.publicMessage),
     };
   }
 

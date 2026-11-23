@@ -26,9 +26,22 @@ export interface ApiRouteDefinition {
   readonly method: ModuleHttpMethod;
   readonly path: string;
   readonly permission?: string;
+  /** Authentication-only routes: no permission key, but a principal is required. */
+  readonly requireAuth?: boolean;
   readonly moduleId?: string;
+  readonly rateLimit?: RouteRateLimit;
   readonly schema?: FastifySchema;
   readonly handler: ApiRouteHandler;
+}
+
+export interface CsrfGuard {
+  /** Throws an HttpError when a cookie-authenticated mutation lacks a valid token. */
+  verify(request: FastifyRequest): Promise<void> | void;
+}
+
+export interface RouteRateLimit {
+  readonly max: number;
+  readonly timeWindow: number | string;
 }
 
 export interface HealthResult {
@@ -61,6 +74,8 @@ export interface ApiServerOptions {
   readonly activationReport?: ActivationReport;
   readonly database?: Database;
   readonly authenticator?: Authenticator;
+  /** Optional CSRF policy supplied by an authentication module. */
+  readonly csrfGuard?: CsrfGuard;
   /** Handlers for routes declared by the M4 activation report. */
   readonly routeHandlers?: readonly ApiRouteDefinition[];
   /** Additional readiness checks, including future module health contributors. */
@@ -74,6 +89,7 @@ export interface ResolvedApiServerOptions {
   readonly activationReport: ActivationReport;
   readonly database: Database | undefined;
   readonly authenticator: Authenticator | undefined;
+  readonly csrfGuard: CsrfGuard | undefined;
   readonly routeHandlers: readonly ApiRouteDefinition[];
   readonly readinessChecks: readonly ReadinessCheck[];
   readonly migrationCheck: ReadinessCheck | undefined;

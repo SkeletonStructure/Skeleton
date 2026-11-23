@@ -25,12 +25,18 @@
     "./modules": {
       "types": "./dist/src/modules/index.d.ts",
       "import": "./dist/src/modules/index.js"
+    },
+    "./security": {
+      "types": "./dist/src/security/index.d.ts",
+      "import": "./dist/src/security/index.js"
     }
   },
   "dependencies": {
+    "@fastify/cookie": "^11.1.5",
     "@fastify/cors": "^11.4.3",
     "@fastify/rate-limit": "^11.3.0",
     "@fastify/swagger": "^9.9.5",
+    "@node-rs/argon2": "^2.2.2",
     "dotenv": "^18.0.10",
     "drizzle-orm": "^0.45.4",
     "fastify": "^5.12.8",

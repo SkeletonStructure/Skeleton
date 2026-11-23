@@ -4,7 +4,7 @@ A self-hosted, MIT-licensed backend foundation built as a modular monolith. This
 
 ## Status
 
-- Milestone M5 — API infrastructure and module registry.
+- Milestone M6 — authentication and authorization modules.
 - No production-readiness claim. Security review and release verification happen in milestone M10.
 
 ## Quick start
@@ -21,20 +21,23 @@ pnpm test
 
 ## Scripts
 
-| Script             | Command                                                              | Purpose                            |
-| ------------------ | -------------------------------------------------------------------- | ---------------------------------- |
-| `typecheck`        | `tsc -b --pretty false`                                              | Type-check all TypeScript projects |
-| `lint`             | `biome check .`                                                      | Format check and lint              |
-| `format`           | `biome format --write .`                                             | Apply formatting                   |
-| `test`             | `vitest run`                                                         | Run all unit and integration tests |
-| `test:integration` | `vitest run packages/core/tests/database/integration.test.ts`        | Run the PostgreSQL container test  |
-| `test:watch`       | `vitest`                                                             | Run tests in watch mode            |
-| `config:docs`      | `tsc -b packages/core && node scripts/generate-config-reference.mjs` | Regenerate the config reference    |
-| `db:generate`      | `drizzle-kit generate --config drizzle.config.ts`                    | Generate a reviewed SQL migration  |
-| `db:migrate`       | `tsc -b packages/core && node scripts/skeleton.mjs db migrate`       | Apply migrations explicitly        |
-| `openapi:generate` | `tsc -b packages/core && node scripts/generate-openapi.mjs`          | Regenerate the public OpenAPI file |
-| `openapi:check`    | `tsc -b packages/core && node scripts/check-openapi.mjs`             | Verify the committed OpenAPI file  |
-| `ci`               | `pnpm typecheck && pnpm lint && pnpm test`                           | Full local verification            |
+| Script              | Command                                                              | Purpose                                  |
+| ------------------- | -------------------------------------------------------------------- | ---------------------------------------- |
+| `typecheck`         | `tsc -b --pretty false`                                              | Type-check all TypeScript projects       |
+| `lint`              | `biome check .`                                                      | Format check and lint                    |
+| `format`            | `biome format --write .`                                             | Apply formatting                         |
+| `test`              | `vitest run`                                                         | Run all unit and integration tests       |
+| `test:integration`  | `vitest run packages/core/tests/database/integration.test.ts`        | Run the core PostgreSQL container test   |
+| `test:watch`        | `vitest`                                                             | Run tests in watch mode                  |
+| `config:docs`       | `tsc -b packages/core && node scripts/generate-config-reference.mjs` | Regenerate the config reference          |
+| `db:generate`       | `drizzle-kit generate --config drizzle.config.ts`                    | Generate a reviewed core migration       |
+| `db:generate:users` | `drizzle-kit generate --config drizzle.users.config.ts`              | Generate a reviewed users migration      |
+| `db:generate:auth`  | `drizzle-kit generate --config drizzle.auth.config.ts`               | Generate a reviewed auth migration       |
+| `db:migrate`        | `tsc -b && node scripts/migrate-modules.mjs`                         | Apply core, users, then auth migrations  |
+| `auth:cleanup`      | `tsc -b && node scripts/cleanup-sessions.mjs`                        | Remove expired sessions and reset tokens |
+| `openapi:generate`  | `tsc -b && node scripts/generate-openapi.mjs`                        | Regenerate the public OpenAPI file       |
+| `openapi:check`     | `tsc -b && node scripts/check-openapi.mjs`                           | Verify the committed OpenAPI file        |
+| `ci`                | `pnpm typecheck && pnpm lint && pnpm test`                           | Full local verification                  |
 
 ## Configuration
 
@@ -80,7 +83,7 @@ try {
 }
 ```
 
-Migrations are explicit: use `pnpm db:generate` to create reviewed SQL and `pnpm db:migrate` to apply it. The baseline migration contains no application tables. See [`docs/database.md`](./docs/database.md) for lifecycle, transactions, health semantics, migration workflow, and limitations.
+Migrations are explicit and module-owned: use `pnpm db:generate`, `pnpm db:generate:users`, or `pnpm db:generate:auth` to create reviewed SQL. `pnpm db:migrate` applies core, users, then auth migrations in dependency order. The baseline migration contains no application tables. See [`docs/database.md`](./docs/database.md) for lifecycle, transactions, health semantics, migration workflow, and limitations.
 
 ## Modules
 
@@ -97,7 +100,7 @@ const registry = composeModuleRegistry({
 const report = await registry.activate();
 ```
 
-Module route and permission declarations are validated before HTTP startup. M5 wires declared routes into Fastify; application modules still arrive in later milestones. See [`docs/modules.md`](./docs/modules.md) for the full contract, lifecycle, and failure modes.
+Module route and permission declarations are validated before HTTP startup. M5 wires declared routes into Fastify; M6 supplies the optional `users` and `auth` modules and a static composition helper. See [`docs/modules.md`](./docs/modules.md) for the full contract, lifecycle, and failure modes.
 
 ## API
 
@@ -115,12 +118,14 @@ await app.listen({ host: config.server.host, port: config.server.port });
 
 `GET /health/live` checks only process responsiveness. `GET /health/ready` returns `503` with a short reason code when config, database, migration, or injected readiness checks fail. `GET /v1/config/public` exposes only the frontend-safe allowlist.
 
-M5 defines the authentication boundary but does not implement sessions or login. Protected routes deny by default unless an injected authenticator supplies a principal with the declared permission; real authentication and authorization are M6. See [`docs/api.md`](./docs/api.md) for envelopes, error codes, CORS, health, and OpenAPI details.
+M6 implements sessions, login, CSRF, roles/permissions, and password reset behind that boundary. Protected routes still deny by default unless an injected authenticator supplies a principal; disabled auth modules register no routes rather than making them public. See [`docs/api.md`](./docs/api.md) for HTTP details and [`docs/auth.md`](./docs/auth.md) for the authentication model, security trade-offs, and cleanup.
 
 ## Layout
 
 ```text
-packages/core/       mandatory core infrastructure: config, database, modules, API
+packages/core/       mandatory core infrastructure: config, database, modules, API, security
+packages/module-users/ optional user identity, profiles, roles, and permissions
+packages/module-auth/  optional sessions, login, CSRF, and password reset
 apps/                demonstration applications (added in M9)
 templates/           starter application template
 docs/config/         generated configuration reference
@@ -141,6 +146,7 @@ skeleton.config.example.ts  example typed config
 - `docs/database.md` — database lifecycle, usage, migrations, and health checks.
 - `docs/modules.md` — module contract, composition, lifecycle, and activation report.
 - `docs/api.md` — server composition, error model, permission hook, health, CORS, rate limits, and OpenAPI.
+- `docs/auth.md` — authentication, sessions, CSRF, password reset, authorization model, and cleanup.
 - `docs/architecture/adr/` — architecture decision records.
 
 The authoritative engineering blueprint lives in the `SkeletonStructure-blueprint` workspace during bootstrap and will be imported into `docs/architecture/` as the repository matures.

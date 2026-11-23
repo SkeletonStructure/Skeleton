@@ -248,6 +248,7 @@ export function resolveApiServerOptions(options: ApiServerOptions): ResolvedApiS
     activationReport,
     database: options.database,
     authenticator: options.authenticator,
+    csrfGuard: options.csrfGuard,
     routeHandlers,
     readinessChecks,
     migrationCheck: options.migrationCheck,

@@ -46,6 +46,7 @@ export type {
   ApiRouteHandler,
   ApiServerOptions,
   Authenticator,
+  CsrfGuard,
   HealthResult,
   PublicConfig,
   ReadinessCheck,
@@ -53,4 +54,5 @@ export type {
   ReadinessReport,
   RequestPrincipal,
   ResolvedApiServerOptions,
+  RouteRateLimit,
 } from './types.js';
