@@ -1,6 +1,6 @@
 # Frontend SDK
 
-M7 adds `@skeletonstructure/sdk`, a small browser-safe HTTP client for the public API. It is generated from the committed `openapi/openapi.json` contract plus a hand-written `fetch` wrapper. It has no server dependencies and never reads server configuration or environment variables.
+M7 introduced `@skeletonstructure/sdk`, a small browser-safe HTTP client for the public API. M8 extends it with catalog, products, inventory, and orders namespaces. Types are generated from the committed `openapi/openapi.json` contract plus a hand-written `fetch` wrapper. It has no server dependencies and never reads server configuration or environment variables.
 
 ## Installation and generation
 
@@ -50,7 +50,21 @@ await Skeleton.auth.logout();
 
 await Skeleton.users.getMe();
 await Skeleton.users.updateMe({ displayName });
+
+const products = await Skeleton.products.getAll({ limit: 5 });
+products.data.items[0]?.details.product.sku;
+
+await Skeleton.inventory.set(itemId, { quantity: 10 });
+
+const order = await Skeleton.orders.create(
+  { items: [{ itemId, quantity: 1 }] },
+  { idempotencyKey: 'checkout-1' },
+);
+await Skeleton.orders.getById(order.data.id);
+await Skeleton.orders.list({ limit: 20 });
 ```
+
+`catalog.getAll()` and `catalog.getById()` accept `limit`, `cursor`, `status`, and `expand` options. `products.getAll()` and `products.getById()` always request `expand=product` and narrow `details.product` types. `orders.create()` sends `CreateOrderOptions.idempotencyKey` as the `Idempotency-Key` header.
 
 Every method returns the API success envelope generated from the OpenAPI artifact:
 
@@ -108,4 +122,4 @@ Both examples compile in CI and use only the SDK for backend communication.
 
 ## Current limitation
 
-Catalog, products, orders, and inventory endpoints belong to M8 and are not present in the committed OpenAPI artifact. The SDK intentionally has no `catalog`, `products`, or `orders` methods, and the examples do not call them. Catalog/orders SDK integration will be added when the real M8 API contracts exist; no placeholder paths or schemas are fabricated here.
+The SDK covers committed M8 routes only. It does not implement payment capture, guest checkout, admin operations, or demo-local cart/menu routes. Order pricing remains server-authoritative: the SDK exposes optional amount fields from the generated body type for protocol compatibility, but the server rejects them when a price resolver is enabled.

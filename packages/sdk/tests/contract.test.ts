@@ -48,10 +48,41 @@ describe('SDK contract boundaries', () => {
       'AuthPasswordResetRequestPostBody',
       'AuthPasswordResetConfirmPostResponse',
       'AuthPasswordResetConfirmPostBody',
+      'CatalogItemsGetResponse',
+      'CatalogItemsPostResponse',
+      'CatalogItemsPostBody',
+      'CatalogItemsByIdGetResponse',
+      'CatalogItemsByIdPatchResponse',
+      'CatalogItemsByIdPatchBody',
+      'CatalogItemsByIdDeleteResponse',
+      'CatalogItemsByIdProductGetResponse',
+      'CatalogItemsByIdProductPatchResponse',
+      'CatalogItemsByIdProductPatchBody',
+      'InventoryItemsByItemIdGetResponse',
+      'InventoryItemsByItemIdPatchResponse',
+      'InventoryItemsByItemIdPatchBody',
+      'OrdersPostResponse',
+      'OrdersPostBody',
+      'OrdersGetResponse',
+      'OrdersByIdGetResponse',
     ];
 
     for (const alias of expectedAliases) {
       expect(generated).toContain(`export type ${alias} =`);
+    }
+  });
+
+  it('exports the M8 client namespaces and order options', async () => {
+    const index = await readFile(root('packages/sdk/src/index.ts'), 'utf8');
+    for (const symbol of [
+      'CatalogClient',
+      'ProductsClient',
+      'InventoryClient',
+      'OrdersClient',
+      'CatalogListOptions',
+      'CreateOrderOptions',
+    ]) {
+      expect(index).toContain(symbol);
     }
   });
 

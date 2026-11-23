@@ -8,12 +8,12 @@ M5 added the HTTP adapter around the existing M2 config, M3 database, and M4 mod
 import { loadConfig } from '@skeletonstructure/core/config';
 import { initializeDatabase } from '@skeletonstructure/core/database';
 import { createServer } from '@skeletonstructure/core/api';
-import { createAuthUsersComposition } from '@skeletonstructure/module-auth';
+import { createM8Composition } from '@skeletonstructure/app-composition';
 
 const appConfig = await loadConfig();
 const database = await initializeDatabase(appConfig.database);
 
-const composition = await createAuthUsersComposition({ appConfig, database });
+const composition = await createM8Composition({ appConfig, database });
 
 const app = await createServer({
   appConfig,
@@ -97,4 +97,4 @@ The committed artifact is `openapi/openapi.json`. It is generated from the real 
 
 ## Deferred
 
-M6 added real authentication, sessions, CSRF enforcement, and authorization data. M7 added an OpenAPI-derived `fetch` client for these public routes; M8+ add application modules and domain routes. The adapter still does not add durable rate limiting or a Redis dependency. See [`sdk.md`](./sdk.md) for the client boundary.
+M6 added real authentication, sessions, CSRF enforcement, and authorization data. M7 added an OpenAPI-derived `fetch` client; M8 adds catalog, product, inventory, and order routes to that contract. The adapter still does not add durable rate limiting or a Redis dependency. See [`m8.md`](./m8.md) for domain routes and [`sdk.md`](./sdk.md) for the client boundary.

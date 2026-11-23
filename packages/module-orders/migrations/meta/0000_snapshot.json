@@ -1,0 +1,376 @@
+{
+  "id": "3c45bb78-7ce4-43a6-81d9-510ed4bbd927",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.orders_idempotency": {
+      "name": "orders_idempotency",
+      "schema": "",
+      "columns": {
+        "buyer_ref": {
+          "name": "buyer_ref",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "idempotency_key": {
+          "name": "idempotency_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "request_hash": {
+          "name": "request_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "order_id": {
+          "name": "order_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "orders_idempotency_pk": {
+          "name": "orders_idempotency_pk",
+          "columns": ["buyer_ref", "idempotency_key"]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "orders_idempotency_status_check": {
+          "name": "orders_idempotency_status_check",
+          "value": "\"orders_idempotency\".\"status\" in ('pending', 'completed')"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.orders_order_items": {
+      "name": "orders_order_items",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "order_id": {
+          "name": "order_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "catalog_item_id": {
+          "name": "catalog_item_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "position": {
+          "name": "position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "quantity": {
+          "name": "quantity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name_snapshot": {
+          "name": "name_snapshot",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "unit_amount_snapshot": {
+          "name": "unit_amount_snapshot",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "currency_snapshot": {
+          "name": "currency_snapshot",
+          "type": "char(3)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "extension_kind": {
+          "name": "extension_kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "details_schema_version": {
+          "name": "details_schema_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "details_snapshot": {
+          "name": "details_snapshot",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "orders_order_items_order_position_unique": {
+          "name": "orders_order_items_order_position_unique",
+          "columns": [
+            {
+              "expression": "order_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "position",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "orders_order_items_order_id_idx": {
+          "name": "orders_order_items_order_id_idx",
+          "columns": [
+            {
+              "expression": "order_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "orders_order_items_order_id_orders_orders_id_fk": {
+          "name": "orders_order_items_order_id_orders_orders_id_fk",
+          "tableFrom": "orders_order_items",
+          "tableTo": "orders_orders",
+          "columnsFrom": ["order_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "orders_order_items_catalog_item_id_catalog_items_id_fk": {
+          "name": "orders_order_items_catalog_item_id_catalog_items_id_fk",
+          "tableFrom": "orders_order_items",
+          "tableTo": "catalog_items",
+          "columnsFrom": ["catalog_item_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "orders_order_items_quantity_check": {
+          "name": "orders_order_items_quantity_check",
+          "value": "\"orders_order_items\".\"quantity\" > 0"
+        },
+        "orders_order_items_unit_amount_check": {
+          "name": "orders_order_items_unit_amount_check",
+          "value": "\"orders_order_items\".\"unit_amount_snapshot\" >= 0"
+        },
+        "orders_order_items_details_schema_version_check": {
+          "name": "orders_order_items_details_schema_version_check",
+          "value": "\"orders_order_items\".\"details_schema_version\" > 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.orders_orders": {
+      "name": "orders_orders",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'confirmed'"
+        },
+        "buyer_kind": {
+          "name": "buyer_kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "buyer_ref": {
+          "name": "buyer_ref",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "idempotency_key": {
+          "name": "idempotency_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "request_hash": {
+          "name": "request_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "total_amount": {
+          "name": "total_amount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "currency": {
+          "name": "currency",
+          "type": "char(3)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "orders_orders_buyer_idempotency_key_unique": {
+          "name": "orders_orders_buyer_idempotency_key_unique",
+          "columns": [
+            {
+              "expression": "buyer_ref",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "idempotency_key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "orders_orders_buyer_created_at_idx": {
+          "name": "orders_orders_buyer_created_at_idx",
+          "columns": [
+            {
+              "expression": "buyer_ref",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "orders_orders_buyer_kind_check": {
+          "name": "orders_orders_buyer_kind_check",
+          "value": "\"orders_orders\".\"buyer_kind\" = 'user'"
+        },
+        "orders_orders_status_check": {
+          "name": "orders_orders_status_check",
+          "value": "\"orders_orders\".\"status\" = 'confirmed'"
+        }
+      },
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

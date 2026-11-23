@@ -9,7 +9,24 @@ import type {
   AuthPasswordResetRequestPostResponse,
   AuthRegisterPostBody,
   AuthRegisterPostResponse,
+  CatalogItemsByIdDeleteResponse,
+  CatalogItemsByIdGetResponse,
+  CatalogItemsByIdPatchBody,
+  CatalogItemsByIdPatchResponse,
+  CatalogItemsByIdProductGetResponse,
+  CatalogItemsByIdProductPatchBody,
+  CatalogItemsByIdProductPatchResponse,
+  CatalogItemsGetResponse,
+  CatalogItemsPostBody,
+  CatalogItemsPostResponse,
   ConfigPublicGetResponse,
+  InventoryItemsByItemIdGetResponse,
+  InventoryItemsByItemIdPatchBody,
+  InventoryItemsByItemIdPatchResponse,
+  OrdersByIdGetResponse,
+  OrdersGetResponse,
+  OrdersPostBody,
+  OrdersPostResponse,
   UsersMeGetResponse,
   UsersMePatchBody,
   UsersMePatchResponse,
@@ -54,10 +71,93 @@ export interface UsersClient {
   updateMe(input: UsersMePatchBody): Promise<UsersMePatchResponse>;
 }
 
+export interface CatalogListOptions {
+  readonly limit?: number;
+  readonly cursor?: string;
+  readonly status?: 'active' | 'archived';
+  readonly expand?: string;
+}
+
+export interface CatalogClient {
+  getAll(options?: CatalogListOptions): Promise<CatalogItemsGetResponse>;
+  getById(
+    itemId: string,
+    options?: Pick<CatalogListOptions, 'expand'>,
+  ): Promise<CatalogItemsByIdGetResponse>;
+  create(input: CatalogItemsPostBody): Promise<CatalogItemsPostResponse>;
+  update(itemId: string, input: CatalogItemsByIdPatchBody): Promise<CatalogItemsByIdPatchResponse>;
+  delete(itemId: string): Promise<CatalogItemsByIdDeleteResponse>;
+}
+
+export interface ProductExpansionDetails {
+  readonly sku: string;
+  readonly priceAmount: number;
+  readonly currency: string;
+  readonly weightGrams?: number;
+  readonly shippingClass?: string;
+}
+
+type BaseCatalogItem = CatalogItemsGetResponse['data']['items'][number];
+type WithProductDetails<T extends { readonly details?: Record<string, unknown> }> = Omit<
+  T,
+  'details'
+> & {
+  readonly details: { readonly product: ProductExpansionDetails };
+};
+
+export interface ProductsListResponse extends Omit<CatalogItemsGetResponse, 'data'> {
+  readonly data: { readonly items: readonly WithProductDetails<BaseCatalogItem>[] };
+}
+
+export interface ProductsGetResponse extends Omit<CatalogItemsByIdGetResponse, 'data'> {
+  readonly data: WithProductDetails<BaseCatalogItem>;
+}
+
+export interface ProductsClient {
+  getAll(options?: Omit<CatalogListOptions, 'expand'>): Promise<ProductsListResponse>;
+  getById(
+    itemId: string,
+    options?: Omit<CatalogListOptions, 'expand'>,
+  ): Promise<ProductsGetResponse>;
+  getByItemId(itemId: string): Promise<CatalogItemsByIdProductGetResponse>;
+  update(
+    itemId: string,
+    input: CatalogItemsByIdProductPatchBody,
+  ): Promise<CatalogItemsByIdProductPatchResponse>;
+}
+
+export interface InventoryClient {
+  get(itemId: string): Promise<InventoryItemsByItemIdGetResponse>;
+  set(
+    itemId: string,
+    input: InventoryItemsByItemIdPatchBody,
+  ): Promise<InventoryItemsByItemIdPatchResponse>;
+}
+
+export interface OrdersListOptions {
+  readonly limit?: number;
+  readonly cursor?: string;
+}
+
+export interface CreateOrderOptions {
+  /** Sent as the `Idempotency-Key` header. Keep true in production configuration. */
+  readonly idempotencyKey?: string;
+}
+
+export interface OrdersClient {
+  create(input: OrdersPostBody, options?: CreateOrderOptions): Promise<OrdersPostResponse>;
+  getById(orderId: string): Promise<OrdersByIdGetResponse>;
+  list(options?: OrdersListOptions): Promise<OrdersGetResponse>;
+}
+
 export interface SkeletonClient {
   readonly config: ConfigClient;
   readonly auth: AuthClient;
   readonly users: UsersClient;
+  readonly catalog: CatalogClient;
+  readonly products: ProductsClient;
+  readonly inventory: InventoryClient;
+  readonly orders: OrdersClient;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -71,6 +171,20 @@ function normalizeBaseUrl(value: string): string {
 
 function joinUrl(baseUrl: string, path: string): string {
   return `${baseUrl}${path.startsWith('/') ? path : `/${path}`}`;
+}
+
+function withQuery(
+  path: string,
+  query: Readonly<Record<string, string | number | undefined>> | undefined,
+): string {
+  if (query === undefined) return path;
+  const parameters = new URLSearchParams();
+  for (const [key, value] of Object.entries(query)) {
+    if (value === undefined) continue;
+    parameters.set(key, String(value));
+  }
+  const serialized = parameters.toString();
+  return serialized.length === 0 ? path : `${path}?${serialized}`;
 }
 
 async function readJson(response: Response): Promise<unknown> {
@@ -95,6 +209,11 @@ function isEnvelope(
   );
 }
 
+interface RequestOptions {
+  readonly headers?: Readonly<Record<string, string>> | undefined;
+  readonly query?: Readonly<Record<string, string | number | undefined>> | undefined;
+}
+
 /** Creates a framework-neutral HTTP client for the public SkeletonStructure API. */
 export function createSkeletonClient(options: SkeletonClientOptions = {}): SkeletonClient {
   const baseUrl = normalizeBaseUrl(options.baseUrl ?? '/v1');
@@ -114,6 +233,7 @@ export function createSkeletonClient(options: SkeletonClientOptions = {}): Skele
     method: string,
     path: string,
     body?: Record<string, unknown>,
+    requestOptions: RequestOptions = {},
   ): Promise<{ readonly data: unknown; readonly meta: { readonly requestId: string } }> {
     try {
       const headers: Record<string, string> = { accept: 'application/json' };
@@ -129,11 +249,17 @@ export function createSkeletonClient(options: SkeletonClientOptions = {}): Skele
       ) {
         headers[csrfHeader] = csrfToken;
       }
+      for (const [name, value] of Object.entries(requestOptions.headers ?? {})) {
+        headers[name] = value;
+      }
 
       const init: RequestInit = { method, headers, credentials };
       if (body !== undefined) init.body = JSON.stringify(body);
 
-      const response = await fetchImpl(joinUrl(baseUrl, path), init);
+      const response = await fetchImpl(
+        joinUrl(baseUrl, withQuery(path, requestOptions.query)),
+        init,
+      );
       const payload = await readJson(response);
       const headerRequestId = response.headers.get('x-request-id');
 
@@ -177,6 +303,76 @@ export function createSkeletonClient(options: SkeletonClientOptions = {}): Skele
       getMe: async () => (await request('GET', '/users/me')) as UsersMeGetResponse,
       updateMe: async (input) =>
         (await request('PATCH', '/users/me', { ...input })) as UsersMePatchResponse,
+    },
+    catalog: {
+      getAll: async (input) =>
+        (await request('GET', '/catalog/items', undefined, {
+          query: { ...(input ?? {}) },
+        })) as CatalogItemsGetResponse,
+      getById: async (itemId, input) =>
+        (await request('GET', `/catalog/items/${encodeURIComponent(itemId)}`, undefined, {
+          query: { ...(input ?? {}) },
+        })) as CatalogItemsByIdGetResponse,
+      create: async (input) =>
+        (await request('POST', '/catalog/items', { ...input })) as CatalogItemsPostResponse,
+      update: async (itemId, input) =>
+        (await request('PATCH', `/catalog/items/${encodeURIComponent(itemId)}`, {
+          ...input,
+        })) as CatalogItemsByIdPatchResponse,
+      delete: async (itemId) =>
+        (await request(
+          'DELETE',
+          `/catalog/items/${encodeURIComponent(itemId)}`,
+        )) as CatalogItemsByIdDeleteResponse,
+    },
+    products: {
+      getAll: async (input) =>
+        (await request('GET', '/catalog/items', undefined, {
+          query: { ...input, expand: 'product' },
+        })) as ProductsListResponse,
+      getById: async (itemId, input) =>
+        (await request('GET', `/catalog/items/${encodeURIComponent(itemId)}`, undefined, {
+          query: { ...input, expand: 'product' },
+        })) as ProductsGetResponse,
+      getByItemId: async (itemId) =>
+        (await request(
+          'GET',
+          `/catalog/items/${encodeURIComponent(itemId)}/product`,
+        )) as CatalogItemsByIdProductGetResponse,
+      update: async (itemId, input) =>
+        (await request('PATCH', `/catalog/items/${encodeURIComponent(itemId)}/product`, {
+          ...input,
+        })) as CatalogItemsByIdProductPatchResponse,
+    },
+    inventory: {
+      get: async (itemId) =>
+        (await request(
+          'GET',
+          `/inventory/items/${encodeURIComponent(itemId)}`,
+        )) as InventoryItemsByItemIdGetResponse,
+      set: async (itemId, input) =>
+        (await request('PATCH', `/inventory/items/${encodeURIComponent(itemId)}`, {
+          ...input,
+        })) as InventoryItemsByItemIdPatchResponse,
+    },
+    orders: {
+      create: async (input, createOptions) =>
+        (await request(
+          'POST',
+          '/orders',
+          { ...input },
+          {
+            ...(createOptions?.idempotencyKey === undefined
+              ? {}
+              : { headers: { 'idempotency-key': createOptions.idempotencyKey } }),
+          },
+        )) as OrdersPostResponse,
+      getById: async (orderId) =>
+        (await request('GET', `/orders/${encodeURIComponent(orderId)}`)) as OrdersByIdGetResponse,
+      list: async (input) =>
+        (await request('GET', '/orders', undefined, {
+          query: { ...(input ?? {}) },
+        })) as OrdersGetResponse,
     },
   };
 }

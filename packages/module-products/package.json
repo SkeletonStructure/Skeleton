@@ -1,0 +1,26 @@
+{
+  "name": "@skeletonstructure/module-products",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/src/index.js"
+    }
+  },
+  "dependencies": {
+    "@skeletonstructure/core": "workspace:*",
+    "@skeletonstructure/module-catalog": "workspace:*",
+    "drizzle-orm": "^0.45.4",
+    "fastify": "^5.12.8",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@testcontainers/postgresql": "^12.2.2",
+    "testcontainers": "^12.2.2",
+    "vitest": "^5.1.1"
+  }
+}

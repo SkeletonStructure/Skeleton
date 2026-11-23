@@ -7,6 +7,10 @@
     "drizzle.config.ts",
     "drizzle.users.config.ts",
     "drizzle.auth.config.ts",
+    "drizzle.catalog.config.ts",
+    "drizzle.products.config.ts",
+    "drizzle.inventory.config.ts",
+    "drizzle.orders.config.ts",
     "vitest.config.ts",
     "skeleton.config.example.ts"
   ],
@@ -14,6 +18,11 @@
     { "path": "./packages/core" },
     { "path": "./packages/module-users" },
     { "path": "./packages/module-auth" },
+    { "path": "./packages/module-catalog" },
+    { "path": "./packages/module-products" },
+    { "path": "./packages/module-inventory" },
+    { "path": "./packages/module-orders" },
+    { "path": "./packages/app-composition" },
     { "path": "./packages/sdk" },
     { "path": "./examples/frontend-vanilla" },
     { "path": "./examples/frontend-react" }

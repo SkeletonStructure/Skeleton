@@ -10,6 +10,7 @@ export type ConfigPublicGetResponse = {
   };
   meta: {
     requestId: string;
+    nextCursor?: string;
   };
 };
 
@@ -23,6 +24,7 @@ export type UsersMeGetResponse = {
   };
   meta: {
     requestId: string;
+    nextCursor?: string;
   };
 };
 
@@ -36,6 +38,7 @@ export type UsersMePatchResponse = {
   };
   meta: {
     requestId: string;
+    nextCursor?: string;
   };
 };
 
@@ -54,6 +57,7 @@ export type AuthRegisterPostResponse = {
   };
   meta: {
     requestId: string;
+    nextCursor?: string;
   };
 };
 
@@ -74,6 +78,7 @@ export type AuthLoginPostResponse = {
   };
   meta: {
     requestId: string;
+    nextCursor?: string;
   };
 };
 
@@ -86,6 +91,7 @@ export type AuthLogoutPostResponse = {
   data: Record<string, never>;
   meta: {
     requestId: string;
+    nextCursor?: string;
   };
 };
 
@@ -102,6 +108,7 @@ export type AuthMeGetResponse = {
   };
   meta: {
     requestId: string;
+    nextCursor?: string;
   };
 };
 
@@ -111,6 +118,7 @@ export type AuthPasswordResetRequestPostResponse = {
   };
   meta: {
     requestId: string;
+    nextCursor?: string;
   };
 };
 
@@ -129,10 +137,282 @@ export type AuthPasswordResetConfirmPostResponse = {
   };
   meta: {
     requestId: string;
+    nextCursor?: string;
   };
 };
 
 export type AuthPasswordResetConfirmPostBody = {
   token: string;
   password: string;
+};
+
+export type CatalogItemsGetResponse = {
+  data: {
+    items: Array<{
+      id: string;
+      slug: string;
+      name: string;
+      description?: string;
+      status: 'active' | 'archived';
+      createdAt: string;
+      updatedAt: string;
+      details?: Record<string, unknown>;
+    }>;
+  };
+  meta: {
+    requestId: string;
+    nextCursor?: string;
+  };
+};
+
+export type CatalogItemsPostResponse = {
+  data: {
+    id: string;
+    slug: string;
+    name: string;
+    description?: string;
+    status: 'active' | 'archived';
+    createdAt: string;
+    updatedAt: string;
+    details?: Record<string, unknown>;
+  };
+  meta: {
+    requestId: string;
+    nextCursor?: string;
+  };
+};
+
+export type CatalogItemsPostBody = {
+  slug: string;
+  name: string;
+  description?: string;
+};
+
+export type CatalogItemsByIdGetResponse = {
+  data: {
+    id: string;
+    slug: string;
+    name: string;
+    description?: string;
+    status: 'active' | 'archived';
+    createdAt: string;
+    updatedAt: string;
+    details?: Record<string, unknown>;
+  };
+  meta: {
+    requestId: string;
+    nextCursor?: string;
+  };
+};
+
+export type CatalogItemsByIdPatchResponse = {
+  data: {
+    id: string;
+    slug: string;
+    name: string;
+    description?: string;
+    status: 'active' | 'archived';
+    createdAt: string;
+    updatedAt: string;
+    details?: Record<string, unknown>;
+  };
+  meta: {
+    requestId: string;
+    nextCursor?: string;
+  };
+};
+
+export type CatalogItemsByIdPatchBody = {
+  slug?: string;
+  name?: string;
+  description?: string | null;
+};
+
+export type CatalogItemsByIdDeleteResponse = {
+  data: {
+    id: string;
+    slug: string;
+    name: string;
+    description?: string;
+    status: 'active' | 'archived';
+    createdAt: string;
+    updatedAt: string;
+    details?: Record<string, unknown>;
+  };
+  meta: {
+    requestId: string;
+    nextCursor?: string;
+  };
+};
+
+export type CatalogItemsByIdProductGetResponse = {
+  data: {
+    itemId: string;
+    sku: string;
+    priceAmount: number;
+    currency: string;
+    weightGrams?: number;
+    shippingClass?: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+  meta: {
+    requestId: string;
+    nextCursor?: string;
+  };
+};
+
+export type CatalogItemsByIdProductPatchResponse = {
+  data: {
+    itemId: string;
+    sku: string;
+    priceAmount: number;
+    currency: string;
+    weightGrams?: number;
+    shippingClass?: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+  meta: {
+    requestId: string;
+    nextCursor?: string;
+  };
+};
+
+export type CatalogItemsByIdProductPatchBody = {
+  sku: string;
+  priceAmount: number;
+  currency?: string;
+  weightGrams?: number;
+  shippingClass?: string;
+};
+
+export type InventoryItemsByItemIdGetResponse = {
+  data: {
+    itemId: string;
+    quantity: number;
+    reserved: number;
+    createdAt: string;
+    updatedAt: string;
+  };
+  meta: {
+    requestId: string;
+    nextCursor?: string;
+  };
+};
+
+export type InventoryItemsByItemIdPatchResponse = {
+  data: {
+    itemId: string;
+    quantity: number;
+    reserved: number;
+    createdAt: string;
+    updatedAt: string;
+  };
+  meta: {
+    requestId: string;
+    nextCursor?: string;
+  };
+};
+
+export type InventoryItemsByItemIdPatchBody = {
+  quantity: number;
+};
+
+export type OrdersPostResponse = {
+  data: {
+    id: string;
+    status: 'confirmed';
+    buyer: {
+      kind: 'user';
+      id: string;
+    };
+    items: Array<{
+      itemId: string;
+      name: string;
+      quantity: number;
+      unitAmount: number;
+      currency: string;
+      extensionKind: string;
+      detailsSchemaVersion: number;
+      details: Record<string, unknown>;
+    }>;
+    totalAmount: number;
+    currency: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+  meta: {
+    requestId: string;
+    nextCursor?: string;
+  };
+};
+
+export type OrdersPostBody = {
+  items: Array<{
+    itemId: string;
+    quantity: number;
+    unitAmount?: number;
+    currency?: string;
+  }>;
+};
+
+export type OrdersGetResponse = {
+  data: {
+    orders: Array<{
+      id: string;
+      status: 'confirmed';
+      buyer: {
+        kind: 'user';
+        id: string;
+      };
+      items: Array<{
+        itemId: string;
+        name: string;
+        quantity: number;
+        unitAmount: number;
+        currency: string;
+        extensionKind: string;
+        detailsSchemaVersion: number;
+        details: Record<string, unknown>;
+      }>;
+      totalAmount: number;
+      currency: string;
+      createdAt: string;
+      updatedAt: string;
+    }>;
+  };
+  meta: {
+    requestId: string;
+    nextCursor?: string;
+  };
+};
+
+export type OrdersByIdGetResponse = {
+  data: {
+    id: string;
+    status: 'confirmed';
+    buyer: {
+      kind: 'user';
+      id: string;
+    };
+    items: Array<{
+      itemId: string;
+      name: string;
+      quantity: number;
+      unitAmount: number;
+      currency: string;
+      extensionKind: string;
+      detailsSchemaVersion: number;
+      details: Record<string, unknown>;
+    }>;
+    totalAmount: number;
+    currency: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+  meta: {
+    requestId: string;
+    nextCursor?: string;
+  };
 };

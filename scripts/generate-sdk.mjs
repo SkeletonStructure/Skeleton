@@ -13,7 +13,13 @@ export function operationBaseName(path, method) {
   const words = path
     .split('/')
     .filter((segment) => segment.length > 0 && segment !== 'v1')
-    .flatMap((segment) => segment.split(/[-_]/))
+    .flatMap((segment) => {
+      const parameter = segment.match(/^\{(.+)\}$/) ?? segment.match(/^:(.+)$/);
+      if (parameter?.[1] !== undefined) {
+        return ['By', ...parameter[1].split(/[-_]/)];
+      }
+      return segment.split(/[-_]/);
+    })
     .filter((word) => word.length > 0)
     .map(capitalize);
   return `${words.join('')}${capitalize(method)}`;
@@ -37,11 +43,21 @@ function renderType(schema, level) {
   const indent = '  '.repeat(level);
   const closingIndent = '  '.repeat(Math.max(0, level - 1));
 
+  if (Array.isArray(schema.type)) {
+    return [...new Set(schema.type.map((type) => renderType({ ...schema, type }, level)))].join(
+      ' | ',
+    );
+  }
+
   switch (schema.type) {
     case 'object': {
       const properties = schema.properties ?? {};
       const entries = Object.entries(properties);
-      if (entries.length === 0) return 'Record<string, never>';
+      if (entries.length === 0) {
+        return schema.additionalProperties === true
+          ? 'Record<string, unknown>'
+          : 'Record<string, never>';
+      }
       const required = new Set(schema.required ?? []);
       const lines = entries.map(([key, value]) => {
         const name = isIdentifier(key) ? key : quote(key);

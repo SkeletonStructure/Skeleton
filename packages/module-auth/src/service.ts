@@ -64,6 +64,20 @@ interface SessionRow {
   readonly expiresAt: Date;
 }
 
+interface AuthBuyerRequest {
+  readonly principal?: { readonly id?: string };
+}
+
+interface AuthBuyerRef {
+  readonly kind: 'user';
+  readonly id: string;
+}
+
+interface AuthOrderBuyerRef {
+  readonly buyerKind: string;
+  readonly buyerRef: string;
+}
+
 export interface AuthService {
   readonly authenticator: Authenticator;
   readonly csrfGuard: CsrfGuard;
@@ -76,6 +90,9 @@ export interface AuthService {
   ): Promise<AuthenticatedResult>;
   logout(token: string | undefined, reply: SessionReplyLike): Promise<void>;
   currentUser(request: AuthRequestLike): Promise<AuthenticatedProfile>;
+  /** `BuyerContextPort` implementation for authenticated users in v0.1. */
+  currentBuyer(request: AuthBuyerRequest): Promise<AuthBuyerRef>;
+  owns(order: AuthOrderBuyerRef, buyer: AuthBuyerRef): boolean;
   requestPasswordReset(email: string): Promise<void>;
   confirmPasswordReset(
     input: PasswordResetConfirmInput,
@@ -222,6 +239,18 @@ export function createAuthService(options: AuthServiceOptions): AuthService {
 
     authenticator: {
       authenticate: async (request) => principalFor(request),
+    },
+
+    async currentBuyer(request) {
+      const id = request.principal?.id;
+      if (id === undefined || id.length === 0) {
+        throw new HttpError({ status: 401, code: 'UNAUTHENTICATED' });
+      }
+      return { kind: 'user', id };
+    },
+
+    owns(order, buyer) {
+      return order.buyerKind === buyer.kind && order.buyerRef === buyer.id;
     },
 
     csrfGuard: {

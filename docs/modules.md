@@ -42,6 +42,8 @@ const report = await registry.activate();
 
 For the M6 pair, `createAuthUsersComposition()` from `@skeletonstructure/module-auth` performs the static composition in the correct order, returns the activation report, filters route handlers to those actually declared, and exposes the authenticator and CSRF guard for M5. Applications may still assemble their own explicit module list; core never discovers modules from disk.
 
+For M8, `@skeletonstructure/app-composition` performs the same role for the full graph: `users` → `auth`, the independent `catalog`, `products` and `inventory` extensions keyed by `catalogItemId`, and `orders` consuming `buyer-context@1`, optional `price-resolver@1`, and optional `inventory@1`. `products` and `inventory` declare hard `requires: ['catalog']` rather than `enhances`; optional capabilities are expressed through consumed ports. `createM8Composition()` checks for a single active price resolver before activation and before the server listens, failing with `AMBIGUOUS_PRICE_RESOLVER`. See [`m8.md`](./m8.md) for the complete graph and route/permission tables.
+
 ## Activation lifecycle
 
 1. Validate the module configuration map.

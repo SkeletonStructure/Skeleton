@@ -44,6 +44,24 @@ export async function updateDisplayName(displayName: string): Promise<void> {
   await client.users.updateMe({ displayName });
 }
 
+export async function renderProducts(target: HTMLElement): Promise<void> {
+  try {
+    const response = await client.products.getAll({ limit: 5 });
+    target.textContent = response.data.items
+      .map((item) => `${item.name}: ${item.details.product.priceAmount}`)
+      .join(', ');
+  } catch (error) {
+    target.textContent = describeError(error);
+  }
+}
+
+export async function createDemoOrder(itemId: string): Promise<void> {
+  await client.orders.create(
+    { items: [{ itemId, quantity: 1 }] },
+    { idempotencyKey: `demo-checkout-${itemId}` },
+  );
+}
+
 export async function signOut(): Promise<void> {
   await client.auth.logout();
 }

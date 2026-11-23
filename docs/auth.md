@@ -105,6 +105,8 @@ Roles and permissions are separate data:
 
 Permission checks are enforced by the M5 global guard before a handler runs. Ownership checks are explicit use-case logic in `UsersService.getOwnedProfile()` and `updateOwnedProfile()`. Owning a resource never grants unrestricted access by itself, and a role permission never bypasses an ownership check. The default `user` role starts with `users:read:self` and `users:update:self`.
 
+M8 reuses the authenticated principal through `BuyerContextPort`: `auth.currentBuyer()` returns `{ kind: 'user', id }` and `owns()` compares that ref with an order's stored buyer ref. `orders` depends only on the port, never on `auth` or `users` internals, and the `orders_orders.buyer_kind` check rejects guest refs in v0.1.
+
 Integration tests exercise an authorization matrix covering anonymous, owner, non-owner, role A, and role B cases.
 
 ## Testing notes

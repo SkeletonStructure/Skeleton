@@ -8,27 +8,33 @@
   "exports": {
     ".": {
       "types": "./dist/src/index.d.ts",
-      "import": "./dist/src/index.js"
+      "import": "./dist/src/index.js",
+      "default": "./dist/src/index.js"
     },
     "./api": {
       "types": "./dist/src/api/index.d.ts",
-      "import": "./dist/src/api/index.js"
+      "import": "./dist/src/api/index.js",
+      "default": "./dist/src/api/index.js"
     },
     "./config": {
       "types": "./dist/src/config/index.d.ts",
-      "import": "./dist/src/config/index.js"
+      "import": "./dist/src/config/index.js",
+      "default": "./dist/src/config/index.js"
     },
     "./database": {
       "types": "./dist/src/database/index.d.ts",
-      "import": "./dist/src/database/index.js"
+      "import": "./dist/src/database/index.js",
+      "default": "./dist/src/database/index.js"
     },
     "./modules": {
       "types": "./dist/src/modules/index.d.ts",
-      "import": "./dist/src/modules/index.js"
+      "import": "./dist/src/modules/index.js",
+      "default": "./dist/src/modules/index.js"
     },
     "./security": {
       "types": "./dist/src/security/index.d.ts",
-      "import": "./dist/src/security/index.js"
+      "import": "./dist/src/security/index.js",
+      "default": "./dist/src/security/index.js"
     }
   },
   "dependencies": {

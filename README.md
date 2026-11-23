@@ -4,7 +4,7 @@ A self-hosted, MIT-licensed backend foundation built as a modular monolith. This
 
 ## Status
 
-- Milestone M7 — OpenAPI-derived frontend SDK and examples.
+- Milestone M8 — first business modules: catalog, products, inventory, and orders.
 - No production-readiness claim. Security review and release verification happen in milestone M10.
 
 ## Quick start
@@ -21,26 +21,32 @@ pnpm test
 
 ## Scripts
 
-| Script              | Command                                                              | Purpose                                  |
-| ------------------- | -------------------------------------------------------------------- | ---------------------------------------- |
-| `typecheck`         | `tsc -b --pretty false`                                              | Type-check all TypeScript projects       |
-| `lint`              | `biome check .`                                                      | Format check and lint                    |
-| `format`            | `biome format --write .`                                             | Apply formatting                         |
-| `test`              | `vitest run`                                                         | Run all unit and integration tests       |
-| `test:contract`     | `vitest run packages/sdk/tests/contract.test.ts`                     | Run SDK boundary/contract tests          |
-| `test:integration`  | `vitest run packages/core/tests/database/integration.test.ts`        | Run the core PostgreSQL container test   |
-| `test:watch`        | `vitest`                                                             | Run tests in watch mode                  |
-| `sdk:generate`      | `node scripts/generate-sdk.mjs`                                      | Regenerate SDK types from OpenAPI        |
-| `sdk:check`         | `node scripts/check-sdk.mjs`                                         | Verify committed SDK types are current   |
-| `config:docs`       | `tsc -b packages/core && node scripts/generate-config-reference.mjs` | Regenerate the config reference          |
-| `db:generate`       | `drizzle-kit generate --config drizzle.config.ts`                    | Generate a reviewed core migration       |
-| `db:generate:users` | `drizzle-kit generate --config drizzle.users.config.ts`              | Generate a reviewed users migration      |
-| `db:generate:auth`  | `drizzle-kit generate --config drizzle.auth.config.ts`               | Generate a reviewed auth migration       |
-| `db:migrate`        | `tsc -b && node scripts/migrate-modules.mjs`                         | Apply core, users, then auth migrations  |
-| `auth:cleanup`      | `tsc -b && node scripts/cleanup-sessions.mjs`                        | Remove expired sessions and reset tokens |
-| `openapi:generate`  | `tsc -b && node scripts/generate-openapi.mjs`                        | Regenerate the public OpenAPI file       |
-| `openapi:check`     | `tsc -b && node scripts/check-openapi.mjs`                           | Verify the committed OpenAPI file        |
-| `ci`                | `pnpm typecheck && pnpm lint && pnpm test`                           | Full local verification                  |
+| Script                  | Command                                                              | Purpose                                  |
+| ----------------------- | -------------------------------------------------------------------- | ---------------------------------------- |
+| `typecheck`             | `tsc -b --pretty false`                                              | Type-check all TypeScript projects       |
+| `lint`                  | `biome check .`                                                      | Format check and lint                    |
+| `format`                | `biome format --write .`                                             | Apply formatting                         |
+| `test`                  | `vitest run`                                                         | Run all unit and integration tests       |
+| `test:contract`         | `vitest run packages/sdk/tests/contract.test.ts`                     | Run SDK boundary/contract tests          |
+| `test:integration`      | `vitest run packages/core/tests/database/integration.test.ts`        | Run the core PostgreSQL container test   |
+| `test:watch`            | `vitest`                                                             | Run tests in watch mode                  |
+| `sdk:generate`          | `node scripts/generate-sdk.mjs`                                      | Regenerate SDK types from OpenAPI        |
+| `sdk:check`             | `node scripts/check-sdk.mjs`                                         | Verify committed SDK types are current   |
+| `config:docs`           | `tsc -b packages/core && node scripts/generate-config-reference.mjs` | Regenerate the config reference          |
+| `db:generate`           | `drizzle-kit generate --config drizzle.config.ts`                    | Generate a reviewed core migration       |
+| `db:generate:users`     | `drizzle-kit generate --config drizzle.users.config.ts`              | Generate a reviewed users migration      |
+| `db:generate:auth`      | `drizzle-kit generate --config drizzle.auth.config.ts`               | Generate a reviewed auth migration       |
+| `db:generate:catalog`   | `drizzle-kit generate --config drizzle.catalog.config.ts`            | Generate a reviewed catalog migration    |
+| `db:generate:products`  | `drizzle-kit generate --config drizzle.products.config.ts`           | Generate a reviewed products migration   |
+| `db:generate:inventory` | `drizzle-kit generate --config drizzle.inventory.config.ts`          | Generate a reviewed inventory migration  |
+| `db:generate:orders`    | `drizzle-kit generate --config drizzle.orders.config.ts`             | Generate a reviewed orders migration     |
+| `db:migrate`            | `tsc -b && node scripts/migrate-modules.mjs`                         | Apply all M1–M8 migrations in order      |
+| `start`                 | `tsc -b && node scripts/skeleton.mjs start`                          | Start the composed M8 server             |
+| `skeleton`              | `node scripts/skeleton.mjs`                                          | Run `db migrate` or `start`              |
+| `auth:cleanup`          | `tsc -b && node scripts/cleanup-sessions.mjs`                        | Remove expired sessions and reset tokens |
+| `openapi:generate`      | `tsc -b && node scripts/generate-openapi.mjs`                        | Regenerate the public OpenAPI file       |
+| `openapi:check`         | `tsc -b && node scripts/check-openapi.mjs`                           | Verify the committed OpenAPI file        |
+| `ci`                    | `pnpm typecheck && pnpm lint && pnpm test`                           | Local type, lint, and test gate          |
 
 ## Configuration
 
@@ -86,7 +92,7 @@ try {
 }
 ```
 
-Migrations are explicit and module-owned: use `pnpm db:generate`, `pnpm db:generate:users`, or `pnpm db:generate:auth` to create reviewed SQL. `pnpm db:migrate` applies core, users, then auth migrations in dependency order. The baseline migration contains no application tables. See [`docs/database.md`](./docs/database.md) for lifecycle, transactions, health semantics, migration workflow, and limitations.
+Migrations are explicit and module-owned: use the matching `pnpm db:generate:*` script to create reviewed SQL. `pnpm db:migrate` applies core/users/auth, then catalog, products, inventory, and orders migrations in dependency order. The baseline migration contains no application tables. See [`docs/database.md`](./docs/database.md) for lifecycle, transactions, health semantics, migration workflow, and limitations.
 
 ## Modules
 
@@ -103,7 +109,7 @@ const registry = composeModuleRegistry({
 const report = await registry.activate();
 ```
 
-Module route and permission declarations are validated before HTTP startup. M5 wires declared routes into Fastify; M6 supplies the optional `users` and `auth` modules and a static composition helper. See [`docs/modules.md`](./docs/modules.md) for the full contract, lifecycle, and failure modes.
+Module route and permission declarations are validated before HTTP startup. M5 wires declared routes into Fastify; M6 supplies `users` and `auth`; M8 adds `catalog`, `products`, `inventory`, and `orders`, with `@skeletonstructure/app-composition` providing the explicit static wiring and startup ambiguity checks. See [`docs/modules.md`](./docs/modules.md) and [`docs/m8.md`](./docs/m8.md) for the full contract, lifecycle, and failure modes.
 
 ## API
 
@@ -121,14 +127,19 @@ await app.listen({ host: config.server.host, port: config.server.port });
 
 `GET /health/live` checks only process responsiveness. `GET /health/ready` returns `503` with a short reason code when config, database, migration, or injected readiness checks fail. `GET /v1/config/public` exposes only the frontend-safe allowlist.
 
-M6 implements sessions, login, CSRF, roles/permissions, and password reset behind that boundary. Protected routes still deny by default unless an injected authenticator supplies a principal; disabled auth modules register no routes rather than making them public. M7 adds a small OpenAPI-derived client for these public endpoints; catalog/orders namespaces wait for the real M8 contracts. See [`docs/api.md`](./docs/api.md) for HTTP details, [`docs/auth.md`](./docs/auth.md) for the authentication model, and [`docs/sdk.md`](./docs/sdk.md) for client usage.
+M6 implements sessions, login, CSRF, roles/permissions, and password reset behind that boundary. Protected routes still deny by default unless an injected authenticator supplies a principal; disabled modules register no routes rather than making them public. M8 adds catalog CRUD with validated expansion, separate product and inventory routes, and authenticated orders with idempotency and immutable snapshots. M7's SDK now covers catalog/products/inventory/orders namespaces derived from the committed OpenAPI artifact. See [`docs/api.md`](./docs/api.md), [`docs/auth.md`](./docs/auth.md), [`docs/sdk.md`](./docs/sdk.md), and [`docs/m8.md`](./docs/m8.md).
 
 ## Layout
 
 ```text
-packages/core/       mandatory core infrastructure: config, database, modules, API, security
+packages/core/         mandatory core infrastructure: config, database, modules, API, security
 packages/module-users/ optional user identity, profiles, roles, and permissions
 packages/module-auth/  optional sessions, login, CSRF, and password reset
+packages/module-catalog/   optional generic catalog and provider contracts
+packages/module-products/  optional product extension and price resolver
+packages/module-inventory/ optional stock tracking and reservation port
+packages/module-orders/    optional authenticated orders and snapshots
+packages/app-composition/  non-domain static M8 wiring and migration runner
 packages/sdk/          OpenAPI-derived browser-safe client and typed errors
 examples/              frontend-vanilla and frontend-react SDK examples
 apps/                  demonstration applications (added in M9)
@@ -153,6 +164,7 @@ skeleton.config.example.ts  example typed config
 - `docs/api.md` — server composition, error model, permission hook, health, CORS, rate limits, and OpenAPI.
 - `docs/auth.md` — authentication, sessions, CSRF, password reset, authorization model, and cleanup.
 - `docs/sdk.md` — SDK initialization, auth/CSRF behavior, typed errors, and current limitations.
+- `docs/m8.md` — M8 module graph, routes, schemas, ports, order semantics, and limitations.
 - `docs/architecture/adr/` — architecture decision records.
 
 The authoritative engineering blueprint lives in the `SkeletonStructure-blueprint` workspace during bootstrap and will be imported into `docs/architecture/` as the repository matures.

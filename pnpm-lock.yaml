@@ -11,12 +11,27 @@ importers:
       '@biomejs/biome':
         specifier: ^2.6.8
         version: 2.6.8
+      '@skeletonstructure/app-composition':
+        specifier: workspace:*
+        version: link:packages/app-composition
       '@skeletonstructure/core':
         specifier: workspace:*
         version: link:packages/core
       '@skeletonstructure/module-auth':
         specifier: workspace:*
         version: link:packages/module-auth
+      '@skeletonstructure/module-catalog':
+        specifier: workspace:*
+        version: link:packages/module-catalog
+      '@skeletonstructure/module-inventory':
+        specifier: workspace:*
+        version: link:packages/module-inventory
+      '@skeletonstructure/module-orders':
+        specifier: workspace:*
+        version: link:packages/module-orders
+      '@skeletonstructure/module-products':
+        specifier: workspace:*
+        version: link:packages/module-products
       '@skeletonstructure/module-users':
         specifier: workspace:*
         version: link:packages/module-users
@@ -51,6 +66,43 @@ importers:
       '@skeletonstructure/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
+
+  packages/app-composition:
+    dependencies:
+      '@skeletonstructure/core':
+        specifier: workspace:*
+        version: link:../core
+      '@skeletonstructure/module-auth':
+        specifier: workspace:*
+        version: link:../module-auth
+      '@skeletonstructure/module-catalog':
+        specifier: workspace:*
+        version: link:../module-catalog
+      '@skeletonstructure/module-inventory':
+        specifier: workspace:*
+        version: link:../module-inventory
+      '@skeletonstructure/module-orders':
+        specifier: workspace:*
+        version: link:../module-orders
+      '@skeletonstructure/module-products':
+        specifier: workspace:*
+        version: link:../module-products
+      '@skeletonstructure/module-users':
+        specifier: workspace:*
+        version: link:../module-users
+    devDependencies:
+      '@testcontainers/postgresql':
+        specifier: ^12.2.2
+        version: 12.2.2(bare-buffer@3.7.3)
+      drizzle-orm:
+        specifier: ^0.45.4
+        version: 0.45.4(@types/pg@8.23.1)(pg@8.23.1)
+      testcontainers:
+        specifier: ^12.2.2
+        version: 12.2.2(bare-buffer@3.7.3)
+      vitest:
+        specifier: ^5.1.1
+        version: 5.1.1(@types/node@26.6.6)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1))
 
   packages/core:
     dependencies:
@@ -106,6 +158,115 @@ importers:
       '@skeletonstructure/module-users':
         specifier: workspace:*
         version: link:../module-users
+      drizzle-orm:
+        specifier: ^0.45.4
+        version: 0.45.4(@types/pg@8.23.1)(pg@8.23.1)
+      fastify:
+        specifier: ^5.12.8
+        version: 5.12.8
+      zod:
+        specifier: ^4.6.7
+        version: 4.6.7
+    devDependencies:
+      '@testcontainers/postgresql':
+        specifier: ^12.2.2
+        version: 12.2.2(bare-buffer@3.7.3)
+      testcontainers:
+        specifier: ^12.2.2
+        version: 12.2.2(bare-buffer@3.7.3)
+      vitest:
+        specifier: ^5.1.1
+        version: 5.1.1(@types/node@26.6.6)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1))
+
+  packages/module-catalog:
+    dependencies:
+      '@skeletonstructure/core':
+        specifier: workspace:*
+        version: link:../core
+      drizzle-orm:
+        specifier: ^0.45.4
+        version: 0.45.4(@types/pg@8.23.1)(pg@8.23.1)
+      fastify:
+        specifier: ^5.12.8
+        version: 5.12.8
+      zod:
+        specifier: ^4.6.7
+        version: 4.6.7
+    devDependencies:
+      '@testcontainers/postgresql':
+        specifier: ^12.2.2
+        version: 12.2.2(bare-buffer@3.7.3)
+      testcontainers:
+        specifier: ^12.2.2
+        version: 12.2.2(bare-buffer@3.7.3)
+      vitest:
+        specifier: ^5.1.1
+        version: 5.1.1(@types/node@26.6.6)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1))
+
+  packages/module-inventory:
+    dependencies:
+      '@skeletonstructure/core':
+        specifier: workspace:*
+        version: link:../core
+      '@skeletonstructure/module-catalog':
+        specifier: workspace:*
+        version: link:../module-catalog
+      drizzle-orm:
+        specifier: ^0.45.4
+        version: 0.45.4(@types/pg@8.23.1)(pg@8.23.1)
+      fastify:
+        specifier: ^5.12.8
+        version: 5.12.8
+      zod:
+        specifier: ^4.6.7
+        version: 4.6.7
+    devDependencies:
+      '@testcontainers/postgresql':
+        specifier: ^12.2.2
+        version: 12.2.2(bare-buffer@3.7.3)
+      testcontainers:
+        specifier: ^12.2.2
+        version: 12.2.2(bare-buffer@3.7.3)
+      vitest:
+        specifier: ^5.1.1
+        version: 5.1.1(@types/node@26.6.6)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1))
+
+  packages/module-orders:
+    dependencies:
+      '@skeletonstructure/core':
+        specifier: workspace:*
+        version: link:../core
+      '@skeletonstructure/module-catalog':
+        specifier: workspace:*
+        version: link:../module-catalog
+      drizzle-orm:
+        specifier: ^0.45.4
+        version: 0.45.4(@types/pg@8.23.1)(pg@8.23.1)
+      fastify:
+        specifier: ^5.12.8
+        version: 5.12.8
+      zod:
+        specifier: ^4.6.7
+        version: 4.6.7
+    devDependencies:
+      '@testcontainers/postgresql':
+        specifier: ^12.2.2
+        version: 12.2.2(bare-buffer@3.7.3)
+      testcontainers:
+        specifier: ^12.2.2
+        version: 12.2.2(bare-buffer@3.7.3)
+      vitest:
+        specifier: ^5.1.1
+        version: 5.1.1(@types/node@26.6.6)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1))
+
+  packages/module-products:
+    dependencies:
+      '@skeletonstructure/core':
+        specifier: workspace:*
+        version: link:../core
+      '@skeletonstructure/module-catalog':
+        specifier: workspace:*
+        version: link:../module-catalog
       drizzle-orm:
         specifier: ^0.45.4
         version: 0.45.4(@types/pg@8.23.1)(pg@8.23.1)

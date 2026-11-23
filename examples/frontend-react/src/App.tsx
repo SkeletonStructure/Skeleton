@@ -11,6 +11,7 @@ export function App() {
   const [message, setMessage] = useState('Loading public configuration…');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [itemId, setItemId] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -66,6 +67,29 @@ export function App() {
     });
   }
 
+  function handleBrowseProducts(): void {
+    void run(async () => {
+      const response = await client.products.getAll({ limit: 5 });
+      setMessage(
+        response.data.items.length === 0
+          ? 'No products yet.'
+          : response.data.items
+              .map((item) => `${item.name} (${item.details.product.sku})`)
+              .join(', '),
+      );
+    });
+  }
+
+  function handleCreateOrder(): void {
+    void run(async () => {
+      await client.orders.create(
+        { items: [{ itemId, quantity: 1 }] },
+        { idempotencyKey: `demo-checkout-${itemId}` },
+      );
+      setMessage('Order created.');
+    });
+  }
+
   function handleLogout(): void {
     void run(async () => {
       await client.auth.logout();
@@ -93,6 +117,17 @@ export function App() {
       </button>
       <button type="button" onClick={handleUpdateProfile}>
         Update profile
+      </button>
+      <button type="button" onClick={handleBrowseProducts}>
+        Browse products
+      </button>
+      <input
+        value={itemId}
+        onChange={(event) => setItemId(event.target.value)}
+        placeholder="Catalog item ID"
+      />
+      <button type="button" onClick={handleCreateOrder}>
+        Create order
       </button>
       <button type="button" onClick={handleLogout}>
         Sign out

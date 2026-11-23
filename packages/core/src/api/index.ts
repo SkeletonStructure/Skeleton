@@ -32,8 +32,11 @@ export { buildPublicConfig } from './public-config.js';
 export { newRequestId } from './request.js';
 export { registerRoutes } from './routes.js';
 export {
+  type CursorPage,
   errorEnvelopeSchema,
+  isCursorPage,
   liveResponseSchema,
+  pageResult,
   publicConfigDataSchema,
   readyErrorResponseSchema,
   type SuccessEnvelope,

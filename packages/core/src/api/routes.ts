@@ -5,6 +5,7 @@ import { buildReadinessChecks, evaluateReadiness } from './health.js';
 import { buildPublicConfig } from './public-config.js';
 import {
   errorEnvelopeSchema,
+  isCursorPage,
   liveResponseSchema,
   publicConfigDataSchema,
   readyErrorResponseSchema,
@@ -61,6 +62,9 @@ export async function registerResolvedRoutes(
           handler: async (request, reply) => {
             const result = await route.handler(request, reply);
             if (reply.sent) return reply;
+            if (isCursorPage(result)) {
+              return successEnvelope(request.requestId, result.data, result.nextCursor);
+            }
             return successEnvelope(request.requestId, result === undefined ? {} : result);
           },
         });

@@ -2,11 +2,42 @@ import type { FastifySchema } from 'fastify';
 
 export interface SuccessEnvelope<T> {
   readonly data: T;
-  readonly meta: { readonly requestId: string };
+  readonly meta: { readonly requestId: string; readonly nextCursor?: string };
 }
 
-export function successEnvelope<T>(requestId: string, data: T): SuccessEnvelope<T> {
-  return { data, meta: { requestId } };
+/** Generic cursor result that modules return when they need paginated metadata. */
+export interface CursorPage<T> {
+  readonly data: T;
+  readonly nextCursor?: string;
+}
+
+export function pageResult<T>(data: T, nextCursor?: string): CursorPage<T> {
+  return {
+    data,
+    ...(nextCursor === undefined ? {} : { nextCursor }),
+  };
+}
+
+export function isCursorPage(value: unknown): value is CursorPage<unknown> {
+  if (typeof value !== 'object' || value === null || Array.isArray(value) || !('data' in value)) {
+    return false;
+  }
+  const nextCursor = (value as { nextCursor?: unknown }).nextCursor;
+  return nextCursor === undefined || typeof nextCursor === 'string';
+}
+
+export function successEnvelope<T>(
+  requestId: string,
+  data: T,
+  nextCursor?: string,
+): SuccessEnvelope<T> {
+  return {
+    data,
+    meta: {
+      requestId,
+      ...(nextCursor === undefined ? {} : { nextCursor }),
+    },
+  };
 }
 
 const metaSchema = {
@@ -15,6 +46,7 @@ const metaSchema = {
   required: ['requestId'],
   properties: {
     requestId: { type: 'string', minLength: 1 },
+    nextCursor: { type: 'string', minLength: 1 },
   },
 } as const;
 

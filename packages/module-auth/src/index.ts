@@ -38,6 +38,9 @@ export const authModuleConfigSchema = z.object({
   passwordMinLength: z.number().int().min(12).default(12),
 });
 
+/** Mirrors the consumer-side port ID without making auth depend on orders. */
+export const BUYER_CONTEXT_PORT = { id: 'buyer-context', version: 1 } as const;
+
 const AUTH_RATE_LIMIT = { max: 10, timeWindow: 60_000 } as const;
 
 const userSchema = {
@@ -260,6 +263,7 @@ export function createAuthModule(options: AuthModuleOptions): AuthModule {
     version: 1,
     stability: 'experimental',
     requires: ['users'],
+    provides: [BUYER_CONTEXT_PORT],
     configSchema: authModuleConfigSchema,
     register(context) {
       for (const route of routeHandlers) {

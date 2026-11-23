@@ -103,7 +103,7 @@ HTTP health endpoints are provided by the M5 API adapter; see [`api.md`](./api.m
 
 ## Migrations
 
-Core migration SQL lives in `packages/core/migrations/`. The committed `0000_core_baseline` migration is intentionally empty: it establishes the workflow without introducing application tables. M6 modules own their SQL in `packages/module-users/migrations/` and `packages/module-auth/migrations/`.
+Core migration SQL lives in `packages/core/migrations/`. The committed `0000_core_baseline` migration is intentionally empty: it establishes the workflow without introducing application tables. M6 modules own their SQL in `packages/module-users/migrations/` and `packages/module-auth/migrations/`; M8 modules own `catalog_items`, `commerce_products`, `inventory_items`, and the three `orders_*` tables in their respective package folders.
 
 Generate a reviewed SQL migration:
 
@@ -111,6 +111,10 @@ Generate a reviewed SQL migration:
 pnpm db:generate --custom --name=add_example_table
 pnpm db:generate:users --custom --name=add_users_field
 pnpm db:generate:auth --custom --name=add_auth_index
+pnpm db:generate:catalog --custom --name=add_catalog_index
+pnpm db:generate:products --custom --name=add_product_field
+pnpm db:generate:inventory --custom --name=add_inventory_index
+pnpm db:generate:orders --custom --name=add_order_index
 ```
 
 Apply migrations explicitly:
@@ -121,11 +125,11 @@ pnpm db:migrate
 pnpm skeleton db migrate
 ```
 
-`pnpm db:migrate` loads the same validated configuration as the application, initializes the shared database, applies core, users, then auth migrations in dependency order, and closes the pool. `runAuthUsersMigrations(database)` is the programmatic equivalent. Production must not auto-migrate on startup; migration remains an explicit operator action.
+`pnpm db:migrate` loads the same validated configuration as the application, initializes the shared database, applies core/users/auth, catalog, products, inventory, then orders migrations in dependency order, and closes the pool. `runM8Migrations(database)` from `@skeletonstructure/app-composition` is the programmatic equivalent; `runAuthUsersMigrations(database)` covers only the M6 subset. Production must not auto-migrate on startup; migration remains an explicit operator action.
 
 The runner obtains a dedicated client from the shared pool, takes a PostgreSQL advisory lock, applies migrations on that same client, then releases the lock and client. Concurrent migration processes therefore cannot race. Drizzle's internal `drizzle.__drizzle_migrations` table is the only table created by the baseline workflow.
 
-Module-owned tables and migrations arrived in M6. Disabling a module does not drop its tables. Auth sessions and password-reset tokens have a separate explicit cleanup job (`pnpm auth:cleanup`); destructive migration policy and deployment readiness enforcement are still operator responsibilities.
+Module-owned tables and migrations arrived in M6 and expanded in M8. Disabling a module does not drop its tables. Product and inventory rows reference `catalog_items` with `ON DELETE RESTRICT`; order items also reference catalog items so historical lines cannot be orphaned. Auth sessions and password-reset tokens have a separate explicit cleanup job (`pnpm auth:cleanup`); destructive migration policy and deployment readiness enforcement are still operator responsibilities.
 
 ## Testing
 
