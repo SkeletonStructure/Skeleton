@@ -4,7 +4,7 @@ A self-hosted, MIT-licensed backend foundation built as a modular monolith. This
 
 ## Status
 
-- Milestone M4 — Core architecture and module registry.
+- Milestone M5 — API infrastructure and module registry.
 - No production-readiness claim. Security review and release verification happen in milestone M10.
 
 ## Quick start
@@ -32,6 +32,8 @@ pnpm test
 | `config:docs`      | `tsc -b packages/core && node scripts/generate-config-reference.mjs` | Regenerate the config reference    |
 | `db:generate`      | `drizzle-kit generate --config drizzle.config.ts`                    | Generate a reviewed SQL migration  |
 | `db:migrate`       | `tsc -b packages/core && node scripts/skeleton.mjs db migrate`       | Apply migrations explicitly        |
+| `openapi:generate` | `tsc -b packages/core && node scripts/generate-openapi.mjs`          | Regenerate the public OpenAPI file |
+| `openapi:check`    | `tsc -b packages/core && node scripts/check-openapi.mjs`             | Verify the committed OpenAPI file  |
 | `ci`               | `pnpm typecheck && pnpm lint && pnpm test`                           | Full local verification            |
 
 ## Configuration
@@ -95,19 +97,38 @@ const registry = composeModuleRegistry({
 const report = await registry.activate();
 ```
 
-M4 route registration is an in-memory contract for startup validation; Fastify, global hooks, and HTTP listening arrive in M5. See [`docs/modules.md`](./docs/modules.md) for the full contract, lifecycle, and failure modes.
+Module route and permission declarations are validated before HTTP startup. M5 wires declared routes into Fastify; application modules still arrive in later milestones. See [`docs/modules.md`](./docs/modules.md) for the full contract, lifecycle, and failure modes.
+
+## API
+
+The M5 API adapter builds one Fastify instance with a `/v1` prefix, request IDs, the standard JSON envelope, validation/error mapping, permission hooks, exact-origin CORS, per-process rate limiting, health endpoints, public config, and OpenAPI generation.
+
+```ts
+import { createServer } from '@skeletonstructure/core/api';
+import { composeModuleRegistry } from '@skeletonstructure/core/modules';
+
+const registry = composeModuleRegistry({ appConfig: config, database, modules: [] });
+const report = await registry.activate();
+const app = await createServer({ appConfig: config, activationReport: report, database });
+await app.listen({ host: config.server.host, port: config.server.port });
+```
+
+`GET /health/live` checks only process responsiveness. `GET /health/ready` returns `503` with a short reason code when config, database, migration, or injected readiness checks fail. `GET /v1/config/public` exposes only the frontend-safe allowlist.
+
+M5 defines the authentication boundary but does not implement sessions or login. Protected routes deny by default unless an injected authenticator supplies a principal with the declared permission; real authentication and authorization are M6. See [`docs/api.md`](./docs/api.md) for envelopes, error codes, CORS, health, and OpenAPI details.
 
 ## Layout
 
 ```text
-packages/core/       mandatory core infrastructure, including config and database
+packages/core/       mandatory core infrastructure: config, database, modules, API
 apps/                demonstration applications (added in M9)
 templates/           starter application template
 docs/config/         generated configuration reference
 docs/database.md     database infrastructure guide
 docs/modules.md      module contract and registry guide
+docs/api.md          HTTP adapter, errors, health, CORS, and OpenAPI
 docs/architecture/   architecture records and ADRs
-openapi/             generated public OpenAPI artifact (added in M5)
+openapi/             committed public OpenAPI artifact
 .env.example         documented environment variables
 skeleton.config.example.ts  example typed config
 ```
@@ -119,6 +140,7 @@ skeleton.config.example.ts  example typed config
 - `docs/config/reference.md` — every configuration field, default, and env var.
 - `docs/database.md` — database lifecycle, usage, migrations, and health checks.
 - `docs/modules.md` — module contract, composition, lifecycle, and activation report.
+- `docs/api.md` — server composition, error model, permission hook, health, CORS, rate limits, and OpenAPI.
 - `docs/architecture/adr/` — architecture decision records.
 
 The authoritative engineering blueprint lives in the `SkeletonStructure-blueprint` workspace during bootstrap and will be imported into `docs/architecture/` as the repository matures.

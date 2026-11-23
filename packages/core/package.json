@@ -10,6 +10,10 @@
       "types": "./dist/src/index.d.ts",
       "import": "./dist/src/index.js"
     },
+    "./api": {
+      "types": "./dist/src/api/index.d.ts",
+      "import": "./dist/src/api/index.js"
+    },
     "./config": {
       "types": "./dist/src/config/index.d.ts",
       "import": "./dist/src/config/index.js"
@@ -24,8 +28,12 @@
     }
   },
   "dependencies": {
+    "@fastify/cors": "^11.4.3",
+    "@fastify/rate-limit": "^11.3.0",
+    "@fastify/swagger": "^9.9.5",
     "dotenv": "^18.0.10",
     "drizzle-orm": "^0.45.4",
+    "fastify": "^5.12.8",
     "pg": "^8.23.1",
     "zod": "^4.6.7"
   },

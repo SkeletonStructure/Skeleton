@@ -5,7 +5,8 @@
       "!**/node_modules",
       "!**/dist",
       "!pnpm-lock.yaml",
-      "!docs/config/reference.md"
+      "!docs/config/reference.md",
+      "!openapi/openapi.json"
     ]
   },
   "formatter": {

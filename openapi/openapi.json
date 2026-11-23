@@ -1,0 +1,83 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "SkeletonStructure API",
+    "version": "0.1.0",
+    "description": "Public SkeletonStructure HTTP contract."
+  },
+  "components": {
+    "schemas": {}
+  },
+  "paths": {
+    "/v1/config/public": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "appName",
+                        "apiBaseUrl",
+                        "authMode",
+                        "publicModules"
+                      ],
+                      "properties": {
+                        "appName": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "apiBaseUrl": {
+                          "type": "string",
+                          "enum": [
+                            "/v1"
+                          ]
+                        },
+                        "authMode": {
+                          "type": "string",
+                          "enum": [
+                            "session"
+                          ]
+                        },
+                        "publicModules": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "requestId"
+                      ],
+                      "properties": {
+                        "requestId": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

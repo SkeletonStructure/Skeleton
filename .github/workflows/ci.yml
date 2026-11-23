@@ -36,6 +36,9 @@ jobs:
       - name: Lint and format check
         run: pnpm lint
 
+      - name: Check OpenAPI artifact
+        run: pnpm openapi:check
+
       - name: Test
         run: pnpm test
 

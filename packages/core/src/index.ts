@@ -8,6 +8,7 @@ export function foundationIdentity(): FoundationIdentity {
   return { name: FOUNDATION_NAME };
 }
 
+export * as api from './api/index.js';
 export * as config from './config/index.js';
 export * as database from './database/index.js';
 export * as modules from './modules/index.js';

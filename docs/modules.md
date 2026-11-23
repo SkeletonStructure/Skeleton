@@ -1,6 +1,6 @@
 # Module registry guide
 
-M4 introduces the module contract, a static composition helper, dependency/port validation, lifecycle ordering, and a redacted activation report. It does not add Fastify, HTTP listening, application modules, or domain functionality.
+M4 introduces the module contract, a static composition helper, dependency/port validation, lifecycle ordering, and a redacted activation report. It does not add Fastify, HTTP listening, application modules, or domain functionality. M5 consumes the report to register routes in the API adapter; see [`api.md`](./api.md).
 
 ## Contract
 

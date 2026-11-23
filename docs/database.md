@@ -99,7 +99,7 @@ const result = await checkDatabaseHealth();
 
 This is intentionally separate from application liveness. Process liveness means the event loop is responsive and must not query PostgreSQL. Readiness may include database availability, migration state, and future module health contributors. Health output contains only a status and short reason code; it never contains credentials, hostnames, connection strings, or SQL errors.
 
-HTTP health endpoints are introduced in M5.
+HTTP health endpoints are provided by the M5 API adapter; see [`api.md`](./api.md#health-endpoints).
 
 ## Migrations
 

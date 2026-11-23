@@ -1,0 +1,90 @@
+import type { Database } from '../database/index.js';
+import { ApiConfigurationError } from './config.js';
+import type {
+  HealthResult,
+  ReadinessCheck,
+  ReadinessCheckResult,
+  ReadinessReport,
+  ResolvedApiServerOptions,
+} from './types.js';
+
+const SAFE_REASON_PATTERN = /^[A-Z][A-Z0-9_]{0,63}$/;
+
+export function databaseReadinessCheck(database: Database | undefined): ReadinessCheck {
+  return {
+    id: 'database',
+    check: async () => {
+      if (database === undefined) {
+        return { status: 'error', reason: 'DATABASE_NOT_INITIALIZED' };
+      }
+
+      const result = await database.health();
+      if (result.status === 'ok') return { status: 'ok' };
+      return { status: 'error', reason: result.reason ?? 'DATABASE_UNAVAILABLE' };
+    },
+  };
+}
+
+export function buildReadinessChecks(options: ResolvedApiServerOptions): readonly ReadinessCheck[] {
+  const reserved = new Set(['config', 'database']);
+  for (const check of options.readinessChecks) {
+    if (reserved.has(check.id)) {
+      throw new ApiConfigurationError(
+        'DUPLICATE_READINESS_CHECK',
+        `Readiness check id "${check.id}" is reserved by core.`,
+      );
+    }
+  }
+
+  return [
+    { id: 'config', check: () => ({ status: 'ok' }) },
+    databaseReadinessCheck(options.database),
+    ...options.readinessChecks,
+  ];
+}
+
+function safeReason(reason: string | undefined): string {
+  return reason !== undefined && SAFE_REASON_PATTERN.test(reason) ? reason : 'HEALTH_CHECK_FAILED';
+}
+
+function normalizeResult(value: unknown): HealthResult {
+  if (typeof value !== 'object' || value === null) {
+    return { status: 'error', reason: 'HEALTH_CHECK_FAILED' };
+  }
+
+  const result = value as { status?: unknown; reason?: unknown };
+  if (result.status === 'ok') return { status: 'ok' };
+  if (result.status === 'error') {
+    return {
+      status: 'error',
+      reason: safeReason(typeof result.reason === 'string' ? result.reason : undefined),
+    };
+  }
+  return { status: 'error', reason: 'HEALTH_CHECK_FAILED' };
+}
+
+/** Deterministic readiness evaluation with no exception details in the result. */
+export async function evaluateReadiness(
+  checks: readonly ReadinessCheck[],
+): Promise<ReadinessReport> {
+  const results: ReadinessCheckResult[] = [];
+
+  for (const check of checks) {
+    let result: HealthResult;
+    try {
+      result = normalizeResult(await check.check());
+    } catch {
+      result = { status: 'error', reason: 'HEALTH_CHECK_FAILED' };
+    }
+    results.push({ id: check.id, ...result });
+  }
+
+  const failed = results.find((result) => result.status === 'error');
+  if (failed === undefined) return { status: 'ok', checks: results };
+
+  return {
+    status: 'error',
+    reason: failed.reason ?? 'HEALTH_CHECK_FAILED',
+    checks: results,
+  };
+}
