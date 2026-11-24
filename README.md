@@ -4,57 +4,78 @@ A self-hosted, MIT-licensed backend foundation built as a modular monolith. This
 
 ## Status
 
-- Milestone M9a — complete e-commerce demonstration on top of the M8 business modules.
-- M9b (restaurant demonstration), security review, and release verification are not started.
-- No production-readiness claim. Security review and release verification happen in milestone M10.
+v0.1.0 is the first usable release of the backend foundation. It includes M1–M8, the complete M9a e-commerce demonstration, and the M10 release documentation and verification work. M9b (the restaurant demonstration) is deliberately deferred and is not required for this release. The e-commerce demo is the primary demonstration application.
+
+This is an early foundation, not a production-ready platform. It has no payments, MFA, persistent audit logging, shared rate limiter, real email adapter, or multi-tenancy. Careful defaults lower risk, but they do not replace review, testing, and updates. See [`SECURITY.md`](./SECURITY.md) and [`CHANGELOG.md`](./CHANGELOG.md) for the explicit limitations.
 
 ## Quick start
 
-Requirements: Node.js 22 or newer and pnpm 10.
+Requirements: Node.js 22 or newer, pnpm 10, and PostgreSQL 16. Docker is the simplest way to provide PostgreSQL locally:
+
+```bash
+docker run --name skeleton-pg \
+  -e POSTGRES_USER=skeleton \
+  -e POSTGRES_PASSWORD=skeleton \
+  -e POSTGRES_DB=skeleton \
+  -p 5432:5432 -d postgres:16-alpine
+```
+
+The command uses development-only credentials. Stop the container with `docker stop skeleton-pg` and remove it with `docker rm skeleton-pg` when finished.
+
+From a fresh clone, install, configure, migrate, and start the composed backend:
 
 ```bash
 pnpm install --frozen-lockfile
 cp .env.example .env
-pnpm typecheck
-pnpm lint
-pnpm test
+cp skeleton.config.example.ts skeleton.config.ts
+pnpm db:migrate
+pnpm start
 ```
+
+The checked-in config example enables `users`, `auth`, `catalog`, `products`, `inventory`, and `orders`. Check health in another terminal:
+
+```bash
+curl http://localhost:3000/health/live
+curl http://localhost:3000/health/ready
+```
+
+For an actual deployment, use a least-privilege database role, set `NODE_ENV=production`, `COOKIE_SECURE=true`, `DATABASE_SSL=true`, and an exact `CORS_ORIGINS` allowlist. Operator responsibilities are listed in [`SECURITY.md`](./SECURITY.md).
 
 To run the M9a e-commerce demo, follow [`apps/demo-ecommerce/README.md`](./apps/demo-ecommerce/README.md). In short, set its `DATABASE_URL`, then run `pnpm demo:ecommerce:migrate`, `pnpm demo:ecommerce:seed`, `pnpm demo:ecommerce:api`, and `pnpm demo:ecommerce:dev`. The seeded login and verification commands are documented there and in [`docs/m9.md`](./docs/m9.md).
 
 ## Scripts
 
-| Script                   | Command                                                              | Purpose                                  |
-| ------------------------ | -------------------------------------------------------------------- | ---------------------------------------- |
-| `typecheck`              | `tsc -b --pretty false`                                              | Type-check all TypeScript projects       |
-| `lint`                   | `biome check .`                                                      | Format check and lint                    |
-| `format`                 | `biome format --write .`                                             | Apply formatting                         |
-| `test`                   | `vitest run`                                                         | Run all unit and integration tests       |
-| `test:contract`          | `vitest run packages/sdk/tests/contract.test.ts`                     | Run SDK boundary/contract tests          |
-| `test:integration`       | `vitest run packages/core/tests/database/integration.test.ts`        | Run the core PostgreSQL container test   |
-| `test:watch`             | `vitest`                                                             | Run tests in watch mode                  |
-| `demo:ecommerce:migrate` | `pnpm --filter @skeletonstructure/demo-ecommerce db:migrate`         | Apply shared plus demo-cart migrations   |
-| `demo:ecommerce:seed`    | `pnpm --filter @skeletonstructure/demo-ecommerce db:seed`            | Seed the demo user and products          |
-| `demo:ecommerce:api`     | `pnpm --filter @skeletonstructure/demo-ecommerce api`                | Start the demo API                       |
-| `demo:ecommerce:dev`     | `pnpm --filter @skeletonstructure/demo-ecommerce dev`                | Start the demo storefront                |
-| `demo:ecommerce:verify`  | OpenAPI/client checks, integration tests, and Playwright happy path  | Verify the complete e-commerce demo      |
-| `sdk:generate`           | `node scripts/generate-sdk.mjs`                                      | Regenerate SDK types from OpenAPI        |
-| `sdk:check`              | `node scripts/check-sdk.mjs`                                         | Verify committed SDK types are current   |
-| `config:docs`            | `tsc -b packages/core && node scripts/generate-config-reference.mjs` | Regenerate the config reference          |
-| `db:generate`            | `drizzle-kit generate --config drizzle.config.ts`                    | Generate a reviewed core migration       |
-| `db:generate:users`      | `drizzle-kit generate --config drizzle.users.config.ts`              | Generate a reviewed users migration      |
-| `db:generate:auth`       | `drizzle-kit generate --config drizzle.auth.config.ts`               | Generate a reviewed auth migration       |
-| `db:generate:catalog`    | `drizzle-kit generate --config drizzle.catalog.config.ts`            | Generate a reviewed catalog migration    |
-| `db:generate:products`   | `drizzle-kit generate --config drizzle.products.config.ts`           | Generate a reviewed products migration   |
-| `db:generate:inventory`  | `drizzle-kit generate --config drizzle.inventory.config.ts`          | Generate a reviewed inventory migration  |
-| `db:generate:orders`     | `drizzle-kit generate --config drizzle.orders.config.ts`             | Generate a reviewed orders migration     |
-| `db:migrate`             | `tsc -b && node scripts/migrate-modules.mjs`                         | Apply all M1–M8 migrations in order      |
-| `start`                  | `tsc -b && node scripts/skeleton.mjs start`                          | Start the composed M8 server             |
-| `skeleton`               | `node scripts/skeleton.mjs`                                          | Run `db migrate` or `start`              |
-| `auth:cleanup`           | `tsc -b && node scripts/cleanup-sessions.mjs`                        | Remove expired sessions and reset tokens |
-| `openapi:generate`       | `tsc -b && node scripts/generate-openapi.mjs`                        | Regenerate the public OpenAPI file       |
-| `openapi:check`          | `tsc -b && node scripts/check-openapi.mjs`                           | Verify the committed OpenAPI file        |
-| `ci`                     | `pnpm typecheck && pnpm lint && pnpm test`                           | Local type, lint, and test gate          |
+| Script                   | Command                                                              | Purpose                                               |
+| ------------------------ | -------------------------------------------------------------------- | ----------------------------------------------------- |
+| `typecheck`              | `tsc -b --pretty false`                                              | Type-check all TypeScript projects                    |
+| `lint`                   | `biome check .`                                                      | Format check and lint                                 |
+| `format`                 | `biome format --write .`                                             | Apply formatting                                      |
+| `test`                   | `vitest run`                                                         | Run all unit and integration tests                    |
+| `test:contract`          | `vitest run packages/sdk/tests/contract.test.ts`                     | Run SDK boundary/contract tests                       |
+| `test:integration`       | `vitest run packages/core/tests/database/integration.test.ts`        | Run the core PostgreSQL container test                |
+| `test:watch`             | `vitest`                                                             | Run tests in watch mode                               |
+| `demo:ecommerce:migrate` | `pnpm --filter @skeletonstructure/demo-ecommerce db:migrate`         | Apply shared plus demo-cart migrations                |
+| `demo:ecommerce:seed`    | `pnpm --filter @skeletonstructure/demo-ecommerce db:seed`            | Seed the demo user and products                       |
+| `demo:ecommerce:api`     | `pnpm --filter @skeletonstructure/demo-ecommerce api`                | Start the demo API                                    |
+| `demo:ecommerce:dev`     | `pnpm --filter @skeletonstructure/demo-ecommerce dev`                | Start the demo storefront                             |
+| `demo:ecommerce:verify`  | OpenAPI/client checks, integration tests, and Playwright happy path  | Verify the complete e-commerce demo                   |
+| `sdk:generate`           | `node scripts/generate-sdk.mjs`                                      | Regenerate SDK types from OpenAPI                     |
+| `sdk:check`              | `node scripts/check-sdk.mjs`                                         | Verify committed SDK types are current                |
+| `config:docs`            | `tsc -b packages/core && node scripts/generate-config-reference.mjs` | Regenerate the config reference                       |
+| `db:generate`            | `drizzle-kit generate --config drizzle.config.ts`                    | Generate a reviewed core migration                    |
+| `db:generate:users`      | `drizzle-kit generate --config drizzle.users.config.ts`              | Generate a reviewed users migration                   |
+| `db:generate:auth`       | `drizzle-kit generate --config drizzle.auth.config.ts`               | Generate a reviewed auth migration                    |
+| `db:generate:catalog`    | `drizzle-kit generate --config drizzle.catalog.config.ts`            | Generate a reviewed catalog migration                 |
+| `db:generate:products`   | `drizzle-kit generate --config drizzle.products.config.ts`           | Generate a reviewed products migration                |
+| `db:generate:inventory`  | `drizzle-kit generate --config drizzle.inventory.config.ts`          | Generate a reviewed inventory migration               |
+| `db:generate:orders`     | `drizzle-kit generate --config drizzle.orders.config.ts`             | Generate a reviewed orders migration                  |
+| `db:migrate`             | `tsc -b && node scripts/migrate-modules.mjs`                         | Apply all M1–M8 migrations in order                   |
+| `start`                  | `tsc -b && node scripts/skeleton.mjs start`                          | Start the composed M8 server                          |
+| `skeleton`               | `node scripts/skeleton.mjs`                                          | Run `db migrate` or `start`                           |
+| `auth:cleanup`           | `tsc -b && node scripts/cleanup-sessions.mjs`                        | Remove expired sessions and reset tokens              |
+| `openapi:generate`       | `tsc -b && node scripts/generate-openapi.mjs`                        | Regenerate the public OpenAPI file                    |
+| `openapi:check`          | `tsc -b && node scripts/check-openapi.mjs`                           | Verify the committed OpenAPI file                     |
+| `ci`                     | `pnpm typecheck && pnpm lint && pnpm test`                           | Local type, lint, and test gate; run as `pnpm run ci` |
 
 ## Configuration
 
@@ -79,6 +100,8 @@ Precedence, highest first:
 5. Built-in defaults
 
 Secret fields must be supplied with `env(...)`. Literal secrets in the config file fail validation. Invalid configuration throws `ConfigError` with all issues in one message, before the application starts.
+
+Optional modules are off unless `config.modules[id].enabled` is `true`, and dependent modules must be enabled together. The example config enables the supported v0.1.0 graph; [`docs/modules.md`](./docs/modules.md) and [`docs/m8.md`](./docs/m8.md) document dependencies, ports, and activation order. The frontend SDK is distributed as a private workspace package in v0.1.0; it is not published to npm. Integrate it from this repository as shown in [`docs/sdk.md`](./docs/sdk.md) and the `examples/` directory.
 
 The full generated field list is in [`docs/config/reference.md`](./docs/config/reference.md). Regenerate it with `pnpm config:docs`.
 

@@ -24,14 +24,27 @@ No shared core or module contract was changed to support this app. `createM8Comp
 
 - Node.js 22 or newer
 - pnpm 10
-- PostgreSQL 16 (or Docker for Testcontainers-backed tests)
-- A local PostgreSQL role/database for the app itself
+- PostgreSQL 16
+- Docker, for the development database below and for Testcontainers-backed tests
+
+Start a local development database from the repository root if one is not already available:
+
+```bash
+docker run --name skeleton-pg \
+  -e POSTGRES_USER=skeleton \
+  -e POSTGRES_PASSWORD=skeleton \
+  -e POSTGRES_DB=skeleton \
+  -p 5432:5432 -d postgres:16-alpine
+```
+
+These credentials are development-only. Use a least-privilege role and different credentials for any deployed instance.
 
 ## Configuration
 
-Copy `.env.example` to `.env` and set `DATABASE_URL`. The public checkout flow also needs a seeded demo user. The seed credentials are local-only and must never be placed in browser code.
+From this app directory, copy `.env.example` to `.env`. The default `DATABASE_URL` matches the container above; override it if your database differs. The public checkout flow also needs a seeded demo user. The seed credentials are local-only and must never be placed in browser code.
 
 ```bash
+cd apps/demo-ecommerce
 cp .env.example .env
 ```
 
