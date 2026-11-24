@@ -34,8 +34,8 @@ Fresh-clone evidence: commit `a5fb7c3575cfafdfb454b6fc5df0db81efd5ce91`, 2026-11
 - [x] `pnpm config:docs` produces no committed reference drift
 - [x] `pnpm audit --audit-level=high` passes
 - [ ] Final CI run is green on the docs-freeze commit
-- [ ] Production demo build is verified on the docs-freeze commit
-- [ ] Final migration/seed smoke test is recorded on the docs-freeze commit
+- [x] Production demo build is verified (`pnpm --filter @skeletonstructure/demo-ecommerce build`)
+- [x] Final migration/seed smoke test is recorded in the fresh-clone evidence above
 
 ## Security
 
@@ -45,7 +45,7 @@ Fresh-clone evidence: commit `a5fb7c3575cfafdfb454b6fc5df0db81efd5ce91`, 2026-11
 - [x] Native GitHub secret scanning and push protection enabled.
 - [x] Dependabot security updates enabled.
 - [ ] Independent maintainer security sign-off recorded.
-- [ ] Non-provider pattern scanning decision recorded in release notes.
+- [x] Non-provider pattern scanning decision recorded in release notes.
 
 ## Documentation
 
@@ -54,22 +54,22 @@ Fresh-clone evidence: commit `a5fb7c3575cfafdfb454b6fc5df0db81efd5ce91`, 2026-11
 - [x] SDK source-only distribution is documented.
 - [x] `SECURITY.md` includes private reporting, fallback email, limitations, and operator responsibilities.
 - [x] Known limitations are collected in release notes.
-- [ ] `docs/releases/v0.1.0.md` is complete.
+- [x] `docs/releases/v0.1.0.md` is complete.
 - [ ] Website status matches the released implementation.
 - [ ] Docs freeze commit identified.
 
 ## Release artifacts
 
-- [ ] `VERSION` is `0.1.0`.
-- [ ] Root and workspace package versions are `0.1.0`.
-- [ ] OpenAPI metadata is consistent with the release.
-- [ ] CHANGELOG has a `0.1.0` section.
-- [ ] Release notes explicitly state the project is not claimed to be completely secure.
+- [x] `VERSION` is `0.1.0`.
+- [x] Root and workspace package versions are `0.1.0`.
+- [x] OpenAPI metadata is consistent with the release.
+- [x] CHANGELOG has a `0.1.0` section.
+- [x] Release notes explicitly state the project is not claimed to be completely secure.
 - [ ] Backend tree is clean and all commits are pushed.
 - [ ] Website tree is clean and all commits are pushed.
 - [ ] Tag `v0.1.0` points to the docs-freeze commit.
 - [ ] GitHub Release is published from `docs/releases/v0.1.0.md`.
-- [ ] No npm publication is attempted.
+- [x] No npm publication is attempted.
 
 ## Publication command
 

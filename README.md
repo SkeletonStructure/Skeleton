@@ -6,7 +6,7 @@ A self-hosted, MIT-licensed backend foundation built as a modular monolith. This
 
 v0.1.0 is the first usable release of the backend foundation. It includes M1–M8, the complete M9a e-commerce demonstration, and the M10 release documentation and verification work. M9b (the restaurant demonstration) is deliberately deferred and is not required for this release. The e-commerce demo is the primary demonstration application.
 
-This is an early foundation, not a production-ready platform. It has no payments, MFA, persistent audit logging, shared rate limiter, real email adapter, or multi-tenancy. Careful defaults lower risk, but they do not replace review, testing, and updates. See [`SECURITY.md`](./SECURITY.md) and [`CHANGELOG.md`](./CHANGELOG.md) for the explicit limitations.
+This is an early foundation, not a production-ready platform. It has no payments, MFA, persistent audit logging, shared rate limiter, real email adapter, or multi-tenancy. Careful defaults lower risk, but they do not replace review, testing, and updates. See [`SECURITY.md`](./SECURITY.md) and [`docs/releases/v0.1.0.md`](./docs/releases/v0.1.0.md) for the explicit limitations.
 
 ## Quick start
 

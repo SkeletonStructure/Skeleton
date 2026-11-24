@@ -1,8 +1,14 @@
 {
   "name": "skeletonstructure-monorepo",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SkeletonStructure/Skeleton.git"
+  },
+  "homepage": "https://skeletonstructure.github.io/",
   "packageManager": "pnpm@10.34.9",
   "engines": {
     "node": ">=22"
