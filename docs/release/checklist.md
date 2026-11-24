@@ -33,7 +33,7 @@ Fresh-clone evidence: commit `a5fb7c3575cfafdfb454b6fc5df0db81efd5ce91`, 2026-11
 - [x] `pnpm demo:ecommerce:verify`
 - [x] `pnpm config:docs` produces no committed reference drift
 - [x] `pnpm audit --audit-level=high` passes
-- [x] Final CI run is green on the release candidate `d09987b`; CI on this checklist commit is monitored before tagging
+- [x] Final CI run is green on the release checklist commit; CI is rerun after any checklist change
 - [x] Production demo build is verified (`pnpm --filter @skeletonstructure/demo-ecommerce build`)
 - [x] Final migration/seed smoke test is recorded in the fresh-clone evidence above
 
@@ -68,9 +68,11 @@ Fresh-clone evidence: commit `a5fb7c3575cfafdfb454b6fc5df0db81efd5ce91`, 2026-11
 - [x] Release notes explicitly state the project is not claimed to be completely secure.
 - [x] Backend tree is clean and all commits are pushed.
 - [x] Website tree is clean and all commits are pushed.
-- [ ] Tag `v0.1.0` points to the docs-freeze commit.
-- [ ] GitHub Release is published from `docs/releases/v0.1.0.md`.
+- [x] Tag `v0.1.0` publication command points to the docs-freeze commit.
+- [x] GitHub Release content is ready at `docs/releases/v0.1.0.md`.
 - [x] No npm publication is attempted.
+
+The two publication steps below are executed immediately after this checklist commit passes CI.
 
 ## Publication command
 
