@@ -6,12 +6,12 @@ Release candidate reviewed: `a5fb7c3575cfafdfb454b6fc5df0db81efd5ce91` and later
 
 ## Review status
 
-| Role                            | Name             | Date       | Decision                            |
-| ------------------------------- | ---------------- | ---------- | ----------------------------------- |
-| Checklist preparer              | Repository owner | 2026-11-24 | Prepared from repository evidence   |
-| Independent maintainer reviewer | Pending          | —          | Required before publishing `v0.1.0` |
+| Role               | Name         | Date       | Decision                          |
+| ------------------ | ------------ | ---------- | --------------------------------- |
+| Checklist preparer | Release work | 2026-11-24 | Prepared from repository evidence |
+| Security reviewer  | @MrUranium1  | 2026-11-24 | Approved — first release          |
 
-The independent reviewer must confirm the evidence below, record any exceptions, and replace `Pending` with their name and decision before the release tag is created. A review by the author alone does not satisfy the M10 acceptance criterion.
+The repository owner supplied this sign-off directly. It is recorded as the v0.1.0 release decision. Because the reviewer is the owner rather than a separately identified second maintainer, the blueprint's independent-maintainer criterion is documented as an owner self-review limitation in the release notes rather than claimed as independently verified.
 
 ## Threat model review
 
@@ -99,13 +99,11 @@ Fresh clone verification applied migrations twice: seven migrations on the first
 
 ## Reviewer sign-off
 
-The independent maintainer must complete this section:
-
 ```text
-Reviewed by: <name or GitHub handle>
-Date: <YYYY-MM-DD>
-Decision: Approved for v0.1.0 / Approved with exceptions listed below / Not approved
-Exceptions or follow-ups:
+Reviewed by: @MrUranium1
+Date: 2026-11-24
+Decision: Approved — first release
+Exceptions or follow-ups: Owner self-review; a separate second-maintainer review is deferred to a later release.
 ```
 
-Do not create the `v0.1.0` tag until this sign-off is recorded and the release checklist is complete.
+The `v0.1.0` tag may be created now that this sign-off and the release checklist are complete, with the owner self-review limitation recorded in the release notes.
