@@ -118,8 +118,19 @@ function headerValue(headers: AuthRequestLike['headers'], name: string): string 
 
 function bearerToken(request: AuthRequestLike): string | undefined {
   const authorization = headerValue(request.headers, 'authorization');
-  const match = authorization?.match(/^Bearer\s+(.+)$/i);
-  return match?.[1]?.trim();
+  if (authorization === undefined) return undefined;
+
+  const prefixLength = 'Bearer'.length;
+  if (authorization.slice(0, prefixLength).toLowerCase() !== 'bearer') return undefined;
+
+  let index = prefixLength;
+  while (index < authorization.length && authorization[index]?.trim() === '') {
+    index += 1;
+  }
+  if (index === prefixLength) return undefined;
+
+  const token = authorization.slice(index).trim();
+  return token.length > 0 ? token : undefined;
 }
 
 function validatePassword(password: string, minLength: number): void {

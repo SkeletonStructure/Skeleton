@@ -1,0 +1,175 @@
+{
+  "/v1/auth/login": {
+    "post": {
+      "parameters": [],
+      "requiredBody": ["email", "password"],
+      "responses": ["200", "400", "500"]
+    }
+  },
+  "/v1/auth/logout": {
+    "post": {
+      "parameters": [],
+      "requiredBody": [],
+      "responses": ["200", "400", "500"]
+    }
+  },
+  "/v1/auth/me": {
+    "get": {
+      "parameters": [],
+      "requiredBody": [],
+      "responses": ["200", "400", "500"]
+    }
+  },
+  "/v1/auth/password-reset/confirm": {
+    "post": {
+      "parameters": [],
+      "requiredBody": ["password", "token"],
+      "responses": ["200", "400", "500"]
+    }
+  },
+  "/v1/auth/password-reset/request": {
+    "post": {
+      "parameters": [],
+      "requiredBody": ["email"],
+      "responses": ["200", "400", "500"]
+    }
+  },
+  "/v1/auth/register": {
+    "post": {
+      "parameters": [],
+      "requiredBody": ["email", "password"],
+      "responses": ["200", "400", "500"]
+    }
+  },
+  "/v1/catalog/items": {
+    "get": {
+      "parameters": [],
+      "requiredBody": [],
+      "responses": ["200", "400", "500"]
+    },
+    "post": {
+      "parameters": [],
+      "requiredBody": ["name", "slug"],
+      "responses": ["200", "400", "500"]
+    }
+  },
+  "/v1/catalog/items/{id}": {
+    "delete": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path"
+        }
+      ],
+      "requiredBody": [],
+      "responses": ["200", "400", "500"]
+    },
+    "get": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path"
+        }
+      ],
+      "requiredBody": [],
+      "responses": ["200", "400", "500"]
+    },
+    "patch": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path"
+        }
+      ],
+      "requiredBody": [],
+      "responses": ["200", "400", "500"]
+    }
+  },
+  "/v1/catalog/items/{id}/product": {
+    "get": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path"
+        }
+      ],
+      "requiredBody": [],
+      "responses": ["200", "400", "500"]
+    },
+    "patch": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path"
+        }
+      ],
+      "requiredBody": ["priceAmount", "sku"],
+      "responses": ["200", "400", "500"]
+    }
+  },
+  "/v1/config/public": {
+    "get": {
+      "parameters": [],
+      "requiredBody": [],
+      "responses": ["200"]
+    }
+  },
+  "/v1/inventory/items/{itemId}": {
+    "get": {
+      "parameters": [
+        {
+          "name": "itemId",
+          "in": "path"
+        }
+      ],
+      "requiredBody": [],
+      "responses": ["200", "400", "500"]
+    },
+    "patch": {
+      "parameters": [
+        {
+          "name": "itemId",
+          "in": "path"
+        }
+      ],
+      "requiredBody": ["quantity"],
+      "responses": ["200", "400", "500"]
+    }
+  },
+  "/v1/orders": {
+    "get": {
+      "parameters": [],
+      "requiredBody": [],
+      "responses": ["200", "400", "500"]
+    },
+    "post": {
+      "parameters": [],
+      "requiredBody": ["items"],
+      "responses": ["200", "400", "500"]
+    }
+  },
+  "/v1/orders/{id}": {
+    "get": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path"
+        }
+      ],
+      "requiredBody": [],
+      "responses": ["200", "400", "500"]
+    }
+  },
+  "/v1/users/me": {
+    "get": {
+      "parameters": [],
+      "requiredBody": [],
+      "responses": ["200", "400", "500"]
+    },
+    "patch": {
+      "parameters": [],
+      "requiredBody": [],
+      "responses": ["200", "400", "500"]
+    }
+  }
+}
