@@ -45,37 +45,42 @@ To run the M9a e-commerce demo, follow [`apps/demo-ecommerce/README.md`](./apps/
 
 ## Scripts
 
-| Script                   | Command                                                              | Purpose                                               |
-| ------------------------ | -------------------------------------------------------------------- | ----------------------------------------------------- |
-| `typecheck`              | `tsc -b --pretty false`                                              | Type-check all TypeScript projects                    |
-| `lint`                   | `biome check .`                                                      | Format check and lint                                 |
-| `format`                 | `biome format --write .`                                             | Apply formatting                                      |
-| `test`                   | `vitest run`                                                         | Run all unit and integration tests                    |
-| `test:contract`          | `vitest run packages/sdk/tests/contract.test.ts`                     | Run SDK boundary/contract tests                       |
-| `test:integration`       | `vitest run packages/core/tests/database/integration.test.ts`        | Run the core PostgreSQL container test                |
-| `test:watch`             | `vitest`                                                             | Run tests in watch mode                               |
-| `demo:ecommerce:migrate` | `pnpm --filter @skeletonstructure/demo-ecommerce db:migrate`         | Apply shared plus demo-cart migrations                |
-| `demo:ecommerce:seed`    | `pnpm --filter @skeletonstructure/demo-ecommerce db:seed`            | Seed the demo user and products                       |
-| `demo:ecommerce:api`     | `pnpm --filter @skeletonstructure/demo-ecommerce api`                | Start the demo API                                    |
-| `demo:ecommerce:dev`     | `pnpm --filter @skeletonstructure/demo-ecommerce dev`                | Start the demo storefront                             |
-| `demo:ecommerce:verify`  | OpenAPI/client checks, integration tests, and Playwright happy path  | Verify the complete e-commerce demo                   |
-| `sdk:generate`           | `node scripts/generate-sdk.mjs`                                      | Regenerate SDK types from OpenAPI                     |
-| `sdk:check`              | `node scripts/check-sdk.mjs`                                         | Verify committed SDK types are current                |
-| `config:docs`            | `tsc -b packages/core && node scripts/generate-config-reference.mjs` | Regenerate the config reference                       |
-| `db:generate`            | `drizzle-kit generate --config drizzle.config.ts`                    | Generate a reviewed core migration                    |
-| `db:generate:users`      | `drizzle-kit generate --config drizzle.users.config.ts`              | Generate a reviewed users migration                   |
-| `db:generate:auth`       | `drizzle-kit generate --config drizzle.auth.config.ts`               | Generate a reviewed auth migration                    |
-| `db:generate:catalog`    | `drizzle-kit generate --config drizzle.catalog.config.ts`            | Generate a reviewed catalog migration                 |
-| `db:generate:products`   | `drizzle-kit generate --config drizzle.products.config.ts`           | Generate a reviewed products migration                |
-| `db:generate:inventory`  | `drizzle-kit generate --config drizzle.inventory.config.ts`          | Generate a reviewed inventory migration               |
-| `db:generate:orders`     | `drizzle-kit generate --config drizzle.orders.config.ts`             | Generate a reviewed orders migration                  |
-| `db:migrate`             | `tsc -b && node scripts/migrate-modules.mjs`                         | Apply all M1–M8 migrations in order                   |
-| `start`                  | `tsc -b && node scripts/skeleton.mjs start`                          | Start the composed M8 server                          |
-| `skeleton`               | `node scripts/skeleton.mjs`                                          | Run `db migrate` or `start`                           |
-| `auth:cleanup`           | `tsc -b && node scripts/cleanup-sessions.mjs`                        | Remove expired sessions and reset tokens              |
-| `openapi:generate`       | `tsc -b && node scripts/generate-openapi.mjs`                        | Regenerate the public OpenAPI file                    |
-| `openapi:check`          | `tsc -b && node scripts/check-openapi.mjs`                           | Verify the committed OpenAPI file                     |
-| `ci`                     | `pnpm typecheck && pnpm lint && pnpm test`                           | Local type, lint, and test gate; run as `pnpm run ci` |
+| Script                   | Command                                                              | Purpose                                                   |
+| ------------------------ | -------------------------------------------------------------------- | --------------------------------------------------------- |
+| `typecheck`              | `tsc -b --pretty false`                                              | Type-check all TypeScript projects                        |
+| `lint`                   | `biome check .`                                                      | Format check and lint                                     |
+| `format`                 | `biome format --write .`                                             | Apply formatting                                          |
+| `test`                   | `vitest run`                                                         | Run all unit, integration, contract, and regression tests |
+| `test:unit`              | `vitest run --config vitest.unit.config.ts`                          | Run fast tests that need no infrastructure                |
+| `test:integration`       | `vitest run --config vitest.integration.config.ts`                   | Run all Fastify/PostgreSQL container tests                |
+| `test:contract`          | `vitest run --config vitest.contract.config.ts`                      | Run SDK and module contract tests                         |
+| `test:regression`        | `vitest run --config vitest.regression.config.ts`                    | Run explicit regression tests                             |
+| `test:migration-smoke`   | `pnpm test:migration-smoke`                                          | Run the real migration CLI against a temporary database   |
+| `test:watch`             | `vitest`                                                             | Run tests in watch mode                                   |
+| `demo:ecommerce:migrate` | `pnpm --filter @skeletonstructure/demo-ecommerce db:migrate`         | Apply shared plus demo-cart migrations                    |
+| `demo:ecommerce:seed`    | `pnpm --filter @skeletonstructure/demo-ecommerce db:seed`            | Seed the demo user and products                           |
+| `demo:ecommerce:api`     | `pnpm --filter @skeletonstructure/demo-ecommerce api`                | Start the demo API                                        |
+| `demo:ecommerce:dev`     | `pnpm --filter @skeletonstructure/demo-ecommerce dev`                | Start the demo storefront                                 |
+| `demo:ecommerce:verify`  | OpenAPI/client checks, integration tests, and Playwright happy path  | Verify the complete e-commerce demo                       |
+| `sdk:generate`           | `node scripts/generate-sdk.mjs`                                      | Regenerate SDK types from OpenAPI                         |
+| `sdk:check`              | `node scripts/check-sdk.mjs`                                         | Verify committed SDK types are current                    |
+| `config:docs`            | `tsc -b packages/core && node scripts/generate-config-reference.mjs` | Regenerate the config reference                           |
+| `db:generate`            | `drizzle-kit generate --config drizzle.config.ts`                    | Generate a reviewed core migration                        |
+| `db:generate:users`      | `drizzle-kit generate --config drizzle.users.config.ts`              | Generate a reviewed users migration                       |
+| `db:generate:auth`       | `drizzle-kit generate --config drizzle.auth.config.ts`               | Generate a reviewed auth migration                        |
+| `db:generate:catalog`    | `drizzle-kit generate --config drizzle.catalog.config.ts`            | Generate a reviewed catalog migration                     |
+| `db:generate:products`   | `drizzle-kit generate --config drizzle.products.config.ts`           | Generate a reviewed products migration                    |
+| `db:generate:inventory`  | `drizzle-kit generate --config drizzle.inventory.config.ts`          | Generate a reviewed inventory migration                   |
+| `db:generate:orders`     | `drizzle-kit generate --config drizzle.orders.config.ts`             | Generate a reviewed orders migration                      |
+| `db:migrate`             | `tsc -b && node scripts/migrate-modules.mjs`                         | Apply all M1–M8 migrations in order                       |
+| `start`                  | `tsc -b && node scripts/skeleton.mjs start`                          | Start the composed M8 server                              |
+| `skeleton`               | `node scripts/skeleton.mjs`                                          | Run `db migrate` or `start`                               |
+| `auth:cleanup`           | `tsc -b && node scripts/cleanup-sessions.mjs`                        | Remove expired sessions and reset tokens                  |
+| `openapi:generate`       | `tsc -b && node scripts/generate-openapi.mjs`                        | Regenerate the public OpenAPI file                        |
+| `openapi:check`          | `tsc -b && node scripts/check-openapi.mjs`                           | Verify the committed OpenAPI file                         |
+| `ci`                     | `pnpm run ci`                                                        | Shorter local gate; CI runs every listed check            |
+
+CI runs on pull requests and pushes to `main`. The workflow jobs are `verify` and `demo-ecommerce-e2e`; see [`docs/quality-assurance.md`](./docs/quality-assurance.md) for the complete gate list and CodeQL triage.
 
 ## Configuration
 

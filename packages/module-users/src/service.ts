@@ -15,8 +15,29 @@ export function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
 }
 
+function containsWhitespace(value: string): boolean {
+  for (const character of value) {
+    if (character.trim() === '') return true;
+  }
+  return false;
+}
+
 export function isValidEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && email.length <= 254;
+  if (email.length === 0 || email.length > 254) return false;
+
+  const separator = email.indexOf('@');
+  if (separator <= 0 || separator !== email.lastIndexOf('@')) return false;
+
+  const local = email.slice(0, separator);
+  const domain = email.slice(separator + 1);
+  if (domain.length === 0 || containsWhitespace(local) || containsWhitespace(domain)) return false;
+
+  // The legacy regex accepted a dot anywhere before the final character,
+  // including domains such as `example.com.` and `example..com`.
+  for (let index = 1; index < domain.length - 1; index += 1) {
+    if (domain[index] === '.') return true;
+  }
+  return false;
 }
 
 function isUniqueViolation(error: unknown): boolean {

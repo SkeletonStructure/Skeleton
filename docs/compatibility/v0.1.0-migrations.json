@@ -1,0 +1,10 @@
+{
+  "apps/demo-ecommerce/modules/cart/migrations/0000_heavy_smiling_tiger.sql": "3d776f71c639e875f5d150501daa72886d12e0b0698804c1fb7a6a219198cf76",
+  "packages/core/migrations/0000_core_baseline.sql": "f441a018134450c6376ec53179bd87c5b70ecdc4b5d3b5c55a7a381ef6adc123",
+  "packages/module-auth/migrations/0000_thin_turbo.sql": "3081026968eccea2b335a2c526903e8a1fe1819a6d4edc4475715fe92b92ec88",
+  "packages/module-catalog/migrations/0000_fine_namorita.sql": "0f706cf3dbeee27442c4ee1a1306812096ec4d8eee5326c096f28dfca533da64",
+  "packages/module-inventory/migrations/0000_bright_famine.sql": "f38dc8eff444606d56070e3dc3a406f7bde31492ef48f9afb048e08c3e18f696",
+  "packages/module-orders/migrations/0000_flaky_outlaw_kid.sql": "12cf738ef6e0f96a2a57212344788a42204cac077d431eb953c7db1bd329a32b",
+  "packages/module-products/migrations/0000_volatile_risque.sql": "f4d57bec38051af4e99741387745868f47b875799fb6a8f21f5cbaebe7f28fde",
+  "packages/module-users/migrations/0000_lush_wendell_rand.sql": "4d5be19be6a0ca3a3f9620c1ad3aad9b91bca6899ede8cb0c30f75573976af3c"
+}

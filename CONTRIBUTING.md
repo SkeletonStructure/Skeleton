@@ -14,9 +14,11 @@ pnpm test
 ## Before opening a pull request
 
 - Keep changes small and scoped to one concern.
-- Run `pnpm ci` and report the actual result in the PR description.
+- Run `pnpm run ci` and report the actual result in the PR description.
+- Run the full verification list in `.github/pull_request_template.md` when the change affects CI, tests, generated artifacts, or dependencies.
 - Update documentation when behavior, configuration, or public APIs change.
-- Add or update tests with every bug fix and feature.
+- Add or update tests with every bug fix and feature. Bug fixes must include a `*.regression.test.ts` case under `tests/regression/` or the affected package's `tests/` directory unless the PR explains why none is needed.
+- See [`docs/quality-assurance.md`](./docs/quality-assurance.md) for the test layers and compatibility strategy.
 - For security issues, follow `SECURITY.md` instead of opening a public PR.
 
 ## Module work

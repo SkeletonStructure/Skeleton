@@ -9,20 +9,25 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
           version: 10.34.9
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "24.x"
           cache: pnpm
@@ -48,28 +53,44 @@ jobs:
       - name: Check e-commerce demo artifacts
         run: pnpm demo:ecommerce:openapi:check && pnpm demo:ecommerce:client:check
 
-      - name: Test
-        run: pnpm test
+      - name: Unit tests
+        run: pnpm test:unit
+
+      - name: Integration tests
+        run: pnpm test:integration
 
       - name: Contract tests
         run: pnpm test:contract
+
+      - name: Regression tests
+        run: pnpm test:regression
+
+      - name: Database migration CLI smoke test
+        run: pnpm test:migration-smoke
+
+      - name: Production demo build
+        run: pnpm --filter @skeletonstructure/demo-ecommerce build
+
+      - name: Check config reference drift
+        run: pnpm config:docs && git diff --exit-code -- docs/config/reference.md
 
       - name: Dependency audit
         run: pnpm audit --audit-level=high
 
   demo-ecommerce-e2e:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
           version: 10.34.9
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "24.x"
           cache: pnpm

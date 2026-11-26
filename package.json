@@ -19,7 +19,11 @@
     "format": "biome format --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:contract": "vitest run packages/sdk/tests/contract.test.ts",
+    "test:unit": "vitest run --config vitest.unit.config.ts",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:contract": "vitest run --config vitest.contract.config.ts",
+    "test:regression": "vitest run --config vitest.regression.config.ts",
+    "test:migration-smoke": "vitest run --config vitest.regression.config.ts packages/app-composition/tests/migration-cli.regression.test.ts",
     "sdk:generate": "node scripts/generate-sdk.mjs",
     "sdk:check": "node scripts/check-sdk.mjs",
     "config:docs": "tsc -b packages/core && node scripts/generate-config-reference.mjs",
@@ -36,7 +40,6 @@
     "auth:cleanup": "tsc -b && node scripts/cleanup-sessions.mjs",
     "openapi:generate": "tsc -b && node scripts/generate-openapi.mjs",
     "openapi:check": "tsc -b && node scripts/check-openapi.mjs",
-    "test:integration": "vitest run packages/core/tests/database/integration.test.ts",
     "demo:ecommerce:api": "pnpm --filter @skeletonstructure/demo-ecommerce api",
     "demo:ecommerce:dev": "pnpm --filter @skeletonstructure/demo-ecommerce dev",
     "demo:ecommerce:migrate": "pnpm --filter @skeletonstructure/demo-ecommerce db:migrate",
@@ -48,7 +51,7 @@
     "demo:ecommerce:test:integration": "pnpm --filter @skeletonstructure/demo-ecommerce test:integration",
     "demo:ecommerce:test:e2e": "pnpm --filter @skeletonstructure/demo-ecommerce test:e2e",
     "demo:ecommerce:verify": "pnpm demo:ecommerce:openapi:check && pnpm demo:ecommerce:client:check && pnpm demo:ecommerce:test:integration && pnpm demo:ecommerce:test:e2e",
-    "ci": "pnpm typecheck && pnpm lint && pnpm test && pnpm test:contract && pnpm sdk:check && pnpm demo:ecommerce:openapi:check && pnpm demo:ecommerce:client:check"
+    "ci": "pnpm typecheck && pnpm lint && pnpm test && pnpm sdk:check && pnpm demo:ecommerce:openapi:check && pnpm demo:ecommerce:client:check"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.6.8",
