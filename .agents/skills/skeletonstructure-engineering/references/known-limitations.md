@@ -28,7 +28,7 @@ Use this as a checklist before claiming a capability or starting work.
 
 ## Repository/remote state
 
-- GitHub `main` was re-verified at `e4eae56` after PR #8; local tracking refs can still lag. Always verify; do not reset based on an unverified ref. M12 remains on a task branch until merged.
+- GitHub `main` was re-verified at `9f14557` after PR #9; local tracking refs can still lag. Always verify; do not reset based on an unverified ref. M11 and M12 are merged, but no post-`v0.1.0` tag or release has been published.
 - `v0.1.0` points to `9d665ff`; post-tag QA hardening is not in the tag.
 - GitHub canonical repo is `SkeletonStructure/SkeletonStructure`; old remote URL redirects.
 - `Skeleton-0.1.0.zip` provenance/checksum is not documented in repository docs.

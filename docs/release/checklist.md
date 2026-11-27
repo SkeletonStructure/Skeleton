@@ -2,6 +2,8 @@
 
 Use this checklist for the first GitHub release. Every item must be complete, explicitly waived by the repository owner, or moved to `docs/releases/v0.1.0.md` as a documented limitation before the tag is published.
 
+> **Post-v0.1.0 status:** M11 hardening merged through PR #7 and M12 application runtime work merged through PR #9 are on `main`, but they are not part of the `v0.1.0` tag. No `v0.2.0` version update, tag, release notes, or GitHub release has been prepared or authorized. A later release checklist must be created for that work; this file remains the historical v0.1.0 record.
+
 ## Scope
 
 - [x] Release scope is M1–M8, M9a, and M10 release work.

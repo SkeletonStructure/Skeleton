@@ -29,6 +29,7 @@ Verified as merged, not part of the `v0.1.0` tag:
 | Dependabot action/dependency bumps                                                         | PRs #2–#5 merged; remote `main` at `b71653cfc45553101a7968002818220a50bffa6e` on 2026-11-27.                                         |
 | M11 security and operational hardening                                                     | PR #7 head `b09356fb45b250fd28a5cf9592eaf1fb0ae08de0`, merged as `b399a21cf86866a725eb29b9c95ff3405853c7b8` on 2026-11-27T11:04:44Z. |
 | Post-M11 documentation cleanup                                                             | PR #8 head `fd8c55233b241c4b2c0e84869bb96f98efc0bb04`, merged as `e4eae56bce29e956d77282d89cc58e38549f4e17` on 2026-11-27.           |
+| M12 application runtime and starter                                                        | PR #9 head `b3aeb7dd7d6b34c66bcd2aa5596810e0edeb6980`, merged as `9f1455705d61dd8cd2fe6bddfc3164e31291b7f6` on 2026-11-27T12:33:15Z. |
 
 PR #1 reported all checks successful: `verify`, `demo-ecommerce-e2e`, `Analyze (javascript-typescript)`, `Analyze (actions)`, `CodeQL`, and Dependabot config check. Remote `main` at `b71653c` also had successful `CI` and `Push on main` runs at the time of research. Confirm with `gh run list` before repeating these results.
 
@@ -47,9 +48,9 @@ Prepared on `task/m11-security-hardening` from GitHub `main` at `2ae68eaa9a35612
 
 PR #7 reported five successful checks: `verify` and `demo-ecommerce-e2e` in run `45986862863`, `Analyze (javascript-typescript)` and `Analyze (actions)` in run `45986855658`, and `CodeQL`. No approving review was recorded. Post-merge runs `45987449807` (`CI`) and `45987449130` (`Push on main`) also succeeded at `b399a21`.
 
-## M12 application runtime (prepared, not merged)
+## M12 application runtime (merged)
 
-Prepared on `task/m12-application-runtime` from GitHub `main` at `e4eae56bce29e956d77282d89cc58e38549f4e17`:
+Prepared on `task/m12-application-runtime` from GitHub `main` at `e4eae56bce29e956d77282d89cc58e38549f4e17` and merged through PR #9 as `9f1455705d61dd8cd2fe6bddfc3164e31291b7f6` at 2026-11-27T12:33:15Z:
 
 | Workstream | Scope                                                                                                                                           |
 | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -58,14 +59,14 @@ Prepared on `task/m12-application-runtime` from GitHub `main` at `e4eae56bce29e9
 | M12.3      | `templates/basic-app` starter with its own config, scripts, and integration test.                                                               |
 | M12.4      | Unit/integration coverage, ADR 0013, and documentation/status reconciliation.                                                                   |
 
-No config field, public route, SDK/OpenAPI artifact, shared migration, new runtime dependency, or `v0.1.0` behavior is changed. M12 is pending review and is not part of `main` or a release tag.
+No config field, public route, SDK/OpenAPI artifact, shared migration, new runtime dependency, or `v0.1.0` behavior is changed. PR #9 reported five successful checks and no approving review; post-merge `CI` (`45999611587`) and `Push on main` (`45999611907`) runs succeeded. M12 is on `main` but is not part of a release tag or GitHub release.
 
 ## Current development state
 
-- M11 security/operational hardening and PR #8 documentation cleanup are merged on `main`; no post-`v0.1.0` release tag is claimed.
-- M12 is prepared on `task/m12-application-runtime` and is not merged; ADR 0013 records its boundary.
+- M11 security/operational hardening, PR #8 documentation cleanup, and M12 application runtime work are merged on `main`; no post-`v0.1.0` release tag or GitHub release is claimed.
+- ADR 0013 records M12's boundary; the template is a minimal starter, not a production deployment manifest.
 - The foundation is in post-release maintenance/QA hardening; `v0.1.0` remains the tagged baseline.
-- GitHub `main` was verified at `e4eae56`; local tracking refs may still be stale. Do not reset from an unverified ref.
+- GitHub `main` was verified at `9f14557`; local tracking refs may still be stale. Do not reset from an unverified ref.
 - The pre-M11 `main` CI run `45969317303` failed in lint/format; M11.1 fixed those eight errors, PR #7 checks passed, and post-merge runs at `b399a21` passed.
 - All five CodeQL alerts are now marked `fixed` by GitHub, including #4/#5 (`js/missing-rate-limiting`) at 2026-11-27T11:05:45Z. No alert was dismissed.
 - The current `protect-main` ruleset enforces deletion/non-fast-forward and PR-only changes, but has zero required status checks and zero required approvals; CODEOWNERS review is disabled in that ruleset.
@@ -116,4 +117,4 @@ From release notes, blueprint, ADRs, and QA docs:
 - Provenance/checksum linking `Skeleton-0.1.0.zip` to one exact commit is not documented.
 - No accepted ADRs yet for payments, real email, file storage, or multi-tenancy.
 - `SESSION_SECRET` is declared but no consumer was found.
-- `templates/basic-app` is present on the M12 branch; it is a minimal starter and still has no production deployment example.
+- `templates/basic-app` is present on `main` after PR #9; it is a minimal starter and still has no production deployment example.

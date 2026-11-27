@@ -4,7 +4,7 @@ This is a lightweight, dated snapshot of the SkeletonStructure foundation. It ex
 
 Snapshot date: **2026-11-27**
 Released baseline: **v0.1.0** (`9d665ff3462cfc3b4f7adb7f96a2b95974f7ffff`)
-Verified after M11 on 2026-11-27: PR #7 was merged into `main` as `b399a21cf86866a725eb29b9c95ff3405853c7b8` at 2026-11-27T11:04:44Z from head `b09356fb45b250fd28a5cf9592eaf1fb0ae08de0`. Its five PR checks passed, and post-merge `CI` (`45987449807`) and `Push on main` (`45987449130`) succeeded. M11 is merged on `main` but is not part of the `v0.1.0` tag; no new tag was created. PR #8 later merged post-M11 documentation cleanup; GitHub `main` was re-verified at `e4eae56bce29e956d77282d89cc58e38549f4e17` on 2026-11-27. Historical refs `docs/skill-continuity-pr-workflow` at `557406bb7776b6e6ef5a7bd86ddc90bbe884ee49` and local QA `1111`/`dde23ba59df044ce766932ceeeeded5a8c6b2f05` remain preserved.
+Verified on 2026-11-27: PR #7 merged M11 into `main` as `b399a21cf86866a725eb29b9c95ff3405853c7b8` from head `b09356fb45b250fd28a5cf9592eaf1fb0ae08de0`; its five checks and post-merge `CI` (`45987449807`) and `Push on main` (`45987449130`) runs passed. PR #8 merged post-M11 documentation cleanup as `e4eae56bce29e956d77282d89cc58e38549f4e17`. PR #9 merged M12 at 2026-11-27T12:33:15Z as `9f1455705d61dd8cd2fe6bddfc3164e31291b7f6` from head `b3aeb7dd7d6b34c66bcd2aa5596810e0edeb6980`; its five checks and post-merge `CI` (`45999611587`) and `Push on main` (`45999611907`) runs passed. M11 and M12 are on `main` but are not part of the `v0.1.0` tag; no new tag or GitHub release has been published. Historical refs `docs/skill-continuity-pr-workflow` at `557406bb7776b6e6ef5a7bd86ddc90bbe884ee49` and local QA `1111`/`dde23ba59df044ce766932ceeeeded5a8c6b2f05` remain preserved.
 
 ## Refresh before relying on this snapshot
 
@@ -23,13 +23,13 @@ Then verify the relevant implementation directly. For a capability inventory, st
 ## Current status
 
 - M11 security and operational hardening is merged through PR #7: governance cleanup, shared rate-limit storage seam, persistent audit events, structured logging, graceful shutdown, and failure-path regressions.
-- M12 application runtime work is present on `task/m12-application-runtime` from GitHub `main` at `e4eae56`: shared startup/migration helpers, `templates/basic-app`, opt-in migration readiness, and ADR 0013. It is pending review and is not merged on `main`.
-- The foundation remains in post-release maintenance/QA hardening after `v0.1.0`; M11 is on `main` but has no separate tag or release record.
-- The active `protect-main` ruleset still enforces PR-only changes, deletion protection, and non-fast-forward protection, but requires zero status checks and zero approvals. No independent second maintainer is verified; PR #7 had no approving review.
+- M12 application runtime work is merged on `main` through PR #9: shared startup/migration helpers, `templates/basic-app`, opt-in migration readiness, and ADR 0013.
+- The foundation remains in post-release maintenance/QA hardening after `v0.1.0`; M11 and M12 are on `main` but have no separate tag or GitHub release.
+- The active `protect-main` ruleset still enforces PR-only changes, deletion protection, and non-fast-forward protection, but requires zero status checks and zero approvals. No independent second maintainer is verified; PR #7 and PR #9 had no approving review.
 - M1–M10, M9a, and the `v0.1.0` release are complete. M9b restaurant demo is **planned/deferred**, not started.
 - Six shared modules exist: `users`, `auth`, `catalog`, `products`, `inventory`, `orders`. The demo cart is app-local.
 - The public SDK is workspace/source distributed; it is not published to npm.
-- The project is an early foundation and is **not** production-ready beyond the tested scope. M11 does not remove the need for independent review, monitoring, or operator hardening.
+- The project is an early foundation and is **not** production-ready beyond the tested scope. M11 and M12 do not remove the need for independent review, monitoring, or operator hardening.
 - No Orgo implementation or reference was found. The local bookstore workspace is the concrete dependent-application example, but it is not upstream-documented.
 - The website is a separate repository; backend work must not rewrite it.
 

@@ -4,7 +4,7 @@ These are the conventions agents should preserve. They are derived from current 
 
 ## Code organization
 
-- One pnpm workspace: `packages/*`, `apps/*`, `templates/*`, `examples/*`. `templates/basic-app` is the M12 starter application.
+- One pnpm workspace: `packages/*`, `apps/*`, `templates/*`, `examples/*`. `templates/basic-app` is the M12 starter application merged through PR #9.
 - All packages and apps are private and version `0.1.0`. SkeletonStructure is source-distributed, not npm-published.
 - `packages/core` owns infrastructure and must not import concrete modules or applications.
 - `packages/module-*` own their schemas, migrations, permissions, routes, services, tests, and public APIs. They must not reach into another module's internals or demo code.
