@@ -23,7 +23,7 @@ pnpm test
 
 ## Module work
 
-Modules must follow the contract in the architecture blueprint: explicit dependencies, public interfaces, owned migrations, declared permissions, tests, and documentation. Do not couple a module to internals from another module or to demo application code.
+Modules must follow the current module contract in [`docs/modules.md`](./docs/modules.md) and the accepted ADRs in [`docs/architecture/adr/`](./docs/architecture/adr/): explicit dependencies, public interfaces, owned migrations, declared permissions, tests, and documentation. Do not couple a module to internals from another module or to demo application code.
 
 ## Style
 

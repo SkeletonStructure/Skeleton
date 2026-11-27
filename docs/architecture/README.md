@@ -1,6 +1,6 @@
 # Architecture records
 
-This directory holds the repository's architecture documentation and ADRs. The authoritative blueprint is maintained in the sibling `SkeletonStructure-blueprint` workspace during bootstrap; completed milestone decisions are recorded here.
+This directory holds the repository's architecture documentation and accepted ADRs. The sibling `SkeletonStructure-blueprint` workspace was the authoritative design intent during bootstrap; it has not been imported here and is historical, not current implementation status. Current accepted decisions are the ADRs listed below and in the engineering skill's source-of-truth hierarchy.
 
 Use `adr/0000-template.md` for new architectural decisions.
 
