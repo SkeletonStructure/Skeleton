@@ -1,7 +1,7 @@
 import type { FastifyReply, FastifyRequest, FastifySchema } from 'fastify';
 
 import type { AppConfig } from '../config/index.js';
-import type { Database } from '../database/index.js';
+import type { AuditSink, Database } from '../database/index.js';
 import type { ActivationReport, ModuleHttpMethod } from '../modules/index.js';
 import type { RateLimitStoreProvider } from './rate-limit.js';
 
@@ -85,6 +85,8 @@ export interface ApiServerOptions {
   readonly migrationCheck?: ReadinessCheck;
   /** Replaceable limiter storage; required when `security.rateLimit.store` is `redis`. */
   readonly rateLimitStore?: RateLimitStoreProvider;
+  /** Optional append-only audit sink supplied by the application. */
+  readonly auditSink?: AuditSink;
 }
 
 export interface ResolvedApiServerOptions {
@@ -97,6 +99,7 @@ export interface ResolvedApiServerOptions {
   readonly readinessChecks: readonly ReadinessCheck[];
   readonly migrationCheck: ReadinessCheck | undefined;
   readonly rateLimitStore: RateLimitStoreProvider | undefined;
+  readonly auditSink: AuditSink | undefined;
 }
 
 declare module 'fastify' {

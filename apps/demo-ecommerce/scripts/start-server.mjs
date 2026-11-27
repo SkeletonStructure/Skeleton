@@ -2,7 +2,11 @@ import { fileURLToPath } from 'node:url';
 
 import { createServer } from '@skeletonstructure/core/api';
 import { loadConfig } from '@skeletonstructure/core/config';
-import { closeDatabase, initializeDatabase } from '@skeletonstructure/core/database';
+import {
+  closeDatabase,
+  createDatabaseAuditSink,
+  initializeDatabase,
+} from '@skeletonstructure/core/database';
 
 import { createDemoEcommerceComposition } from '../dist/src/server/index.js';
 
@@ -15,7 +19,12 @@ export async function startServer() {
 
   try {
     database = await initializeDatabase(appConfig.database);
-    const composition = await createDemoEcommerceComposition({ appConfig, database });
+    const auditSink = createDatabaseAuditSink(database);
+    const composition = await createDemoEcommerceComposition({
+      appConfig,
+      database,
+      audit: auditSink,
+    });
     const app = await createServer({
       appConfig,
       database,
@@ -23,6 +32,7 @@ export async function startServer() {
       routeHandlers: composition.routeHandlers,
       authenticator: composition.authenticator,
       csrfGuard: composition.csrfGuard,
+      auditSink,
     });
 
     const shutdown = async (signal) => {

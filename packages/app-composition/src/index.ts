@@ -1,6 +1,6 @@
 import type { ApiRouteDefinition, Authenticator, CsrfGuard } from '@skeletonstructure/core/api';
 import type { AppConfig } from '@skeletonstructure/core/config';
-import type { Database } from '@skeletonstructure/core/database';
+import type { AuditSink, Database } from '@skeletonstructure/core/database';
 import {
   type ActivationReport,
   composeModuleRegistry,
@@ -106,6 +106,7 @@ export interface M8CompositionOptions {
   readonly appConfig: AppConfig;
   readonly database: Database;
   readonly emailProvider?: EmailProvider;
+  readonly audit?: AuditSink;
   readonly moduleConfig?: ModuleConfigSource;
   /**
    * Application-owned modules registered alongside M8. This is not a plugin
@@ -121,6 +122,7 @@ export interface M8Composition {
   readonly routeHandlers: readonly ApiRouteDefinition[];
   readonly authenticator: Authenticator;
   readonly csrfGuard: CsrfGuard;
+  readonly audit: AuditSink | undefined;
   readonly auth: ReturnType<typeof createAuthModule>['api'];
   readonly users: ReturnType<typeof createUsersModule>['api'];
   readonly catalog: ReturnType<typeof createCatalogModule>['api'];
@@ -138,12 +140,14 @@ export async function createM8Composition(options: M8CompositionOptions): Promis
   const usersModule = createUsersModule({
     appConfig: options.appConfig,
     database: options.database,
+    ...(options.audit === undefined ? {} : { audit: options.audit }),
   });
   const authModule = createAuthModule({
     appConfig: options.appConfig,
     database: options.database,
     users: usersModule.api,
     ...(options.emailProvider === undefined ? {} : { emailProvider: options.emailProvider }),
+    ...(options.audit === undefined ? {} : { audit: options.audit }),
   });
   const standaloneCatalog = createCatalogService(options.database);
   const productsModule = createProductsModule({
@@ -230,6 +234,7 @@ export async function createM8Composition(options: M8CompositionOptions): Promis
     routeHandlers,
     authenticator: authModule.api.authenticator,
     csrfGuard: authModule.api.csrfGuard,
+    audit: options.audit,
     auth: authModule.api,
     users: usersModule.api,
     catalog: catalogModule.api,

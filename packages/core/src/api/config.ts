@@ -243,7 +243,7 @@ function validateRoutes(
 
 function validateReadinessChecks(checks: readonly { readonly id: string }[]): void {
   const seen = new Set<string>();
-  const reserved = new Set(['config', 'database', 'rateLimitStore']);
+  const reserved = new Set(['config', 'database', 'rateLimitStore', 'audit']);
   for (const check of checks) {
     if (reserved.has(check.id)) {
       throw new ApiConfigurationError(
@@ -299,5 +299,6 @@ export function resolveApiServerOptions(options: ApiServerOptions): ResolvedApiS
     readinessChecks,
     migrationCheck: options.migrationCheck,
     rateLimitStore: options.rateLimitStore,
+    auditSink: options.auditSink,
   };
 }

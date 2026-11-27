@@ -19,6 +19,7 @@ export {
   validationError,
 } from './errors.js';
 export {
+  auditReadinessCheck,
   buildReadinessChecks,
   databaseReadinessCheck,
   evaluateReadiness,

@@ -41,6 +41,7 @@ export async function createServer(options: ApiServerOptions): Promise<FastifyIn
   });
   app.addHook('onClose', async () => {
     await rateLimitStore.close?.();
+    await resolved.auditSink?.close?.();
   });
 
   app.decorateRequest('requestId', '');
@@ -52,14 +53,34 @@ export async function createServer(options: ApiServerOptions): Promise<FastifyIn
   if (csrfGuard !== undefined) {
     app.addHook('preHandler', async (request) => {
       if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method)) {
-        await csrfGuard.verify(request);
+        try {
+          await csrfGuard.verify(request);
+        } catch (error) {
+          if (resolved.auditSink !== undefined) {
+            await resolved.auditSink.record({
+              action: 'security.csrf',
+              outcome: 'failure',
+              requestId: request.requestId,
+              ...(request.principal === undefined ? {} : { actorId: request.principal.id }),
+            });
+          }
+          throw error;
+        }
       }
     });
   }
-  app.addHook('preHandler', createPermissionGuard(resolved.authenticator));
+  app.addHook('preHandler', createPermissionGuard(resolved.authenticator, resolved.auditSink));
 
-  app.setErrorHandler((error, request, reply) => {
+  app.setErrorHandler(async (error, request, reply) => {
     const mapped = mapRequestError(error, request.requestId);
+    if (mapped.statusCode === 429 && resolved.auditSink !== undefined) {
+      await resolved.auditSink.record({
+        action: 'security.rate_limit',
+        outcome: 'failure',
+        requestId: request.requestId,
+        ...(request.principal === undefined ? {} : { actorId: request.principal.id }),
+      });
+    }
     reply.code(mapped.statusCode).send(mapped.body);
   });
   app.setNotFoundHandler((request, reply) => {

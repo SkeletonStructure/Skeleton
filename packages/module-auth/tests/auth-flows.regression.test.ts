@@ -1,9 +1,14 @@
 import { createServer } from '@skeletonstructure/core/api';
 import type { AppConfig } from '@skeletonstructure/core/config';
-import type { Database } from '@skeletonstructure/core/database';
+import {
+  type AuditSink,
+  auditEvents,
+  createDatabaseAuditSink,
+  type Database,
+} from '@skeletonstructure/core/database';
 import { hashToken } from '@skeletonstructure/core/security';
 import { PostgreSqlContainer, type StartedPostgreSqlContainer } from '@testcontainers/postgresql';
-import { sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { defineConfig, env, loadConfig } from '../../core/src/config/index.js';
 import { closeDatabase, initializeDatabase } from '../../core/src/database/index.js';
@@ -218,5 +223,60 @@ describe('authentication security regressions', () => {
       expect(expired.statusCode).toBe(400);
       expect(bodyOf(expired).error?.code).toBe('VALIDATION_ERROR');
     });
+  });
+
+  it('records registration with request correlation and never persists credentials', async () => {
+    const appConfig = await makeConfig();
+    const audit: AuditSink = createDatabaseAuditSink(database);
+    const composition = await createAuthUsersComposition({
+      appConfig,
+      database,
+      emailProvider: createInMemoryEmailProvider(),
+      audit,
+    });
+    const app = await createServer({
+      appConfig,
+      database,
+      activationReport: composition.activationReport,
+      routeHandlers: composition.routeHandlers,
+      authenticator: composition.authenticator,
+      csrfGuard: composition.csrfGuard,
+      auditSink: audit,
+    });
+
+    try {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/v1/auth/register',
+        payload: { email: 'audit-regression@example.com', password: PASSWORD },
+      });
+      expect(response.statusCode).toBe(200);
+      const requestId = response.headers['x-request-id'];
+      if (typeof requestId !== 'string') throw new Error('Response has no request id.');
+
+      const rows = await database.db
+        .select({
+          action: auditEvents.action,
+          outcome: auditEvents.outcome,
+          requestId: auditEvents.requestId,
+          actorId: auditEvents.actorId,
+          metadata: auditEvents.metadata,
+        })
+        .from(auditEvents)
+        .where(eq(auditEvents.requestId, requestId));
+
+      expect(rows).toHaveLength(1);
+      expect(rows[0]).toMatchObject({
+        action: 'auth.register',
+        outcome: 'success',
+        metadata: {},
+      });
+      expect(rows[0]?.actorId).toMatch(/^[0-9a-f-]{36}$/u);
+      const serialized = JSON.stringify(rows);
+      expect(serialized).not.toContain(PASSWORD);
+      expect(serialized).not.toContain('audit-regression@example.com');
+    } finally {
+      await app.close();
+    }
   });
 });

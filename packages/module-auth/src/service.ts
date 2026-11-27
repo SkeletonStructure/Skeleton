@@ -6,7 +6,14 @@ import {
   validationError,
 } from '@skeletonstructure/core/api';
 import type { AppConfig } from '@skeletonstructure/core/config';
-import type { Database, DatabaseTransaction } from '@skeletonstructure/core/database';
+import type {
+  AuditContext,
+  AuditEvent,
+  AuditExecutor,
+  AuditSink,
+  Database,
+  DatabaseTransaction,
+} from '@skeletonstructure/core/database';
 import {
   hashPassword,
   hashToken,
@@ -73,6 +80,15 @@ interface AuthBuyerRef {
   readonly id: string;
 }
 
+interface RequestAuditFields {
+  readonly requestId?: string;
+}
+
+/** Keeps optional audit fields absent instead of explicitly `undefined`. */
+function auditRequest(context: AuditContext | undefined): RequestAuditFields {
+  return context?.requestId === undefined ? {} : { requestId: context.requestId };
+}
+
 interface AuthOrderBuyerRef {
   readonly buyerKind: string;
   readonly buyerRef: string;
@@ -82,21 +98,27 @@ export interface AuthService {
   readonly authenticator: Authenticator;
   readonly csrfGuard: CsrfGuard;
   presentedToken(request: AuthRequestLike): string | undefined;
-  register(input: RegisterInput, reply: SessionReplyLike): Promise<AuthenticatedResult>;
+  register(
+    input: RegisterInput,
+    reply: SessionReplyLike,
+    context?: AuditContext,
+  ): Promise<AuthenticatedResult>;
   login(
     input: LoginInput,
     presentedToken: string | undefined,
     reply: SessionReplyLike,
+    context?: AuditContext,
   ): Promise<AuthenticatedResult>;
-  logout(token: string | undefined, reply: SessionReplyLike): Promise<void>;
+  logout(token: string | undefined, reply: SessionReplyLike, context?: AuditContext): Promise<void>;
   currentUser(request: AuthRequestLike): Promise<AuthenticatedProfile>;
   /** `BuyerContextPort` implementation for authenticated users in v0.1. */
   currentBuyer(request: AuthBuyerRequest): Promise<AuthBuyerRef>;
   owns(order: AuthOrderBuyerRef, buyer: AuthBuyerRef): boolean;
-  requestPasswordReset(email: string): Promise<void>;
+  requestPasswordReset(email: string, context?: AuditContext): Promise<void>;
   confirmPasswordReset(
     input: PasswordResetConfirmInput,
     reply: SessionReplyLike,
+    context?: AuditContext,
   ): Promise<AuthenticatedResult>;
   cleanupExpired(): Promise<{
     readonly sessionsDeleted: number;
@@ -109,6 +131,7 @@ export interface AuthServiceOptions {
   readonly database: Database;
   readonly users: UsersService;
   readonly emailProvider: EmailProvider;
+  readonly audit?: AuditSink;
 }
 
 function headerValue(headers: AuthRequestLike['headers'], name: string): string | undefined {
@@ -160,10 +183,14 @@ function newSessionPair(maxAgeHours: number): SessionTokenPair {
 }
 
 export function createAuthService(options: AuthServiceOptions): AuthService {
-  const { appConfig, database, users, emailProvider } = options;
+  const { appConfig, database, users, emailProvider, audit } = options;
   const authConfig = appConfig.modules.auth as AuthConfig;
   const cookieConfig = appConfig.security.sessionCookie;
   const csrfEnabled = appConfig.security.csrf.enabled;
+
+  function recordAudit(event: AuditEvent, executor?: AuditExecutor): Promise<void> {
+    return audit === undefined ? Promise.resolve() : audit.record(event, executor);
+  }
 
   function cookieToken(request: AuthRequestLike): string | undefined {
     const token = request.cookies?.[cookieConfig.name];
@@ -285,7 +312,7 @@ export function createAuthService(options: AuthServiceOptions): AuthService {
       },
     },
 
-    async register(input, reply) {
+    async register(input, reply, context) {
       const email = normalizeEmail(input.email);
       if (!isValidEmail(email)) {
         throw validationError([{ path: 'email', message: 'Enter a valid email address.' }]);
@@ -309,6 +336,16 @@ export function createAuthService(options: AuthServiceOptions): AuthService {
           tx,
         );
         await insertSession(created.id, pair, tx);
+        await recordAudit(
+          {
+            action: 'auth.register',
+            outcome: 'success',
+            ...auditRequest(context),
+            actorId: created.id,
+            subjectId: created.id,
+          },
+          tx,
+        );
         return created;
       });
 
@@ -320,7 +357,7 @@ export function createAuthService(options: AuthServiceOptions): AuthService {
       };
     },
 
-    async login(input, token, reply) {
+    async login(input, token, reply, context) {
       const email = normalizeEmail(input.email);
       if (!isValidEmail(email)) {
         throw validationError([{ path: 'email', message: 'Enter a valid email address.' }]);
@@ -340,7 +377,15 @@ export function createAuthService(options: AuthServiceOptions): AuthService {
       const verificationHash = user?.passwordHash ?? DUMMY_PASSWORD_HASH;
       const verificationPassword = user === undefined ? DUMMY_PASSWORD : input.password;
       const valid = await verifyPassword(verificationHash, verificationPassword);
-      if (user === undefined || !valid) throw invalidCredentials();
+      if (user === undefined || !valid) {
+        await recordAudit({
+          action: 'auth.login',
+          outcome: 'failure',
+          ...auditRequest(context),
+          ...(user === undefined ? {} : { subjectId: user.id }),
+        });
+        throw invalidCredentials();
+      }
 
       if (needsPasswordRehash(user.passwordHash)) {
         await users.setPasswordHash(user.id, await hashPassword(input.password));
@@ -355,6 +400,16 @@ export function createAuthService(options: AuthServiceOptions): AuthService {
             .where(and(eq(sessions.tokenHash, hashToken(token)), isNull(sessions.revokedAt)));
         }
         await insertSession(user.id, pair, tx);
+        await recordAudit(
+          {
+            action: 'auth.login',
+            outcome: 'success',
+            ...auditRequest(context),
+            actorId: user.id,
+            subjectId: user.id,
+          },
+          tx,
+        );
       });
 
       setCookie(reply, pair);
@@ -369,7 +424,7 @@ export function createAuthService(options: AuthServiceOptions): AuthService {
       };
     },
 
-    async logout(token, reply) {
+    async logout(token, reply, context) {
       if (token === undefined) {
         throw new HttpError({ status: 401, code: 'UNAUTHENTICATED' });
       }
@@ -377,6 +432,12 @@ export function createAuthService(options: AuthServiceOptions): AuthService {
         .update(sessions)
         .set({ revokedAt: new Date() })
         .where(and(eq(sessions.tokenHash, hashToken(token)), isNull(sessions.revokedAt)));
+      await recordAudit({
+        action: 'auth.logout',
+        outcome: 'success',
+        ...auditRequest(context),
+        ...(context?.actorId === undefined ? {} : { actorId: context.actorId }),
+      });
       reply.clearCookie(cookieConfig.name, { path: '/' });
     },
 
@@ -405,7 +466,7 @@ export function createAuthService(options: AuthServiceOptions): AuthService {
       };
     },
 
-    async requestPasswordReset(email) {
+    async requestPasswordReset(email, context) {
       const normalized = normalizeEmail(email);
       if (!isValidEmail(normalized)) {
         throw validationError([{ path: 'email', message: 'Enter a valid email address.' }]);
@@ -427,6 +488,21 @@ export function createAuthService(options: AuthServiceOptions): AuthService {
             userId: user.id,
             expiresAt: new Date(Date.now() + PASSWORD_RESET_TTL_MINUTES * 60 * 1000),
           });
+          await recordAudit(
+            {
+              action: 'auth.password_reset.request',
+              outcome: 'success',
+              ...auditRequest(context),
+              subjectId: user.id,
+            },
+            tx,
+          );
+        });
+      } else {
+        await recordAudit({
+          action: 'auth.password_reset.request',
+          outcome: 'failure',
+          ...auditRequest(context),
         });
       }
 
@@ -443,7 +519,7 @@ export function createAuthService(options: AuthServiceOptions): AuthService {
       });
     },
 
-    async confirmPasswordReset(input, reply) {
+    async confirmPasswordReset(input, reply, context) {
       validateResetToken(input.token);
       validatePassword(input.password, authConfig.passwordMinLength);
 
@@ -451,31 +527,51 @@ export function createAuthService(options: AuthServiceOptions): AuthService {
       const passwordHash = await hashPassword(input.password);
       const pair = newSessionPair(cookieConfig.maxAgeHours);
 
-      const userId = await database.transaction(async (tx) => {
-        const rows = await tx
-          .update(passwordResetTokens)
-          .set({ usedAt: new Date() })
-          .where(
-            and(
-              eq(passwordResetTokens.tokenHash, tokenHash),
-              isNull(passwordResetTokens.usedAt),
-              gt(passwordResetTokens.expiresAt, new Date()),
-            ),
-          )
-          .returning({ userId: passwordResetTokens.userId });
-        const row = rows[0];
-        if (row === undefined) {
-          throw validationError([{ path: 'token', message: 'Invalid or expired reset token.' }]);
-        }
+      let userId: string;
+      try {
+        userId = await database.transaction(async (tx) => {
+          const rows = await tx
+            .update(passwordResetTokens)
+            .set({ usedAt: new Date() })
+            .where(
+              and(
+                eq(passwordResetTokens.tokenHash, tokenHash),
+                isNull(passwordResetTokens.usedAt),
+                gt(passwordResetTokens.expiresAt, new Date()),
+              ),
+            )
+            .returning({ userId: passwordResetTokens.userId });
+          const row = rows[0];
+          if (row === undefined) {
+            throw validationError([{ path: 'token', message: 'Invalid or expired reset token.' }]);
+          }
 
-        await users.setPasswordHash(row.userId, passwordHash, tx);
-        await tx
-          .update(sessions)
-          .set({ revokedAt: new Date() })
-          .where(and(eq(sessions.userId, row.userId), isNull(sessions.revokedAt)));
-        await insertSession(row.userId, pair, tx);
-        return row.userId;
-      });
+          await users.setPasswordHash(row.userId, passwordHash, tx);
+          await tx
+            .update(sessions)
+            .set({ revokedAt: new Date() })
+            .where(and(eq(sessions.userId, row.userId), isNull(sessions.revokedAt)));
+          await insertSession(row.userId, pair, tx);
+          await recordAudit(
+            {
+              action: 'auth.password_reset.confirm',
+              outcome: 'success',
+              ...auditRequest(context),
+              actorId: row.userId,
+              subjectId: row.userId,
+            },
+            tx,
+          );
+          return row.userId;
+        });
+      } catch (error) {
+        await recordAudit({
+          action: 'auth.password_reset.confirm',
+          outcome: 'failure',
+          ...auditRequest(context),
+        });
+        throw error;
+      }
 
       const user = await users.findAuthUserById(userId);
       if (user === undefined) {

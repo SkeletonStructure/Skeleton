@@ -1,4 +1,4 @@
-import type { Database } from '../database/index.js';
+import type { AuditSink, Database } from '../database/index.js';
 import { ApiConfigurationError } from './config.js';
 import type { RateLimitStoreProvider } from './rate-limit.js';
 import type {
@@ -42,8 +42,25 @@ export function rateLimitStoreReadinessCheck(provider: RateLimitStoreProvider): 
   };
 }
 
+export function auditReadinessCheck(sink: AuditSink): ReadinessCheck {
+  return {
+    id: 'audit',
+    check: async () => {
+      if (sink.health === undefined) return { status: 'ok' };
+      try {
+        const result = await sink.health();
+        return result.status === 'ok'
+          ? { status: 'ok' }
+          : { status: 'error', reason: result.reason ?? 'AUDIT_STORE_UNAVAILABLE' };
+      } catch {
+        return { status: 'error', reason: 'AUDIT_STORE_UNAVAILABLE' };
+      }
+    },
+  };
+}
+
 export function buildReadinessChecks(options: ResolvedApiServerOptions): readonly ReadinessCheck[] {
-  const reserved = new Set(['config', 'database', 'rateLimitStore']);
+  const reserved = new Set(['config', 'database', 'rateLimitStore', 'audit']);
   for (const check of options.readinessChecks) {
     if (reserved.has(check.id)) {
       throw new ApiConfigurationError(
@@ -60,6 +77,7 @@ export function buildReadinessChecks(options: ResolvedApiServerOptions): readonl
     ...(options.rateLimitStore === undefined
       ? []
       : [rateLimitStoreReadinessCheck(options.rateLimitStore)]),
+    ...(options.auditSink === undefined ? [] : [auditReadinessCheck(options.auditSink)]),
   ];
 }
 

@@ -2,7 +2,11 @@ import { pathToFileURL } from 'node:url';
 import { createM8Composition } from '@skeletonstructure/app-composition';
 import { createServer } from '@skeletonstructure/core/api';
 import { loadConfig } from '@skeletonstructure/core/config';
-import { closeDatabase, initializeDatabase } from '@skeletonstructure/core/database';
+import {
+  closeDatabase,
+  createDatabaseAuditSink,
+  initializeDatabase,
+} from '@skeletonstructure/core/database';
 
 /** Starts the composed M8 application. Composition failures happen before listen. */
 export async function startServer() {
@@ -11,7 +15,8 @@ export async function startServer() {
 
   try {
     database = await initializeDatabase(appConfig.database);
-    const composition = await createM8Composition({ appConfig, database });
+    const auditSink = createDatabaseAuditSink(database);
+    const composition = await createM8Composition({ appConfig, database, audit: auditSink });
     const app = await createServer({
       appConfig,
       database,
@@ -19,6 +24,7 @@ export async function startServer() {
       routeHandlers: composition.routeHandlers,
       authenticator: composition.authenticator,
       csrfGuard: composition.csrfGuard,
+      auditSink,
     });
 
     const shutdown = async (signal) => {
