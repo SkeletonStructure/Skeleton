@@ -1,6 +1,10 @@
 import type { ApiRouteDefinition, Authenticator, CsrfGuard } from '@skeletonstructure/core/api';
 import type { AppConfig } from '@skeletonstructure/core/config';
-import type { AuditSink, Database } from '@skeletonstructure/core/database';
+import {
+  type AuditSink,
+  type Database,
+  defaultMigrationsFolder,
+} from '@skeletonstructure/core/database';
 import {
   type ActivationReport,
   composeModuleRegistry,
@@ -9,12 +13,14 @@ import {
 } from '@skeletonstructure/core/modules';
 import {
   BUYER_CONTEXT_PORT as AUTH_BUYER_CONTEXT_PORT,
+  authMigrationsFolder,
   createAuthModule,
   createAuthUsersComposition,
   type EmailProvider,
   runAuthUsersMigrations,
 } from '@skeletonstructure/module-auth';
 import {
+  catalogMigrationsFolder,
   createCatalogModule,
   createCatalogService,
   PRICE_RESOLVER_PORT,
@@ -23,15 +29,21 @@ import {
 import {
   createInventoryModule,
   INVENTORY_PORT,
+  inventoryMigrationsFolder,
   runInventoryMigrations,
 } from '@skeletonstructure/module-inventory';
 import {
   createOrdersModule,
   BUYER_CONTEXT_PORT as ORDERS_BUYER_CONTEXT_PORT,
+  ordersMigrationsFolder,
   runOrdersMigrations,
 } from '@skeletonstructure/module-orders';
-import { createProductsModule, runProductsMigrations } from '@skeletonstructure/module-products';
-import { createUsersModule } from '@skeletonstructure/module-users';
+import {
+  createProductsModule,
+  productsMigrationsFolder,
+  runProductsMigrations,
+} from '@skeletonstructure/module-products';
+import { createUsersModule, usersMigrationsFolder } from '@skeletonstructure/module-users';
 
 export const AMBIGUOUS_PRICE_RESOLVER = 'AMBIGUOUS_PRICE_RESOLVER' as const;
 
@@ -244,6 +256,19 @@ export async function createM8Composition(options: M8CompositionOptions): Promis
   };
 }
 
+/** Explicit migration folders for the shared M1-M8 graph, in migration order. */
+export function m8MigrationFolders(): readonly string[] {
+  return [
+    defaultMigrationsFolder(),
+    usersMigrationsFolder(),
+    authMigrationsFolder(),
+    catalogMigrationsFolder(),
+    productsMigrationsFolder(),
+    inventoryMigrationsFolder(),
+    ordersMigrationsFolder(),
+  ];
+}
+
 /** Applies all M1-M8 migrations in explicit dependency order. */
 export async function runM8Migrations(database: Database) {
   const authUsers = await runAuthUsersMigrations(database);
@@ -254,4 +279,5 @@ export async function runM8Migrations(database: Database) {
   return { ...authUsers, catalog, products, inventory, orders };
 }
 
+export * from './runtime.js';
 export { createAuthUsersComposition };

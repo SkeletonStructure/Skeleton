@@ -38,6 +38,8 @@ lifecycle.markReady();
 
 `createServer()` validates configuration, CORS, rate limits, activation report shape, route permissions, route handlers, injected provider ids, and readiness checks before returning the Fastify instance. Invalid startup input fails closed with `ApiConfigurationError`. `logger`, `lifecycle`, `auditSink`, and `rateLimitStore` are optional injection points; omitting them preserves the v0.1.0 composition behavior.
 
+For new applications, prefer `startApplication()` from `@skeletonstructure/app-composition`. It performs the same startup sequence above, passes an explicit composition context to an injected composer, installs shutdown coordination, and returns the Fastify instance alongside config, composition, logger, lifecycle, and an idempotent `close()` method. The basic-app template supplies `migrationFolders`; existing root and demo scripts use the helper without adding a migration check.
+
 ## Request and response model
 
 - All public routes are under `/v1`.
@@ -80,7 +82,7 @@ Rate limiting uses `security.rateLimit`. The zero-configuration `memory` store r
 - `GET /health/live` returns `200 { "status": "ok" }` when the process is responsive. It performs no dependency checks.
 - `GET /health/ready` returns `200` only when core readiness checks pass: config shape, database health, injected checks such as migration state, and (when supplied) explicit `lifecycle`, rate-limit store, and audit sink checks. Failure returns `503` with a short reason code such as `SERVICE_DRAINING`, `RATE_LIMIT_STORE_UNAVAILABLE`, or `AUDIT_STORE_UNAVAILABLE`, plus a request ID; it never exposes credentials, exception text, or host details.
 
-Migration state is injected as a `ReadinessCheck`; M5 does not create a new migration-status API. The reserved check IDs are `config`, `database`, `rateLimitStore`, `audit`, and `lifecycle`.
+Migration state is injected as a `ReadinessCheck`; M5 does not create a new migration-status API. Applications may use `createMigrationReadinessCheck()` with explicit folders or supply their own check; startup does not add one by default. A pending or unreadable migration state returns only `MIGRATIONS_PENDING`. The reserved check IDs are `config`, `database`, `rateLimitStore`, `audit`, and `lifecycle`; the migration check arrives through its own `createServer()` option.
 
 ## Public config
 

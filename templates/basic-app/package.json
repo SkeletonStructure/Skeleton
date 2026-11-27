@@ -1,0 +1,22 @@
+{
+  "name": "@skeletonstructure/template-basic-app",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -b --pretty false",
+    "start": "tsc -b && node scripts/start-server.mjs",
+    "db:migrate": "tsc -b && node scripts/migrate.mjs",
+    "test:integration": "vitest run --config vitest.config.ts"
+  },
+  "dependencies": {
+    "@skeletonstructure/app-composition": "workspace:*",
+    "@skeletonstructure/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@testcontainers/postgresql": "^12.2.2",
+    "testcontainers": "^12.2.2",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.1"
+  }
+}
