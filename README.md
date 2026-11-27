@@ -80,7 +80,7 @@ To run the M9a e-commerce demo, follow [`apps/demo-ecommerce/README.md`](./apps/
 | `openapi:check`          | `tsc -b && node scripts/check-openapi.mjs`                           | Verify the committed OpenAPI file                         |
 | `ci`                     | `pnpm run ci`                                                        | Shorter local gate; CI runs every listed check            |
 
-CI runs on pull requests and pushes to `main`. The workflow jobs are `verify` and `demo-ecommerce-e2e`; see [`docs/quality-assurance.md`](./docs/quality-assurance.md) for the complete gate list and CodeQL triage.
+CI runs on pull requests and pushes to `main`. The workflow jobs are `verify` and `demo-ecommerce-e2e`; see [`docs/quality-assurance.md`](./docs/quality-assurance.md) for the complete gate list and recorded CodeQL triage, and verify current alert state on GitHub.
 
 ## Configuration
 
@@ -203,5 +203,9 @@ skeleton.config.example.ts  example typed config
 - `docs/m8.md` — M8 module graph, routes, schemas, ports, order semantics, and limitations.
 - `docs/m9.md` — M9a e-commerce demo, reused modules, demo-local cart, payment seam, and verification.
 - `docs/architecture/adr/` — architecture decision records.
+- `AGENTS.md` — agent navigation and mandatory session workflow.
+- `.agents/skills/skeletonstructure-engineering/SKILL.md` — portable engineering skill for coding agents; read before substantial foundation work.
+- `.agents/skills/skeletonstructure-engineering/references/current-state.md` — dated implementation status snapshot.
+- `.agents/skills/skeletonstructure-engineering/references/feature-inventory.md` — quick map of implemented, partial, deferred, and absent capabilities.
 
-The authoritative engineering blueprint lives in the `SkeletonStructure-blueprint` workspace during bootstrap and will be imported into `docs/architecture/` as the repository matures.
+The engineering blueprint was the authoritative bootstrap design intent in the `SkeletonStructure-blueprint` workspace; it has not been imported into `docs/architecture/`. Current accepted decisions live in [`docs/architecture/adr/`](./docs/architecture/adr/).
