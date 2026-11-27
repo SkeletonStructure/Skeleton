@@ -38,3 +38,5 @@ This repository contains the backend foundation. Security reports should concern
 ## Limitations
 
 SkeletonStructure provides careful defaults, not a guarantee of complete security. Operators remain responsible for TLS, secret management, least-privilege database credentials, backups, updates, and deployment hardening. v0.1.0 is not claimed to be completely secure or production-ready beyond the tested scope. The reviewed controls, residual risks, and release decisions are recorded in [`docs/security/checklist.md`](./docs/security/checklist.md) and [`docs/release/checklist.md`](./docs/release/checklist.md).
+
+Unreleased M11 work in this tree adds shared rate-limit storage, persistent audit events, structured request logs, and bounded graceful shutdown. These additions do not constitute an independent security review, a new release, or a claim that MFA, CAPTCHA, per-account limits, real email delivery, or production deployment manifests exist. See [ADRs 0008–0012](./docs/architecture/adr/) and the post-v0.1.0 section of the security checklist.

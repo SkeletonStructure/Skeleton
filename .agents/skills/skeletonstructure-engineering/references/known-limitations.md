@@ -6,7 +6,8 @@ Use this as a checklist before claiming a capability or starting work.
 
 - `v0.1.0` is a first usable release, **not** production-ready beyond tested scope.
 - M9b restaurant demo is deferred, not implemented or started.
-- No payments, guest checkout, refunds, cancellations, inventory release, MFA, OAuth, CAPTCHA, real email, file uploads, webhooks, persistent audit logging, Redis/shared rate limiting, multi-tenancy, or extra database engines.
+- No payments, guest checkout, refunds, cancellations, inventory release, MFA, OAuth, CAPTCHA, per-account limits, real email, file uploads, webhooks, multi-tenancy, or extra database engines.
+- Unreleased M11 adds persistent audit events and shared rate-limit storage, but the tagged `v0.1.0` does not. Shared Redis requires an application-injected client; no Redis dependency or default service is bundled.
 - No npm publication; all packages/apps are private.
 - No production deployment manifests or documented fork-upgrade procedure.
 - Reserved inventory remains reserved after order confirmation because cancellation/release is not implemented.
@@ -36,7 +37,7 @@ Use this as a checklist before claiming a capability or starting work.
 
 - Current `protect-main` ruleset enforces deletion/non-fast-forward and PR-only changes, but has zero required status checks and zero required approvals; CODEOWNERS review is disabled in that ruleset.
 - CODEOWNERS is `* @MrUranium1`; a second write maintainer is not verified. Security sign-off is owner self-review.
-- Two CodeQL `js/missing-rate-limiting` alerts remain open and were not dismissed; owner annotation/dismissal with documented rationale is pending.
+- Two CodeQL `js/missing-rate-limiting` alerts remain open and were not dismissed; M11 changes the registration order, but owner re-triage with fresh evidence is still pending.
 - No dedicated CI secret scanner; native secret scanning/push protection are enabled, non-provider patterns/validity checks disabled.
 - Three moderate dev/transitive advisories were present during research: `esbuild` via `drizzle-kit`, `glob` and `minimatch` via `testcontainers > archiver`. `pnpm audit --audit-level=high` passed then; re-run it after dependency changes.
 - For current CodeQL alert state, query GitHub; `docs/quality-assurance.md` is stale for the three fixed ReDoS alerts.
@@ -51,7 +52,9 @@ Use this as a checklist before claiming a capability or starting work.
 - Buyer context is user-only in v0.1.0; guest refs are typed but rejected.
 - Client-supplied amounts are rejected when a price resolver exists; prices are server-authoritative.
 - Migrations are explicit operator actions; no auto-migration on startup. Old migrations are hash-pinned and must not be rewritten.
-- `/health/live` and `/health/ready` are internal and excluded from public OpenAPI.
+- `/health/live` and `/health/ready` are internal and excluded from public OpenAPI. In M11, readiness can also fail on lifecycle, rate-limit store, and audit checks.
+- Audit rows are append-only only against ordinary database roles; a superuser/schema owner can disable triggers, and the foundation does not provide hash-chain tamper evidence or retention automation.
+- Graceful shutdown drains readiness before closing resources and ends hung cleanup with `SIGKILL` after a bounded timeout; tune the timeout for slow dependencies.
 - SDK has no runtime dependencies and no browser storage; contract tests enforce this.
 - Playwright uses ports `3000`/`5173` and `reuseExistingServer: false`; E2E can fail if those are occupied. Do not kill unrelated processes.
 

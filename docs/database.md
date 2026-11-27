@@ -97,13 +97,19 @@ const result = await checkDatabaseHealth();
 // { status: 'error', reason: 'DATABASE_NOT_INITIALIZED' }
 ```
 
-This is intentionally separate from application liveness. Process liveness means the event loop is responsive and must not query PostgreSQL. Readiness may include database availability, migration state, and future module health contributors. Health output contains only a status and short reason code; it never contains credentials, hostnames, connection strings, or SQL errors.
+This is intentionally separate from application liveness. Process liveness means the event loop is responsive and must not query PostgreSQL. Readiness may include database availability, migration state, the lifecycle state, rate-limit storage, and the audit table. Health output contains only a status and short reason code; it never contains credentials, hostnames, connection strings, or SQL errors.
 
 HTTP health endpoints are provided by the M5 API adapter; see [`api.md`](./api.md#health-endpoints).
 
+## Audit events
+
+M11 adds one core-owned table, `core_audit_events`, for append-only security events. `createDatabaseAuditSink(database)` validates the action/outcome vocabulary and all identifiers and metadata before inserting through the shared `Database` port. Passing a transaction executor records the audit row atomically with the domain change; a failed record propagates instead of silently dropping the event. The sink's health check queries the table, so a missing or inaccessible table produces `AUDIT_STORE_UNAVAILABLE` in readiness.
+
+PostgreSQL triggers reject `UPDATE` and `DELETE` on the table. This protects against ordinary application roles, not against a superuser or schema owner; retention and deletion require a controlled operator procedure. See [ADR 0009](./architecture/adr/0009-persistent-audit-logging.md) and [ADR 0010](./architecture/adr/0010-audit-integrity.md).
+
 ## Migrations
 
-Core migration SQL lives in `packages/core/migrations/`. The committed `0000_core_baseline` migration is intentionally empty: it establishes the workflow without introducing application tables. M6 modules own their SQL in `packages/module-users/migrations/` and `packages/module-auth/migrations/`; M8 modules own `catalog_items`, `commerce_products`, `inventory_items`, and the three `orders_*` tables in their respective package folders.
+Core migration SQL lives in `packages/core/migrations/`. The committed `0000_core_baseline` migration is intentionally empty and remains byte-for-byte pinned as the v0.1.0 baseline. M11 appends `0001_supreme_blazing_skull.sql` before the users/auth migrations; it creates `core_audit_events`, its indexes, outcome constraint, and append-only triggers. M6 modules own their SQL in `packages/module-users/migrations/` and `packages/module-auth/migrations/`; M8 modules own `catalog_items`, `commerce_products`, `inventory_items`, and the three `orders_*` tables in their respective package folders.
 
 Generate a reviewed SQL migration:
 
@@ -129,7 +135,7 @@ pnpm skeleton db migrate
 
 The M9a demonstration adds one app-local migration under `apps/demo-ecommerce/modules/cart/migrations/`. `pnpm demo:ecommerce:migrate` applies the shared M1–M8 migrations first, then `demo_ecommerce_carts` and `demo_ecommerce_cart_items`. The cart-item foreign key to shared `catalog_items` is written manually in the reviewed SQL so Drizzle Kit does not redeclare a table owned by `module-catalog`. Shared migration artifacts are unchanged.
 
-The runner obtains a dedicated client from the shared pool, takes a PostgreSQL advisory lock, applies migrations on that same client, then releases the lock and client. Concurrent migration processes therefore cannot race. Drizzle's internal `drizzle.__drizzle_migrations` table is the only table created by the baseline workflow.
+The runner obtains a dedicated client from the shared pool, takes a PostgreSQL advisory lock, applies migrations on that same client, then releases the lock and client. Concurrent migration processes therefore cannot race. Drizzle's internal `drizzle.__drizzle_migrations` table is created by the baseline workflow; the appended M11 core migration creates the only new shared table.
 
 Module-owned tables and migrations arrived in M6 and expanded in M8. Disabling a module does not drop its tables. Product and inventory rows reference `catalog_items` with `ON DELETE RESTRICT`; order items also reference catalog items so historical lines cannot be orphaned. Auth sessions and password-reset tokens have a separate explicit cleanup job (`pnpm auth:cleanup`); destructive migration policy and deployment readiness enforcement are still operator responsibilities.
 
@@ -140,6 +146,7 @@ Ordinary unit tests use injected fake pools and migrators and do not require Pos
 - initialization against a real database;
 - fresh migration and no-op re-run;
 - readiness health and clean pool shutdown;
+- append-only audit triggers, sink validation, and transaction rollback behavior;
 - users module constraints and ownership checks;
 - auth flows, session rotation, CSRF, reset tokens, and the authorization matrix;
 - M9a fresh/repeated migration and seed runs, cart authz and ownership, checkout failure consistency, successful clearing, and idempotent replay.
@@ -155,4 +162,6 @@ pnpm test:integration
 - Module migration ordering is explicit in the composition/migration script; there is no automatic discovery.
 - No destructive-migration flag or readiness gate for pending module migrations exists yet.
 - HTTP health endpoints exist but do not report per-module migration state.
+- Audit events rely on database privileges: a superuser or schema owner can disable the append-only triggers.
+- Retention, archival, and controlled deletion of audit rows are operator responsibilities; there is no hash chain or external tamper-evidence service.
 - Backups, restore drills, least-privilege database roles, and cleanup scheduling remain operator responsibilities.

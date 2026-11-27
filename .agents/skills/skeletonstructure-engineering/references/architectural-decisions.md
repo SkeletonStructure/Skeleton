@@ -120,3 +120,11 @@ Never mark a decision superseded merely because an implementation detail evolved
 - **Reasoning:** Strengthen CI while preserving released behavior.
 - **Consequences:** `v0.1.0` remains the compatibility baseline; QA artifacts are post-release hardening.
 - **Status:** Merged; not part of the tag.
+
+## M11 security and operational hardening (unreleased)
+
+- **Context:** Post-release work needed shared rate limiting, durable audit history, functional structured logging, predictable shutdown, and documented failure behavior without adding a default Redis dependency or changing public routes.
+- **Decisions:** In-repo ADRs 0008–0012 record the rate-limit storage port, persistent audit logging, append-only audit integrity, structured logging/request correlation, and fail-closed security infrastructure behavior.
+- **Reasoning:** Keep infrastructure in core, make optional providers explicit, preserve the v0.1.0 compatibility baseline, and prefer bounded deterministic failure over silent security weakening.
+- **Consequences:** The default remains zero-configuration in-memory; shared Redis requires an injected client. Audit rows are append-only at the database privilege boundary. Logging is redacted and request-correlated. Shutdown drains readiness before a bounded close.
+- **Status:** Accepted on the unreleased M11 branch; not part of the `v0.1.0` tag. No earlier ADR is superseded.

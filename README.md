@@ -4,9 +4,9 @@ A self-hosted, MIT-licensed backend foundation built as a modular monolith. This
 
 ## Status
 
-v0.1.0 is the first usable release of the backend foundation. It includes M1–M8, the complete M9a e-commerce demonstration, and the M10 release documentation and verification work. M9b (the restaurant demonstration) is deliberately deferred and is not required for this release. The e-commerce demo is the primary demonstration application.
+v0.1.0 is the first usable release of the backend foundation. It includes M1–M8, the complete M9a e-commerce demonstration, and the M10 release documentation and verification work. M9b (the restaurant demonstration) is deliberately deferred and is not required for this release. The e-commerce demo is the primary demonstration application. The current working tree also contains unreleased post-v0.1.0 M11 security and operational hardening; see [`CHANGELOG.md`](./CHANGELOG.md) for its scope.
 
-This is an early foundation, not a production-ready platform. It has no payments, MFA, persistent audit logging, shared rate limiter, real email adapter, or multi-tenancy. Careful defaults lower risk, but they do not replace review, testing, and updates. See [`SECURITY.md`](./SECURITY.md) and [`docs/releases/v0.1.0.md`](./docs/releases/v0.1.0.md) for the explicit limitations.
+This is an early foundation, not a production-ready platform. It has no payments, MFA, CAPTCHA, per-account limits, real email adapter, or multi-tenancy. M11 adds provider-independent shared rate limiting and a persistent append-only audit log, but a Redis store must still be supplied explicitly by the application, and operators remain responsible for deployment hardening. Careful defaults lower risk, but they do not replace review, testing, and updates. See [`SECURITY.md`](./SECURITY.md), [`docs/security/checklist.md`](./docs/security/checklist.md), and [`docs/releases/v0.1.0.md`](./docs/releases/v0.1.0.md) for explicit limitations.
 
 ## Quick start
 
@@ -128,7 +128,7 @@ try {
 }
 ```
 
-Migrations are explicit and module-owned: use the matching `pnpm db:generate:*` script to create reviewed SQL. `pnpm db:migrate` applies core/users/auth, then catalog, products, inventory, and orders migrations in dependency order. The baseline migration contains no application tables. The M9a demo adds one app-local cart migration through `pnpm demo:ecommerce:migrate`; it does not change the shared migration runner. See [`docs/database.md`](./docs/database.md) for lifecycle, transactions, health semantics, migration workflow, and limitations.
+Migrations are explicit and module-owned: use the matching `pnpm db:generate:*` script to create reviewed SQL. `pnpm db:migrate` applies core/users/auth, then catalog, products, inventory, and orders migrations in dependency order. The original v0.1.0 baseline remains byte-for-byte pinned; M11 appends a core migration for the `core_audit_events` table. The M9a demo adds one app-local cart migration through `pnpm demo:ecommerce:migrate`; it does not change the shared migration runner. See [`docs/database.md`](./docs/database.md) for lifecycle, transactions, health semantics, migration workflow, and limitations.
 
 ## Modules
 
@@ -149,7 +149,7 @@ Module route and permission declarations are validated before HTTP startup. M5 w
 
 ## API
 
-The M5 API adapter builds one Fastify instance with a `/v1` prefix, request IDs, the standard JSON envelope, validation/error mapping, permission hooks, exact-origin CORS, per-process rate limiting, health endpoints, public config, and OpenAPI generation.
+The M5 API adapter builds one Fastify instance with a `/v1` prefix, request IDs, the standard JSON envelope, validation/error mapping, permission hooks, exact-origin CORS, shared-capable rate limiting, health endpoints, public config, and OpenAPI generation.
 
 ```ts
 import { createServer } from '@skeletonstructure/core/api';
@@ -165,10 +165,21 @@ await app.listen({ host: config.server.host, port: config.server.port });
 
 M6 implements sessions, login, CSRF, roles/permissions, and password reset behind that boundary. Protected routes still deny by default unless an injected authenticator supplies a principal; disabled modules register no routes rather than making them public. M8 adds catalog CRUD with validated expansion, separate product and inventory routes, and authenticated orders with idempotency and immutable snapshots. M7's SDK now covers catalog/products/inventory/orders namespaces derived from the committed OpenAPI artifact. M9a adds demo-local cart routes with a separate OpenAPI artifact and typed client; checkout stops at order confirmation and captures no payment. See [`docs/api.md`](./docs/api.md), [`docs/auth.md`](./docs/auth.md), [`docs/sdk.md`](./docs/sdk.md), [`docs/m8.md`](./docs/m8.md), and [`docs/m9.md`](./docs/m9.md).
 
+## Operational hardening
+
+Unreleased M11 work adds four foundation-owned capabilities without changing the public route contract:
+
+- **Shared rate limiting:** `security.rateLimit.store` selects an in-memory default or an optional Redis provider. Redis requires an application-injected ioredis-compatible client; no Redis dependency is added and storage errors fail closed.
+- **Persistent audit events:** auth, authorization, CSRF, rate-limit, and role-assignment events are written to the append-only `core_audit_events` table through a core-owned sink. Identity-changing events share the domain transaction.
+- **Structured logging:** `createLogger()` implements the validated level/format/redaction settings, binds `requestId` to each request, and never logs bodies, raw URLs, headers, or credentials.
+- **Graceful shutdown:** `createLifecycle()` and `createShutdownCoordinator()` flip readiness to draining, close HTTP/providers/database once within a bounded timeout, and re-raise the original signal.
+
+See [`docs/api.md`](./docs/api.md), [`docs/database.md`](./docs/database.md), [`docs/security/checklist.md`](./docs/security/checklist.md), and ADRs 0008–0012 in [`docs/architecture/adr/`](./docs/architecture/adr/) for boundaries and residual risks.
+
 ## Layout
 
 ```text
-packages/core/         mandatory core infrastructure: config, database, modules, API, security
+packages/core/         mandatory core infrastructure: config, database, modules, API, security, logging, lifecycle
 packages/module-users/ optional user identity, profiles, roles, and permissions
 packages/module-auth/  optional sessions, login, CSRF, and password reset
 packages/module-catalog/   optional generic catalog and provider contracts

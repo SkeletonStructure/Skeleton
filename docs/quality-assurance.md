@@ -42,6 +42,10 @@ Regression tests already pin these invariants:
 - CSRF tokens cannot be replayed after rotation; password reset tokens cannot be replayed or used after expiry.
 - Concurrent orders with the same idempotency key resolve to one order.
 - Email validation preserves v0.1.0 acceptance while parsing pathological input linearly; bearer headers and SDK base URLs also handle pathological input linearly.
+- Structured logs filter by level, redact nested secret paths, control unsafe values, tolerate a broken sink, and bind `requestId` to request logs.
+- Shared limiters are isolated per route, fail closed on storage errors, and report an injected store as unready.
+- Audit rows are append-only, validated, transaction-bound, and emitted for auth success/failure and role assignment.
+- Lifecycle transitions are monotonic, readiness drains before close, shutdown is one-shot, and a hung close ends with `SIGKILL` after the configured timeout.
 
 ## Commands before opening a pull request
 
@@ -63,6 +67,18 @@ pnpm audit --audit-level=high
 ```
 
 `pnpm run ci` is also available as a shorter local check, but CI runs the explicit steps above.
+
+## M11 verification snapshot
+
+The complete PR-level gate was executed locally for the M11 branch before documentation was committed:
+
+- `pnpm install --frozen-lockfile`, `pnpm typecheck`, and `pnpm lint` passed.
+- Unit: 19 files / 131 tests; integration: 12 files / 62 tests; contract: 5 files / 16 tests; regression: 10 files / 28 tests; `pnpm test`: 46 files / 237 tests.
+- `pnpm test:migration-smoke`, `pnpm openapi:check`, `pnpm sdk:check`, `pnpm demo:ecommerce:verify` (including Playwright E2E), and the demo production build passed.
+- `pnpm config:docs` produced no `docs/config/reference.md` drift.
+- `pnpm audit --audit-level=high` passed with 0 high/critical advisories and 3 moderate transitive dev/test advisories.
+
+These are local results. No GitHub CI or review result is claimed for the unmerged branch; re-query after the PR is pushed.
 
 ## CI behavior
 

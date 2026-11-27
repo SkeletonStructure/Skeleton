@@ -23,7 +23,7 @@ Verified from `README.md`, `CHANGELOG.md`, `docs/releases/v0.1.0.md`, and the gi
 - The SDK is source/workspace distributed; it is not published to npm.
 - The release is explicitly **not** claimed to be completely secure or production-ready beyond the tested scope.
 
-Absent by design in `v0.1.0`: payments, guest checkout, cancellations/refunds/stock release, MFA, OAuth, CAPTCHA, real SMTP/HTTP email, file uploads, webhooks, persistent audit logging, Redis/shared rate limiting, multi-tenancy, and additional database engines.
+Absent by design in `v0.1.0`: payments, guest checkout, cancellations/refunds/stock release, MFA, OAuth, CAPTCHA, real SMTP/HTTP email, file uploads, webhooks, persistent audit logging, Redis/shared rate limiting, multi-tenancy, and additional database engines. Unreleased M11 work adds persistent audit events and shared rate-limit storage to the current tree without changing the tagged release or adding a default Redis service.
 
 ## Guiding direction
 
@@ -64,7 +64,7 @@ The website/organization front door is a separate static repository. Backend wor
 
 ## Long-term direction, carefully stated
 
-The documented direction is to keep proving the foundation with independent demonstrations and to add only capabilities that are designed, ADR-recorded where significant, tested, and released. M9b is the next explicitly named demonstration, but it is **planned/deferred**, not complete. Payments, real email, shared rate limiting, and multi-tenancy remain future design work with no accepted ADRs in the repository.
+The documented direction is to keep proving the foundation with independent demonstrations and to add only capabilities that are designed, ADR-recorded where significant, tested, and released. M9b is the next explicitly named demonstration, but it is **planned/deferred**, not complete. M11 follows that pattern for security infrastructure with ADRs 0008–0012 on an unreleased branch. Payments, real email, per-account limits, and multi-tenancy remain future design work; shared rate-limit storage now has an accepted ADR and implementation, but no new release tag.
 
 ## Historical note
 

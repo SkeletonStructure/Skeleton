@@ -13,6 +13,8 @@ Release candidate reviewed: `a5fb7c3575cfafdfb454b6fc5df0db81efd5ce91` and later
 
 The repository owner supplied this sign-off directly. It is recorded as the v0.1.0 release decision. Because the reviewer is the owner rather than a separately identified second maintainer, the blueprint's independent-maintainer criterion is documented as an owner self-review limitation in the release notes rather than claimed as independently verified.
 
+> The tables and sign-off below are the historical v0.1.0 review record. Unreleased M11 hardening in this working tree is listed in “Post-v0.1.0 M11 additions” at the end. It does not retroactively change the release decision or claim an independent review.
+
 ## Threat model review
 
 | Threat area                                  | Implemented control                                                                                                                                | Evidence                                                                                                                                          | Residual risk or limitation                                                                                               |
@@ -96,6 +98,20 @@ Fresh clone verification applied migrations twice: seven migrations on the first
 - Secrets are env-only and absent from public config, health output, and generated artifacts.
 - The sample config is development-oriented and must be replaced for deployment.
 - Operators are responsible for TLS, least-privilege database roles, backups, dependency updates, and monitoring.
+
+## Post-v0.1.0 M11 additions
+
+These controls are present in the current working tree but are not part of the tagged `v0.1.0` review. They have no new independent sign-off.
+
+| Control                         | Implementation                                                                                                                                                  | Residual risk or owner action                                                                                                                                       |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Shared rate-limit storage       | Core `RateLimitStoreProvider`; in-memory default; optional injected ioredis-compatible client; `skipOnError: false`; limiter registered before CSRF/auth hooks. | No Redis dependency or client is bundled. Applications must inject a provider and set `RATE_LIMIT_STORE=redis`; per-account limits, CAPTCHA, and MFA remain absent. |
+| Persistent audit events         | `core_audit_events`, append-only triggers, validated core sink, transaction-bound auth/users events, and a named readiness check.                               | A schema owner can disable triggers. Retention and controlled deletion remain operator procedures; no hash chain or external WORM store is claimed.                 |
+| Structured logging              | Core `logger` with level filtering, JSON/pretty formats, recursive redaction, child request bindings, and safe bounded fields.                                  | Applications that replace the logger must preserve redaction. Operators own shipping, retention, and access control for log output.                                 |
+| Lifecycle and shutdown          | `starting → ready → draining → closed`, readiness during drain, one-shot close with a 10-second default timeout, original signal re-raise.                      | Slow dependencies can force `SIGKILL` at the timeout; tune the timeout and monitor shutdown logs.                                                                   |
+| Security infrastructure failure | Rate-limit and audit failures fail closed; exceptions are mapped to safe `500`/`503` reason codes with no exception text.                                       | Availability of optional infrastructure now directly affects request availability; monitor readiness reasons and runbooks.                                          |
+
+CodeQL findings #4 and #5 were still open when this branch was prepared. M11 addresses the code pattern by registering the limiter before the relevant hooks, but no alert was dismissed. Re-query GitHub after merge and have the owner record fresh triage; see [`github-governance.md`](./github-governance.md).
 
 ## Reviewer sign-off
 

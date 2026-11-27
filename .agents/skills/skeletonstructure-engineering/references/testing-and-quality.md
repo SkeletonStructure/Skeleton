@@ -1,18 +1,18 @@
 # Testing and quality
 
-Counts below are a verified snapshot of the `dde23ba` QA tree; re-run to confirm current numbers after dependency updates.
+Counts below are a verified snapshot of the current M11 branch before its documentation commit; re-run to confirm current numbers after dependency or test changes. All four Vitest layers, the frozen install, artifact checks, migration smoke, demo E2E/build, config drift, and `pnpm audit --audit-level=high` were executed successfully in that verification pass.
 
 ## Test layers
 
-| Layer           | Command                        |             Snapshot | Purpose                                                                                                                                       | Docker?                                       |
-| --------------- | ------------------------------ | -------------------: | --------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| Unit            | `pnpm test:unit`               | 15 files / 104 cases | Pure config, registry, API helpers, security primitives, module/service logic without DB.                                                     | No                                            |
-| Integration     | `pnpm test:integration`        |  11 files / 56 cases | Fastify `inject` and/or real PostgreSQL flows across core, auth, users, catalog, products, inventory, orders, app-composition, demo checkout. | Mostly yes; two core API files use a fake DB. |
-| Contract        | `pnpm test:contract`           |   5 files / 16 cases | Public SDK boundaries, generated operation aliases, module port/route/permission/OpenAPI contracts.                                           | No                                            |
-| Regression      | `pnpm test:regression`         |   9 files / 19 cases | Previously fixed failures and invariants: API surface, artifacts, migrations, CSRF/reset replay, idempotency, linear parsing, SDK runtime.    | 4 of 9 files.                                 |
-| Full Vitest     | `pnpm test`                    | 40 files / 195 cases | Convenience run across package tests, app integration, root regressions; excludes Playwright.                                                 | Same as layers.                               |
-| Browser E2E     | `pnpm demo:ecommerce:test:e2e` |      1 spec / 1 case | Browser login → browse → cart add/remove → checkout → order history.                                                                          | Yes: PostgreSQL container + Chromium.         |
-| Migration smoke | `pnpm test:migration-smoke`    |      1 file / 1 case | Real `pnpm db:migrate` against a temporary PostgreSQL container, then no-op re-run.                                                           | Yes                                           |
+| Layer           | Command                        |             Snapshot | Purpose                                                                                                                                                             | Docker?                                       |
+| --------------- | ------------------------------ | -------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| Unit            | `pnpm test:unit`               | 19 files / 131 cases | Pure config, registry, API helpers, rate-limit stores, redaction/logging, lifecycle/shutdown, security primitives, module/service logic.                            | No                                            |
+| Integration     | `pnpm test:integration`        |  12 files / 62 cases | Fastify `inject` and/or real PostgreSQL flows across core, audit, auth, users, catalog, products, inventory, orders, composition, demo checkout.                    | Mostly yes; two core API files use a fake DB. |
+| Contract        | `pnpm test:contract`           |   5 files / 16 cases | Public SDK boundaries, generated operation aliases, module port/route/permission/OpenAPI contracts.                                                                 | No                                            |
+| Regression      | `pnpm test:regression`         |  10 files / 28 cases | Previously fixed failures and invariants: API surface, artifacts, migrations, CSRF/reset replay, idempotency, linear parsing, SDK runtime, audit and failure paths. | Several files.                                |
+| Full Vitest     | `pnpm test`                    | 46 files / 237 cases | Convenience run across package tests, app integration, root regressions; excludes Playwright.                                                                       | Same as layers.                               |
+| Browser E2E     | `pnpm demo:ecommerce:test:e2e` |      1 spec / 1 case | Browser login → browse → cart add/remove → checkout → order history.                                                                                                | Yes: PostgreSQL container + Chromium.         |
+| Migration smoke | `pnpm test:migration-smoke`    |      1 file / 1 case | Real `pnpm db:migrate` against a temporary PostgreSQL container, then no-op re-run.                                                                                 | Yes                                           |
 
 Docker-backed tests use Testcontainers `postgres:16-alpine` with development credentials. Playwright uses API port `3000` and Vite port `5173`, with `reuseExistingServer: false`; verify those ports are free before running and do not kill unrelated processes.
 
@@ -87,7 +87,7 @@ Remote `main` retained these steps after Dependabot bumped action versions.
 
 ## Security checks
 
-- `pnpm audit --audit-level=high` passed with 0 high/critical during research. The 3 moderate dev/transitive advisories were `esbuild` via `drizzle-kit`, and `glob`/`minimatch` via `testcontainers > archiver`. Re-run the audit after dependency changes; no audit output is committed.
+- `pnpm audit --audit-level=high` passed on the M11 verification pass with 0 high/critical advisories; it reported 3 moderate dev/transitive advisories (`esbuild` via `drizzle-kit`, and `glob`/`minimatch` via `testcontainers > archiver`). Re-run after dependency changes; no audit output is committed.
 - CodeQL default setup is outside the repository. GitHub/API state on 2026-11-27 (re-query before relying on it):
   - #1–#3 `js/polynomial-redos` — **fixed** after PR #1.
   - #4–#5 `js/missing-rate-limiting` in `packages/core/src/api/server.ts` — **open**, not dismissed; written rationale exists in `docs/quality-assurance.md` and owner action is still required.

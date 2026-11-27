@@ -30,13 +30,26 @@ Verified as merged, not part of the `v0.1.0` tag:
 
 PR #1 reported all checks successful: `verify`, `demo-ecommerce-e2e`, `Analyze (javascript-typescript)`, `Analyze (actions)`, `CodeQL`, and Dependabot config check. Remote `main` at `b71653c` also had successful `CI` and `Push on main` runs at the time of research. Confirm with `gh run list` before repeating these results.
 
+## Unreleased M11 branch
+
+Prepared on `task/m11-security-hardening` from GitHub `main` at `2ae68eaa9a356127611a51dbbb553044a4f5daac`; not merged at the time of this snapshot:
+
+| Workstream | Scope                                                                                                                                         |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| M11.1      | Governance evidence and repair of eight pre-existing Biome formatting errors seen in CI run `45969317303`.                                    |
+| M11.2      | Core rate-limit storage port, memory default, optional injected Redis adapter, fail-closed plugin registration, config/env updates, ADR 0008. |
+| M11.3      | Append-only `core_audit_events` migration, validated core sink, auth/users integration, readiness check, ADRs 0009/0010.                      |
+| M11.4      | Core structured logger and lifecycle/shutdown coordinator, API/request correlation integration, startup-script wiring, ADRs 0011/0012.        |
+| M11.5      | Regression coverage for redaction, request correlation, audit failure, limiter failure, readiness reasons, lifecycle, and shutdown timeout.   |
+| M11.6      | Documentation and PR readiness; live CI/review results must be re-queried after the branch is pushed.                                         |
+
 ## Current development state
 
-- **No new feature milestone is verified as active.**
+- M11 security/operational hardening is active on a dedicated unreleased branch; no merge, release, or tag is claimed.
 - The foundation is in post-release maintenance/QA hardening.
-- The local branch was ahead of its stale local tracking ref by one commit (`dde23ba` vs local `origin/main` `9d665ff`), while the true GitHub `main` was separately at `b71653c`. Do not reset away the local QA commit; fetch and verify first.
-- Remote workflow steps match the local CI workflow, but action SHA pins were bumped by Dependabot.
-- Three CodeQL ReDoS alerts were marked `fixed` after PR #1; two `js/missing-rate-limiting` alerts remain open and were not dismissed.
+- GitHub `main` was verified at `2ae68ea`; local tracking refs may still be stale. Do not reset from an unverified ref.
+- Remote workflow steps match the local CI workflow, but action SHA pins were bumped by Dependabot. The latest observed `main` CI run `45969317303` failed in lint/format before M11.1's fixes; do not claim green CI.
+- Three CodeQL ReDoS alerts were marked `fixed` after PR #1; two `js/missing-rate-limiting` alerts remain open and were not dismissed. M11 changes the code pattern but owner triage is still pending.
 - The current `protect-main` ruleset enforces deletion/non-fast-forward and PR-only changes, but has zero required status checks and zero required approvals; CODEOWNERS review is disabled in that ruleset.
 - CODEOWNERS is `* @MrUranium1`; no second write maintainer is verified. `chocolatemilk-as` has pull-only access.
 
@@ -60,10 +73,10 @@ From release notes, blueprint, ADRs, and QA docs:
 
 - Independent second-maintainer security review.
 - Real required status checks/approvals and a second maintainer.
-- CodeQL alert triage: rescan/annotate or dismiss the two accepted rate-limit findings with documented rationale.
-- Real email adapter; shared/Redis rate limiting; MFA/OAuth/CAPTCHA.
+- CodeQL alert triage: rescan/annotate or dismiss the two open rate-limit findings with fresh documented rationale after M11 is deployed; M11 changes the registration order but does not dismiss them.
+- Real email adapter; per-account limits, CAPTCHA, and MFA. Shared limiter storage exists in M11, but an application still must inject the Redis client.
 - Payment ADR, payments, refunds, cancellations, inventory release.
-- Guest checkout and persistent audit logging.
+- Guest checkout. Persistent audit logging exists in M11; retention/export procedures and stronger tamper evidence remain future work.
 - Multi-tenancy, additional database engines, npm publication.
 - Non-provider secret patterns and a dedicated CI secret scanner.
 - Concrete procedure for upgrading dependent application forks.

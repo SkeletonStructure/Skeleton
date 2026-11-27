@@ -18,7 +18,7 @@ These are the conventions agents should preserve. They are derived from current 
 - Permission keys are namespaced: `users:read:self`, `catalog:write`, `orders:create`, `cart:checkout`, etc.
 - Port IDs are versioned strings such as `buyer-context@1`, `price-resolver@1`, and `inventory@1`. Mirror port contracts without cross-importing module internals.
 - Route declarations are relative paths; all business routes are served under `/v1`. Health routes are unprefixed and internal.
-- Database table names are module-prefixed: `users_*`, `auth_*`, `catalog_items`, `commerce_products`, `inventory_items`, `orders_*`, and app-local `bookstore_*` or demo cart tables.
+- Database table names are module-prefixed: core `core_*` (currently `core_audit_events`), `users_*`, `auth_*`, `catalog_items`, `commerce_products`, `inventory_items`, `orders_*`, and app-local `bookstore_*` or demo cart tables.
 - Generated artifacts are generated, not hand-edited: `openapi/openapi.json`, `packages/sdk/generated/api.ts`, demo OpenAPI/client, and `docs/config/reference.md`.
 
 ## Type safety
@@ -36,12 +36,13 @@ These are the conventions agents should preserve. They are derived from current 
 - Map unknown failures to `500 INTERNAL`; preserve request IDs for supportability.
 - The SDK mirrors API codes as typed error classes and sanitizes server-provided text. Do not make the shared SDK trust arbitrary server messages. Note that the demo-local client currently passes messages through; do not copy that behavior into the shared SDK.
 
-## Logging
+## Logging and lifecycle
 
 - Logging is configuration-driven: level, format, and redaction keys. Production requires JSON logs.
-- Core Fastify request logging is disabled (`logger: false`); request IDs are still emitted via hook/header.
-- Redact password, token, cookie, authorization, and `database.url`. Never log bodies, reset links, tokens, or email content.
-- There is no persistent audit logging in `v0.1.0`; do not claim otherwise.
+- Fastify's own logger stays disabled (`logger: false`). Core binds a request-scoped child `Logger` to the same `requestId` returned in `x-request-id`.
+- Redact password, token, cookie, authorization, and `database.url`. Never log bodies, raw URLs, headers, reset links, tokens, or email content. A broken log transport must not alter a request result.
+- Persistent audit logging is an unreleased M11 addition, not part of `v0.1.0`; it uses an append-only table and a validated core sink.
+- Lifecycle state is explicit and monotonic. Shutdown drains readiness before one bounded close attempt and re-raises the original signal.
 
 ## Configuration management
 
