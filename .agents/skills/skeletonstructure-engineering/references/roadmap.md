@@ -17,7 +17,7 @@ Snapshot verified 2026-11-27 from the repository, git history, GitHub API, and s
 | M9a demo            | `be76283`                                             | Vite storefront, separate Fastify API, app-local cart/migration, seeded user/products, checkout to confirmation, order history, generated demo artifacts, Playwright E2E, ADR 0007. |
 | M10 release         | `a5fb7c3`, `d37d01b`, `d09987b`, `1e04788`, `9d665ff` | Release docs, threat model, security/release checklists, CHANGELOG, VERSION/package alignment, release notes, owner sign-off, GitHub release.                                       |
 
-Tag: annotated `v0.1.0` → release commit `9d665ff3462cfc3b4f7adb7f96a2b95974f7ffff`.
+Tags: annotated `v0.1.0` → `9d665ff3462cfc3b4f7adb7f96a2b95974f7ffff`; annotated `v0.2.0` → merged release commit on `main` (M11/M12 included). The `v0.1.0` compatibility baseline remains frozen.
 
 ## Post-release hardening
 
@@ -35,7 +35,7 @@ PR #1 reported all checks successful: `verify`, `demo-ecommerce-e2e`, `Analyze (
 
 ## M11 security and operational hardening (merged)
 
-Prepared on `task/m11-security-hardening` from GitHub `main` at `2ae68eaa9a356127611a51dbbb553044a4f5daac` and merged through PR #7 as `b399a21cf86866a725eb29b9c95ff3405853c7b8` at 2026-11-27T11:04:44Z. M11 is on `main` but is not part of the `v0.1.0` tag and has no separate tag.
+Prepared on `task/m11-security-hardening` from GitHub `main` at `2ae68eaa9a356127611a51dbbb553044a4f5daac` and merged through PR #7 as `b399a21cf86866a725eb29b9c95ff3405853c7b8` at 2026-11-27T11:04:44Z. M11 is included in `v0.2.0`; the historical `v0.1.0` tag is unchanged.
 
 | Workstream | Scope                                                                                                                                         |
 | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -59,14 +59,14 @@ Prepared on `task/m12-application-runtime` from GitHub `main` at `e4eae56bce29e9
 | M12.3      | `templates/basic-app` starter with its own config, scripts, and integration test.                                                               |
 | M12.4      | Unit/integration coverage, ADR 0013, and documentation/status reconciliation.                                                                   |
 
-No config field, public route, SDK/OpenAPI artifact, shared migration, new runtime dependency, or `v0.1.0` behavior is changed. PR #9 reported five successful checks and no approving review; post-merge `CI` (`45999611587`) and `Push on main` (`45999611907`) runs succeeded. M12 is on `main` but is not part of a release tag or GitHub release.
+No config field, public route, SDK/OpenAPI artifact, shared migration, new runtime dependency, or `v0.1.0` behavior is changed. PR #9 reported five successful checks and no approving review; post-merge `CI` (`45999611587`) and `Push on main` (`45999611907`) runs succeeded. M12 is included in `v0.2.0`; `v0.1.0` remains the frozen compatibility baseline.
 
 ## Current development state
 
-- M11 security/operational hardening, PR #8 documentation cleanup, and M12 application runtime work are merged on `main`; no post-`v0.1.0` release tag or GitHub release is claimed.
+- M11 security/operational hardening, PR #8 documentation cleanup, PR #10 documentation reconciliation, and M12 application runtime work are included in the `v0.2.0` release.
 - ADR 0013 records M12's boundary; the template is a minimal starter, not a production deployment manifest.
-- The foundation is in post-release maintenance/QA hardening; `v0.1.0` remains the tagged baseline.
-- GitHub `main` was verified at `9f14557`; local tracking refs may still be stale. Do not reset from an unverified ref.
+- The foundation is in post-release maintenance/QA hardening; `v0.1.0` remains the frozen compatibility baseline and `v0.2.0` is the current release.
+- GitHub `main` was verified through the PR #10 merge at `0b3ff86`; local tracking refs may still be stale. Do not reset from an unverified ref.
 - The pre-M11 `main` CI run `45969317303` failed in lint/format; M11.1 fixed those eight errors, PR #7 checks passed, and post-merge runs at `b399a21` passed.
 - All five CodeQL alerts are now marked `fixed` by GitHub, including #4/#5 (`js/missing-rate-limiting`) at 2026-11-27T11:05:45Z. No alert was dismissed.
 - The current `protect-main` ruleset enforces deletion/non-fast-forward and PR-only changes, but has zero required status checks and zero required approvals; CODEOWNERS review is disabled in that ruleset.

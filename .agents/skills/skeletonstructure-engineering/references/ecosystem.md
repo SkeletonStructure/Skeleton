@@ -7,7 +7,7 @@ Some items below are dated observations from sibling workspaces, archives, the w
 ## Foundation distribution
 
 - The implementation is the `SkeletonStructure/SkeletonStructure` monorepo; the git remote `Skeleton.git` redirects there.
-- All packages/apps are private and version `0.1.0`. The SDK and server are source/workspace distributed; no npm publication is part of v0.1.0.
+- All packages/apps are private and version `0.2.0`. The SDK and server are source/workspace distributed; there is no npm publication.
 - A source archive `Skeleton-0.1.0.zip` exists outside the repository; provenance to one exact commit is not documented in repository docs.
 - The public documentation site is a separate static git repository. An older local `SkeletonStructure` snapshot is static and has no git history.
 - The sibling blueprint workspace is planning-only and stale; it is not an implementation repository.
@@ -46,7 +46,7 @@ A sibling local `bookstore` workspace is the concrete integration example:
 Coupling risks observed locally, not necessarily defects:
 
 - Bookstore backend has no committed application history; it is a fork with uncommitted app code.
-- It is pinned to `v0.1.0` and does not inherit post-tag fixes; remote `main` was re-verified at `9f14557` after PR #9 on 2026-11-27.
+- It is pinned to `v0.1.0` and does not inherit `v0.2.0` fixes; remote `main` was re-verified through the PR #9 and PR #10 merges on 2026-11-27.
 - Its CI script still ends with demo checks and does not include bookstore verification; workflow is unchanged from v0.1.0.
 - Local `.env` files and embedded PostgreSQL data exist; never copy them into the foundation.
 - No production deployment manifests were found.

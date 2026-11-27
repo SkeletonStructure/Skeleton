@@ -51,7 +51,7 @@ Security guarantees are part of the foundation's identity. Never weaken authenti
 
 ## Audit and operational failure behavior
 
-- M11, merged on `main` after `v0.1.0`, adds `core_audit_events`, a core-owned append-only table with outcome constraints and database triggers against `UPDATE`/`DELETE`.
+- M11, included in `v0.2.0`, adds `core_audit_events`, a core-owned append-only table with outcome constraints and database triggers against `UPDATE`/`DELETE`.
 - `createDatabaseAuditSink()` validates action/outcome, request ID format, identifiers, and bounded primitive metadata. Identity-changing auth/users events use the domain transaction executor, so the event and state change commit or roll back together.
 - Failed audit writes propagate before protected responses are returned. Readiness probes the audit table and reports `AUDIT_STORE_UNAVAILABLE` rather than relying only on `SELECT 1`.
 - Rate-limit store and audit exceptions are normalized to safe reason codes; no exception text, credential, URL, or host detail is exposed.
@@ -83,4 +83,4 @@ Security guarantees are part of the foundation's identity. Never weaken authenti
 
 ## Known gaps to preserve honestly
 
-No MFA/OAuth/CAPTCHA, no real email adapter, no per-account limiter, no multi-tenancy, no payment/cancellation/refund flow, and no production deployment manifests. M11 adds persistent audit logging and a shared-limiter seam on `main` after `v0.1.0`; Redis still requires an injected client. Do not describe the tagged `v0.1.0` as having these M11 controls.
+No MFA/OAuth/CAPTCHA, no real email adapter, no per-account limiter, no multi-tenancy, no payment/cancellation/refund flow, and no production deployment manifests. M11, included in `v0.2.0`, adds persistent audit logging and a shared-limiter seam; Redis still requires an injected client. Do not describe the historical `v0.1.0` tag as having these M11 controls.

@@ -85,7 +85,7 @@ describe('public API contract regressions', () => {
     const document = await readOpenApi('openapi/openapi.json');
     const paths = Object.keys(document.paths);
 
-    expect(document.info.version).toBe('0.1.0');
+    expect(document.info.version).toBe('0.2.0');
     expect(paths.every((path) => path.startsWith('/v1/'))).toBe(true);
     expect(paths.some((path) => path.includes('/health'))).toBe(false);
     expect(paths.some((path) => path.includes('/config/private'))).toBe(false);

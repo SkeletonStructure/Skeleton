@@ -4,7 +4,7 @@ Record important decisions in ADR style. Do not turn temporary implementation ch
 
 ## Authority and status
 
-- `docs/architecture/adr/0001`–`0013` are accepted implementation ADRs; ADRs 0008–0012 were merged after `v0.1.0` through PR #7, and ADR 0013 was merged through PR #9.
+- `docs/architecture/adr/0001`–`0013` are accepted implementation ADRs; ADRs 0008–0012 (PR #7) and ADR 0013 (PR #9) are included in `v0.2.0` without changing the historical `v0.1.0` record.
 - `SkeletonStructure-blueprint/ARCHITECTURE_BLUEPRINT.md` records approved bootstrap decisions D-01–D-14. It lives outside this repository, has not been imported into `docs/architecture/`, predates implementation, and contains stale status text. If it is unavailable, use `docs/architecture/README.md` and the accepted ADRs as the in-repo record.
 - Release scope narrowed after blueprint approval: M9b was deferred. No detailed ADR records that change.
 - Future significant decisions need their own ADR and human approval.
@@ -127,7 +127,7 @@ Never mark a decision superseded merely because an implementation detail evolved
 - **Decisions:** In-repo ADRs 0008–0012 record the rate-limit storage port, persistent audit logging, append-only audit integrity, structured logging/request correlation, and fail-closed security infrastructure behavior.
 - **Reasoning:** Keep infrastructure in core, make optional providers explicit, preserve the v0.1.0 compatibility baseline, and prefer bounded deterministic failure over silent security weakening.
 - **Consequences:** The default remains zero-configuration in-memory; shared Redis requires an injected client. Audit rows are append-only at the database privilege boundary. Logging is redacted and request-correlated. Shutdown drains readiness before a bounded close.
-- **Status:** Accepted and merged on `main` through PR #7; not part of the `v0.1.0` tag and no separate tag was created. No earlier ADR is superseded.
+- **Status:** Accepted and merged on `main` through PR #7; included in `v0.2.0` without changing the historical `v0.1.0` tag. No earlier ADR is superseded.
 
 ## M12 application runtime and migration readiness (merged)
 
@@ -135,4 +135,4 @@ Never mark a decision superseded merely because an implementation detail evolved
 - **Decision:** ADR 0013 accepts shared `startApplication()`/`runApplicationMigrations()` helpers, `templates/basic-app`, and an additive opt-in migration readiness helper with the fixed `MIGRATIONS_PENDING` reason.
 - **Reasoning:** Reuse established seams and explicit module/migration lists; keep core free of concrete modules; keep migration execution an operator action; preserve the `v0.1.0` baseline.
 - **Consequences:** New apps can adopt the foundation without modifying shared packages. Default startup and all public artifacts are unchanged; only apps that pass migration folders get the preflight.
-- **Status:** Accepted and merged on `main` through PR #9 at `9f14557`; not part of the `v0.1.0` tag and no separate tag was created. No earlier ADR is superseded.
+- **Status:** Accepted and merged on `main` through PR #9 at `9f14557`; included in `v0.2.0` without changing the historical `v0.1.0` tag. No earlier ADR is superseded.

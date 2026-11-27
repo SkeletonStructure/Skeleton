@@ -20,4 +20,4 @@ Use `adr/0000-template.md` for new architectural decisions.
 - [ADR 0012 — Security infrastructure failure behavior](./adr/0012-security-infrastructure-failure-behavior.md)
 - [ADR 0013 — Reusable application runtime and opt-in migration readiness](./adr/0013-application-runtime-and-migration-readiness.md)
 
-ADRs 0008–0012 record M11 hardening merged on `main` through PR #7 after the `v0.1.0` tag; ADR 0013 records M12 application runtime and opt-in migration readiness work merged through PR #9. Neither retroactively changes that release.
+ADRs 0008–0012 record M11 hardening merged through PR #7, and ADR 0013 records M12 application runtime and opt-in migration readiness work merged through PR #9. Both are included in `v0.2.0`; neither retroactively changes the historical `v0.1.0` release.

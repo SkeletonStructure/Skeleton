@@ -1,5 +1,5 @@
 // Generated from openapi/demo-openapi.json. Do not edit.
-// Source SHA-256: 7fa8851b9d7ea9774cfc6fed1db0dc08c47fe3f66ba7daeb76167895730e5553
+// Source SHA-256: 4110f6ebc9f5bc54008f542cc07d5fef4c39cdf6c5d48b9e205cb2abf82dbd02
 
 export interface DemoCartLine {
   readonly itemId: string;

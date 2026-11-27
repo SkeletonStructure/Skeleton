@@ -166,7 +166,7 @@ export async function createServer(options: ApiServerOptions): Promise<FastifyIn
       openapi: '3.1.0',
       info: {
         title: `${resolved.appConfig.app.name} API`,
-        version: '0.1.0',
+        version: '0.2.0',
         description: 'Public SkeletonStructure HTTP contract.',
       },
     },

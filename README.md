@@ -4,9 +4,9 @@ A self-hosted, MIT-licensed backend foundation built as a modular monolith. This
 
 ## Status
 
-v0.1.0 is the first usable release of the backend foundation. It includes M1–M8, the complete M9a e-commerce demonstration, and the M10 release documentation and verification work. M9b (the restaurant demonstration) is deliberately deferred and is not required for this release. The e-commerce demo is the primary demonstration application. Post-v0.1.0 M11 security and operational hardening and M12 application runtime work are merged on `main` through PR #7 and PR #9, but no separate release tag or GitHub release has been published; see [`CHANGELOG.md`](./CHANGELOG.md) for scope and current status.
+v0.2.0 is the current usable release of the backend foundation. It includes the `v0.1.0` foundation (M1–M8, the complete M9a e-commerce demonstration, and M10 release work), M11 security/operational hardening, and M12 reusable application runtime work. The `v0.1.0` tag remains the frozen compatibility baseline; M9b (the restaurant demonstration) is still deliberately deferred. The e-commerce demo is the primary demonstration application. See [`docs/releases/v0.2.0.md`](./docs/releases/v0.2.0.md) and [`CHANGELOG.md`](./CHANGELOG.md) for scope and limitations.
 
-This is an early foundation, not a production-ready platform. It has no payments, MFA, CAPTCHA, per-account limits, real email adapter, or multi-tenancy. M11 adds provider-independent shared rate limiting and a persistent append-only audit log, but a Redis store must still be supplied explicitly by the application. M12 adds shared startup helpers, a minimal starter, and an opt-in migration readiness check; it does not add deployment manifests or remove operator responsibilities. Careful defaults lower risk, but they do not replace review, testing, and updates. See [`SECURITY.md`](./SECURITY.md), [`docs/security/checklist.md`](./docs/security/checklist.md), and [`docs/releases/v0.1.0.md`](./docs/releases/v0.1.0.md) for explicit limitations.
+This is an early foundation, not a production-ready platform. It has no payments, MFA, CAPTCHA, per-account limits, real email adapter, or multi-tenancy. M11 adds provider-independent shared rate limiting and a persistent append-only audit log, but a Redis store must still be supplied explicitly by the application. M12 adds shared startup helpers, a minimal starter, and an opt-in migration readiness check; it does not add deployment manifests or remove operator responsibilities. Careful defaults lower risk, but they do not replace review, testing, and updates. See [`SECURITY.md`](./SECURITY.md), [`docs/security/checklist.md`](./docs/security/checklist.md), and [`docs/releases/v0.2.0.md`](./docs/releases/v0.2.0.md) for explicit limitations.
 
 ## Quick start
 
@@ -108,7 +108,7 @@ Precedence, highest first:
 
 Secret fields must be supplied with `env(...)`. Literal secrets in the config file fail validation. Invalid configuration throws `ConfigError` with all issues in one message, before the application starts.
 
-Optional modules are off unless `config.modules[id].enabled` is `true`, and dependent modules must be enabled together. The example config enables the supported v0.1.0 graph; [`docs/modules.md`](./docs/modules.md) and [`docs/m8.md`](./docs/m8.md) document dependencies, ports, and activation order. The frontend SDK is distributed as a private workspace package in v0.1.0; it is not published to npm. Integrate it from this repository as shown in [`docs/sdk.md`](./docs/sdk.md) and the `examples/` directory.
+Optional modules are off unless `config.modules[id].enabled` is `true`, and dependent modules must be enabled together. The example config enables the supported v0.2.0 graph; [`docs/modules.md`](./docs/modules.md) and [`docs/m8.md`](./docs/m8.md) document dependencies, ports, and activation order. The frontend SDK is distributed as a private workspace package in v0.2.0; it is not published to npm. Integrate it from this repository as shown in [`docs/sdk.md`](./docs/sdk.md) and the `examples/` directory.
 
 The full generated field list is in [`docs/config/reference.md`](./docs/config/reference.md). Regenerate it with `pnpm config:docs`.
 
@@ -130,7 +130,7 @@ try {
 }
 ```
 
-Migrations are explicit and module-owned: use the matching `pnpm db:generate:*` script to create reviewed SQL. `pnpm db:migrate` applies core/users/auth, then catalog, products, inventory, and orders migrations in dependency order. The original v0.1.0 baseline remains byte-for-byte pinned; M11 appends a core migration for the `core_audit_events` table. The M9a demo adds one app-local cart migration through `pnpm demo:ecommerce:migrate`; it does not change the shared migration runner. See [`docs/database.md`](./docs/database.md) for lifecycle, transactions, health semantics, migration workflow, and limitations.
+Migrations are explicit and module-owned: use the matching `pnpm db:generate:*` script to create reviewed SQL. `pnpm db:migrate` applies core/users/auth, then catalog, products, inventory, and orders migrations in dependency order. The original v0.1.0 baseline remains byte-for-byte pinned; v0.2.0 appends one core migration for the `core_audit_events` table. The M9a demo adds one app-local cart migration through `pnpm demo:ecommerce:migrate`; it does not change the shared migration runner. See [`docs/database.md`](./docs/database.md) for lifecycle, transactions, health semantics, migration workflow, and limitations.
 
 ## Modules
 
@@ -169,7 +169,7 @@ M6 implements sessions, login, CSRF, roles/permissions, and password reset behin
 
 ## Operational hardening
 
-M11, merged on `main` after `v0.1.0`, adds four foundation-owned capabilities without changing the public route contract:
+M11, included in `v0.2.0`, adds four foundation-owned capabilities without changing the public route contract:
 
 - **Shared rate limiting:** `security.rateLimit.store` selects an in-memory default or an optional Redis provider. Redis requires an application-injected ioredis-compatible client; no Redis dependency is added and storage errors fail closed.
 - **Persistent audit events:** auth, authorization, CSRF, rate-limit, and role-assignment events are written to the append-only `core_audit_events` table through a core-owned sink. Identity-changing events share the domain transaction.

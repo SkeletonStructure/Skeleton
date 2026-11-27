@@ -25,7 +25,7 @@ scripts/                      start, migrate, cleanup, artifact generation
 
 `templates/basic-app` is the workspace starter merged through PR #9; it composes shared modules without adding domain code to `packages/`.
 
-Core public subpaths: `.`, `./api`, `./config`, `./database`, `./lifecycle`, `./logging`, `./modules`, `./security`. The SDK exposes one root entrypoint and has zero runtime dependencies. All packages/apps are private and version `0.1.0`.
+Core public subpaths: `.`, `./api`, `./config`, `./database`, `./lifecycle`, `./logging`, `./modules`, `./security`. The SDK exposes one root entrypoint and has zero runtime dependencies. All packages/apps are private and version `0.2.0`.
 
 ## Module contract and registry
 

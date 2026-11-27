@@ -64,7 +64,7 @@ The website/organization front door is a separate static repository. Backend wor
 
 ## Long-term direction, carefully stated
 
-The documented direction is to keep proving the foundation with independent demonstrations and to add only capabilities that are designed, ADR-recorded where significant, tested, and released. M9b is the next explicitly named demonstration, but it is **planned/deferred**, not complete. M11 follows that pattern for security infrastructure with ADRs 0008–0012 merged through PR #7. Payments, real email, per-account limits, and multi-tenancy remain future design work; shared rate-limit storage now has an accepted ADR and implementation, but no new release tag.
+The documented direction is to keep proving the foundation with independent demonstrations and to add only capabilities that are designed, ADR-recorded where significant, tested, and released. M9b is the next explicitly named demonstration, but it is **planned/deferred**, not complete. M11 follows that pattern for security infrastructure with ADRs 0008–0012 merged through PR #7, and M12 adds the runtime starter with ADR 0013. Payments, real email, per-account limits, and multi-tenancy remain future design work; shared rate-limit storage is accepted, implemented, and included in `v0.2.0`.
 
 ## Historical note
 
