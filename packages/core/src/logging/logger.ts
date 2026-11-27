@@ -9,6 +9,14 @@ const LEVEL_WEIGHT: Readonly<Record<LogLevel, number>> = {
   error: 50,
 };
 
+const MESSAGE_PATTERN = /^[a-z][a-z0-9_.]{0,127}$/;
+const INVALID_MESSAGE = 'log.invalid_message';
+
+/** Messages are stable event names, never free-form text that could carry secrets. */
+function safeMessage(message: string): string {
+  return MESSAGE_PATTERN.test(message) ? message : INVALID_MESSAGE;
+}
+
 function defaultSink(line: string, level: LogLevel): void {
   const stream = level === 'warn' || level === 'error' ? process.stderr : process.stdout;
   stream.write(`${line}\n`);
@@ -46,8 +54,12 @@ export function createLogger(options: LoggerOptions, inherited: LogFields = {}):
     if (LEVEL_WEIGHT[level] < LEVEL_WEIGHT[options.level]) return;
     const combined: LogFields = { ...inherited, ...fields };
     const safeFields = redactFields(combined, options.redact);
+    const safeMessageText = safeMessage(message);
     try {
-      sink(formatLine(now().toISOString(), level, message, safeFields, options.format), level);
+      sink(
+        formatLine(now().toISOString(), level, safeMessageText, safeFields, options.format),
+        level,
+      );
     } catch {
       // A broken transport must never turn a completed operation into a failure.
     }

@@ -78,11 +78,19 @@ export async function createServer(options: ApiServerOptions): Promise<FastifyIn
   });
 
   app.addHook('onClose', async () => {
-    try {
-      await rateLimitStore.close?.();
-      await resolved.auditSink?.close?.();
-    } catch {
-      logger.error('lifecycle.resource_close_failed');
+    if (rateLimitStore.close !== undefined) {
+      try {
+        await rateLimitStore.close();
+      } catch {
+        logger.error('lifecycle.resource_close_failed', { resource: 'rateLimitStore' });
+      }
+    }
+    if (resolved.auditSink?.close !== undefined) {
+      try {
+        await resolved.auditSink.close();
+      } catch {
+        logger.error('lifecycle.resource_close_failed', { resource: 'auditSink' });
+      }
     }
   });
 

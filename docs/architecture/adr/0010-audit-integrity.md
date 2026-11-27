@@ -12,7 +12,7 @@ An audit log is only useful if ordinary application code cannot quietly rewrite 
 
 Integrity is enforced at three layers:
 
-1. **Schema:** `core_audit_events` uses a generated UUID primary key, a server-side `now()` timestamp, a check constraint restricting outcomes to `success` or `failure`, and indexes on time, actor, and request ID. PostgreSQL triggers raise on every `UPDATE` or `DELETE`, making the table append-only to application roles.
+1. **Schema:** `core_audit_events` uses a generated UUID primary key, a server-side `now()` timestamp that callers cannot override through the sink, a check constraint restricting outcomes to `success` or `failure`, and indexes on time, actor, and request ID. PostgreSQL triggers raise on every `UPDATE` or `DELETE`, making the table append-only to application roles.
 2. **Sink validation:** core allows only the declared action/outcome vocabulary, validates request IDs as `req_<32 hex>`, restricts actor/subject IDs to a bounded safe character set, caps metadata at eight fields, allows only primitive values, rejects control characters and oversized strings, and rejects keys containing `password`, `token`, `secret`, `cookie`, `authorization`, or `databaseUrl`.
 3. **Transaction boundaries:** identity-changing events are inserted with the domain transaction executor. A failed transaction removes its audit row together with the domain change; a successful transaction cannot commit the domain change without the audit row.
 

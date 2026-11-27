@@ -10,7 +10,7 @@
 
 ## Decision
 
-Core owns a dependency-free `Logger` port and `createLogger()` implementation supporting `json` and `pretty` formats, level filtering, deterministic child bindings, and configured redaction keys. Applications build the logger from `appConfig.logging` and inject it into `createServer()` and the graceful-shutdown coordinator. Fastify remains configured with `logger: false`; the core API adds an `onRequest` hook that binds a request-scoped child logger with the same `requestId` returned in `x-request-id` and error envelopes.
+Core owns a dependency-free `Logger` port and `createLogger()` implementation supporting `json` and `pretty` formats, level filtering, deterministic child bindings, and configured redaction keys. Applications build the logger from `appConfig.logging` and inject it into `createServer()` and the graceful-shutdown coordinator. Fastify remains configured with `logger: false`; the core API adds an `onRequest` hook that binds a request-scoped child logger with the same `requestId` returned in `x-request-id` and error envelopes. The `message` argument is a stable lowercase event name (`^[a-z][a-z0-9_.]{0,127}$`); arbitrary text is replaced by `log.invalid_message` before it reaches a sink, so a caller cannot smuggle a credential or unbounded string into the message field.
 
 Log records contain only bounded, JSON-safe primitives: method, route template, status, duration, error code, and explicit caller fields. Bodies, query strings, raw URLs, headers, tokens, cookies, reset links, email content, exception messages, and configuration values are never emitted by infrastructure. Redaction is applied recursively to both key names and compact object paths, so `database.url` is protected by the `databaseUrl` default key. A failing log transport is swallowed; observability must not turn a successful operation into a failed one.
 
@@ -27,5 +27,5 @@ The logger accepts an injectable sink for deterministic tests. No transport, agg
 - Production JSON logging is now functional and remains required by config validation.
 - Request logs can be correlated with client-visible `x-request-id` values.
 - Applications may inject their own `Logger` implementation, but must preserve the redaction guarantee.
-- Tests assert redaction, level filtering, child bindings, and transport-failure isolation.
+- Tests assert redaction, level filtering, child bindings, event-name enforcement on messages, and transport-failure isolation.
 - The foundation still does not provide log shipping, retention, or aggregation; those remain operator responsibilities.

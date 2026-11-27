@@ -17,6 +17,7 @@ All security infrastructure fails closed:
 3. **Readiness:** the database, rate-limit store, audit table, and explicit lifecycle each contribute a named check. Provider exceptions and invalid results become a safe `*_UNAVAILABLE` reason; no exception text, URL, or token is exposed. During startup, draining, or after close, the lifecycle check returns `503` even when dependencies look healthy.
 4. **Shutdown:** the coordinator flips readiness to draining before closing resources, makes one close attempt with a bounded timeout, closes the HTTP server, optional providers, and the shared database in the application's explicit order, and re-raises the original signal. A hung close is terminated with `SIGKILL` after the timeout. Cleanup is one-shot and idempotent.
 5. **Logging:** structured log transport failures are isolated from request handling and never suppress a security failure.
+6. **Resource close:** rate-limit and audit close hooks are attempted independently. A failing close is logged with a resource label and cannot skip the other resource's close.
 
 ## Alternatives considered
 
@@ -31,4 +32,4 @@ All security infrastructure fails closed:
 - Operators must configure and monitor both the audit table and any injected shared limiter before routing production traffic.
 - Deployments need a drain window long enough for in-flight requests and audit writes; the default timeout is 10 seconds.
 - Applications own the concrete Redis client and its connection lifecycle; core never creates one.
-- Tests pin fail-closed rate limiting, failed audit writes, named readiness failures, lifecycle transitions, and shutdown timeout behavior.
+- Tests pin fail-closed rate limiting, failed audit writes, named readiness failures, lifecycle transitions, shutdown timeout behavior, and independent resource close hooks.

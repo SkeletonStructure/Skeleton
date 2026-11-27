@@ -428,15 +428,20 @@ export function createAuthService(options: AuthServiceOptions): AuthService {
       if (token === undefined) {
         throw new HttpError({ status: 401, code: 'UNAUTHENTICATED' });
       }
-      await database.db
-        .update(sessions)
-        .set({ revokedAt: new Date() })
-        .where(and(eq(sessions.tokenHash, hashToken(token)), isNull(sessions.revokedAt)));
-      await recordAudit({
-        action: 'auth.logout',
-        outcome: 'success',
-        ...auditRequest(context),
-        ...(context?.actorId === undefined ? {} : { actorId: context.actorId }),
+      await database.transaction(async (tx) => {
+        await tx
+          .update(sessions)
+          .set({ revokedAt: new Date() })
+          .where(and(eq(sessions.tokenHash, hashToken(token)), isNull(sessions.revokedAt)));
+        await recordAudit(
+          {
+            action: 'auth.logout',
+            outcome: 'success',
+            ...auditRequest(context),
+            ...(context?.actorId === undefined ? {} : { actorId: context.actorId }),
+          },
+          tx,
+        );
       });
       reply.clearCookie(cookieConfig.name, { path: '/' });
     },

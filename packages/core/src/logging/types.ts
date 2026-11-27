@@ -6,6 +6,7 @@ export interface LogFields {
 }
 
 export interface Logger {
+  /** `message` is a stable event name; arbitrary text is replaced before emission. */
   log(level: LogLevel, message: string, fields?: LogFields): void;
   trace(message: string, fields?: LogFields): void;
   debug(message: string, fields?: LogFields): void;

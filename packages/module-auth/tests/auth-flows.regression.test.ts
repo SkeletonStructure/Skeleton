@@ -19,6 +19,7 @@ import {
   createInMemoryEmailProvider,
   passwordResetTokens,
   runAuthUsersMigrations,
+  sessions,
 } from '../src/index.js';
 
 type EmailProvider = ReturnType<typeof createInMemoryEmailProvider>;
@@ -294,6 +295,65 @@ describe('authentication security regressions', () => {
       const serialized = JSON.stringify(rows);
       expect(serialized).not.toContain(PASSWORD);
       expect(serialized).not.toContain('audit-regression@example.com');
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('rolls back logout when its audit event cannot be recorded', async () => {
+    const appConfig = await makeConfig();
+    const emailProvider = createInMemoryEmailProvider();
+    const databaseAudit = createDatabaseAuditSink(database);
+    const audit: AuditSink = {
+      ...databaseAudit,
+      async record(event, executor) {
+        if (event.action === 'auth.logout') {
+          throw new Error('audit store unavailable');
+        }
+        await databaseAudit.record(event, executor);
+      },
+    };
+    const composition = await createAuthUsersComposition({
+      appConfig,
+      database,
+      emailProvider,
+      audit,
+    });
+    const app = await createServer({
+      appConfig,
+      database,
+      activationReport: composition.activationReport,
+      routeHandlers: composition.routeHandlers,
+      authenticator: composition.authenticator,
+      csrfGuard: composition.csrfGuard,
+      auditSink: audit,
+    });
+
+    try {
+      const registered = await app.inject({
+        method: 'POST',
+        url: '/v1/auth/register',
+        payload: { email: 'logout-audit-failure@example.com', password: PASSWORD },
+      });
+      expect(registered.statusCode).toBe(200);
+      const token = cookieValue(registered);
+
+      const logout = await app.inject({
+        method: 'POST',
+        url: '/v1/auth/logout',
+        headers: cookieHeaders(token, stringData(bodyOf(registered), 'csrfToken')),
+        payload: {},
+      });
+      expect(logout.statusCode).toBe(500);
+      expect(bodyOf(logout).error?.code).toBe('INTERNAL');
+      expect(await auditedRows(requestIdOf(logout))).toEqual([]);
+
+      const sessionsAfterFailure = await database.db
+        .select({ revokedAt: sessions.revokedAt })
+        .from(sessions)
+        .where(eq(sessions.tokenHash, hashToken(token)))
+        .limit(1);
+      expect(sessionsAfterFailure[0]?.revokedAt).toBeNull();
     } finally {
       await app.close();
     }

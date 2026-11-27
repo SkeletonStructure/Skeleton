@@ -55,7 +55,7 @@ Security guarantees are part of the foundation's identity. Never weaken authenti
 - `createDatabaseAuditSink()` validates action/outcome, request ID format, identifiers, and bounded primitive metadata. Identity-changing auth/users events use the domain transaction executor, so the event and state change commit or roll back together.
 - Failed audit writes propagate before protected responses are returned. Readiness probes the audit table and reports `AUDIT_STORE_UNAVAILABLE` rather than relying only on `SELECT 1`.
 - Rate-limit store and audit exceptions are normalized to safe reason codes; no exception text, credential, URL, or host detail is exposed.
-- Structured logs use configured levels/formats/redaction and bind `requestId` to request logs. Log transport failures are isolated from request handling.
+- Structured logs use configured levels/formats/redaction, event-name-only messages, and bind `requestId` to request logs. Log transport failures are isolated from request handling.
 - Lifecycle transitions are monotonic; readiness is drained before close. Shutdown is one-shot, bounded by a default 10-second timeout, and re-raises the original signal.
 
 ## Validation and parsing

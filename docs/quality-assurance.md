@@ -73,7 +73,7 @@ pnpm audit --audit-level=high
 The complete PR-level gate was executed locally for the M11 branch before documentation was committed:
 
 - `pnpm install --frozen-lockfile`, `pnpm typecheck`, and `pnpm lint` passed.
-- Unit: 19 files / 131 tests; integration: 12 files / 62 tests; contract: 5 files / 16 tests; regression: 10 files / 28 tests; `pnpm test`: 46 files / 237 tests.
+- Unit: 19 files / 132 tests; integration: 12 files / 62 tests; contract: 5 files / 16 tests; regression: 10 files / 30 tests; `pnpm test`: 46 files / 240 tests.
 - `pnpm test:migration-smoke`, `pnpm openapi:check`, `pnpm sdk:check`, `pnpm demo:ecommerce:verify` (including Playwright E2E), and the demo production build passed.
 - `pnpm config:docs` produced no `docs/config/reference.md` drift.
 - `pnpm audit --audit-level=high` passed with 0 high/critical advisories and 3 moderate transitive dev/test advisories.

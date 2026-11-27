@@ -26,7 +26,6 @@ export interface AuditEvent {
   readonly actorId?: string;
   readonly subjectId?: string;
   readonly metadata?: AuditMetadata;
-  readonly occurredAt?: Date;
 }
 
 /** Callers pass server-generated correlation data, never client-supplied identities. */
@@ -105,9 +104,6 @@ function validateEvent(
       throw new AuditError('Audit actor or subject id is invalid.');
     }
   }
-  if (event.occurredAt !== undefined && Number.isNaN(event.occurredAt.getTime())) {
-    throw new AuditError('Audit timestamp is invalid.');
-  }
   return { ...event, metadata: validateMetadata(event.metadata) };
 }
 
@@ -120,7 +116,6 @@ interface InsertExecutor {
       actorId: string | null;
       subjectId: string | null;
       metadata: AuditMetadata;
-      occurredAt?: Date;
     }): Promise<unknown>;
   };
 }
@@ -144,7 +139,6 @@ export function createDatabaseAuditSink(database: Database): AuditSink {
         actorId: valid.actorId ?? null,
         subjectId: valid.subjectId ?? null,
         metadata: valid.metadata,
-        ...(valid.occurredAt === undefined ? {} : { occurredAt: valid.occurredAt }),
       });
     },
     async health() {

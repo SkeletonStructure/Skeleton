@@ -108,7 +108,7 @@ Demo-local routes must not be added to that shared artifact. M9a generates a sep
 
 ## Logging and lifecycle
 
-`createLogger(appConfig.logging)` emits JSON or pretty lines with level filtering and recursive redaction of password, token, cookie, authorization, and `databaseUrl` values. Applications inject it into `createServer()`; core adds the request ID binding and logs only safe, bounded fields. Fastify's own logger remains disabled. Applications may supply any compatible `Logger`, but must preserve the redaction guarantee.
+`createLogger(appConfig.logging)` emits JSON or pretty lines with level filtering and recursive redaction of password, token, cookie, authorization, and `databaseUrl` values. Messages are stable event names such as `http.request_completed`; arbitrary text is replaced with `log.invalid_message` before emission. Applications inject the logger into `createServer()`; core adds the request ID binding and logs only safe, bounded fields. Fastify's own logger remains disabled. Applications may supply any compatible `Logger`, but must preserve the redaction guarantee.
 
 `createLifecycle()` exposes `starting → ready → draining → closed`. `createShutdownCoordinator()` flips readiness to draining before the application's explicit close callback, bounds cleanup with a default 10-second timeout, and re-raises the original `SIGINT`/`SIGTERM` after cleanup. The shipped start scripts mark ready only after `listen()` succeeds.
 

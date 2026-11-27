@@ -104,6 +104,32 @@ describe('security infrastructure failure behavior', () => {
     );
   });
 
+  it('closes every injected resource when one close hook fails', async () => {
+    const appConfig = await makeAppConfig();
+    const lines: string[] = [];
+    const logger = createLogger({ ...appConfig.logging, sink: (line) => lines.push(line) });
+    const rateLimitStore = failingRateLimitStore();
+    rateLimitStore.close = async () => {
+      throw new Error('rate-limit close failed');
+    };
+    let auditClosed = false;
+    const auditSink: AuditSink = {
+      ...failingAuditSink(),
+      close: async () => {
+        auditClosed = true;
+        throw new Error('audit close failed');
+      },
+    };
+
+    await withServer({ appConfig, logger, rateLimitStore, auditSink }, async () => undefined);
+
+    expect(auditClosed).toBe(true);
+    const failures = lines
+      .map((line) => JSON.parse(line) as { message?: string; fields?: { resource?: string } })
+      .filter((line) => line.message === 'lifecycle.resource_close_failed');
+    expect(failures.map((line) => line.fields?.resource)).toEqual(['rateLimitStore', 'auditSink']);
+  });
+
   it('fails closed when shared rate-limit storage errors', async () => {
     const appConfig = await makeAppConfig();
 

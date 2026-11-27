@@ -44,6 +44,19 @@ describe('structured logging (unit)', () => {
     expect(lines[0]).not.toContain('hunter2');
   });
 
+  it('replaces free-form messages so a caller cannot log a secret in the message', () => {
+    const { logger, lines } = capture();
+
+    logger.info('token=hunter2', { requestId: 'req_a' });
+    logger.warn('x'.repeat(600));
+
+    for (const line of lines) {
+      expect(JSON.parse(line ?? '')).toMatchObject({ message: 'log.invalid_message' });
+    }
+    expect(lines).toHaveLength(2);
+    expect(lines.join('\n')).not.toContain('hunter2');
+  });
+
   it('filters by level and preserves child request bindings', () => {
     const { logger, lines } = capture('info');
     const child = logger.child({ requestId: 'req_abc' });
