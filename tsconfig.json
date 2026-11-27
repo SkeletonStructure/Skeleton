@@ -26,6 +26,7 @@
     { "path": "./packages/sdk" },
     { "path": "./examples/frontend-vanilla" },
     { "path": "./examples/frontend-react" },
-    { "path": "./apps/demo-ecommerce" }
+    { "path": "./apps/demo-ecommerce" },
+    { "path": "./templates/basic-app" }
   ]
 }

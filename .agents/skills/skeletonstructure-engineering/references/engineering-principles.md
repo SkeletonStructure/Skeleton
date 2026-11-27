@@ -4,11 +4,11 @@ These are the conventions agents should preserve. They are derived from current 
 
 ## Code organization
 
-- One pnpm workspace: `packages/*`, `apps/*`, `templates/*`, `examples/*`. The `templates/*` glob exists, but no `templates/` directory is present in the current tree.
+- One pnpm workspace: `packages/*`, `apps/*`, `templates/*`, `examples/*`. `templates/basic-app` is the M12 starter application.
 - All packages and apps are private and version `0.1.0`. SkeletonStructure is source-distributed, not npm-published.
 - `packages/core` owns infrastructure and must not import concrete modules or applications.
 - `packages/module-*` own their schemas, migrations, permissions, routes, services, tests, and public APIs. They must not reach into another module's internals or demo code.
-- `packages/app-composition` owns the checked-in M8 wiring and app-owned `additionalModules`; it is not a plugin discovery mechanism.
+- `packages/app-composition` owns the checked-in M8 wiring, app-owned `additionalModules`, and the shared `startApplication()`/`runApplicationMigrations()` helpers; it is not a plugin discovery mechanism.
 - `packages/sdk` is browser-safe, generated-type-driven, and free of runtime dependencies.
 - Application-only domain code belongs in the app, e.g. `apps/demo-ecommerce/modules/cart`; do not promote it to `packages/` without an approved architectural change.
 
@@ -32,7 +32,7 @@ These are the conventions agents should preserve. They are derived from current 
 
 - API errors use the fixed codes in `packages/core/src/api/errors.ts`: `VALIDATION_ERROR`, `UNAUTHENTICATED`, `FORBIDDEN`, `NOT_FOUND`, `CONFLICT`, `IDEMPOTENCY_CONFLICT`, `RATE_LIMITED`, `INTERNAL`.
 - Success envelope: `{ data, meta: { requestId, nextCursor? } }`. Error envelope: `{ error: { code, message, details?, requestId } }`.
-- Never leak stacks, SQL, config values, secrets, or internal exception text into responses.
+- Never leak stacks, SQL, config values, secrets, or internal exception text into responses. Migration readiness returns only the fixed `MIGRATIONS_PENDING` reason.
 - Map unknown failures to `500 INTERNAL`; preserve request IDs for supportability.
 - The SDK mirrors API codes as typed error classes and sanitizes server-provided text. Do not make the shared SDK trust arbitrary server messages. Note that the demo-local client currently passes messages through; do not copy that behavior into the shared SDK.
 
@@ -65,6 +65,7 @@ These are the conventions agents should preserve. They are derived from current 
 - Check `packages/core`, existing modules, `app-composition`, scripts, and generated artifacts before writing new helpers.
 - Use declared ports for optional capabilities; use `publicApi` for cross-module consumption.
 - Use `additionalModules` for app-local static providers instead of modifying shared composition to discover application code.
+- Reuse `startApplication()` and `runApplicationMigrations()` for new applications; keep application migrations and deployment concerns in the application.
 - Keep app-local cart/menu/branches concerns and clients out of the public SDK.
 
 ## Backward compatibility

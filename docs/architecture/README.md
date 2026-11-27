@@ -18,5 +18,6 @@ Use `adr/0000-template.md` for new architectural decisions.
 - [ADR 0010 — Audit integrity](./adr/0010-audit-integrity.md)
 - [ADR 0011 — Structured logging and request correlation](./adr/0011-structured-logging.md)
 - [ADR 0012 — Security infrastructure failure behavior](./adr/0012-security-infrastructure-failure-behavior.md)
+- [ADR 0013 — Reusable application runtime and opt-in migration readiness](./adr/0013-application-runtime-and-migration-readiness.md)
 
-ADRs 0008–0012 record M11 hardening merged on `main` after the `v0.1.0` tag; they do not retroactively change that release.
+ADRs 0008–0012 record M11 hardening merged on `main` after the `v0.1.0` tag; ADR 0013 records the M12 application runtime and opt-in migration readiness work. Neither retroactively changes that release.

@@ -131,11 +131,13 @@ pnpm db:migrate
 pnpm skeleton db migrate
 ```
 
-`pnpm db:migrate` loads the same validated configuration as the application, initializes the shared database, applies core/users/auth, catalog, products, inventory, then orders migrations in dependency order, and closes the pool. `runM8Migrations(database)` from `@skeletonstructure/app-composition` is the programmatic equivalent; `runAuthUsersMigrations(database)` covers only the M6 subset. Production must not auto-migrate on startup; migration remains an explicit operator action.
+`pnpm db:migrate` loads the same validated configuration as the application, initializes the shared database, applies core/users/auth, catalog, products, inventory, then orders migrations in dependency order, and closes the pool. `runM8Migrations(database)` from `@skeletonstructure/app-composition` is the programmatic equivalent; `runApplicationMigrations()` now supplies the shared config/database/close sequence for CLI scripts, and `runAuthUsersMigrations(database)` covers only the M6 subset. Production must not auto-migrate on startup; migration remains an explicit operator action.
 
 The M9a demonstration adds one app-local migration under `apps/demo-ecommerce/modules/cart/migrations/`. `pnpm demo:ecommerce:migrate` applies the shared M1–M8 migrations first, then `demo_ecommerce_carts` and `demo_ecommerce_cart_items`. The cart-item foreign key to shared `catalog_items` is written manually in the reviewed SQL so Drizzle Kit does not redeclare a table owned by `module-catalog`. Shared migration artifacts are unchanged.
 
 The runner obtains a dedicated client from the shared pool, takes a PostgreSQL advisory lock, applies migrations on that same client, then releases the lock and client. Concurrent migration processes therefore cannot race. Drizzle's internal `drizzle.__drizzle_migrations` table is created by the baseline workflow; the appended M11 core migration creates the only new shared table.
+
+Applications can opt into a read-only migration preflight with `createMigrationReadinessCheck()`. It hashes the SQL named in explicit Drizzle journals, compares those hashes with `drizzle.__drizzle_migrations`, and contributes `MIGRATIONS_PENDING` to `/health/ready` when a migration is missing or the state cannot be read. The check never executes SQL migrations, changes configuration, or exposes SQL text, file paths, or database errors. `m8MigrationFolders()` provides the shared M1–M8 folders; application-local folders must be appended by the application.
 
 Module-owned tables and migrations arrived in M6 and expanded in M8. Disabling a module does not drop its tables. Product and inventory rows reference `catalog_items` with `ON DELETE RESTRICT`; order items also reference catalog items so historical lines cannot be orphaned. Auth sessions and password-reset tokens have a separate explicit cleanup job (`pnpm auth:cleanup`); destructive migration policy and deployment readiness enforcement are still operator responsibilities.
 
@@ -150,6 +152,7 @@ Ordinary unit tests use injected fake pools and migrators and do not require Pos
 - users module constraints and ownership checks;
 - auth flows, session rotation, CSRF, reset tokens, and the authorization matrix;
 - M9a fresh/repeated migration and seed runs, cart authz and ownership, checkout failure consistency, successful clearing, and idempotent replay.
+- migration preflight failure before applying migrations and success afterward, plus safe reason handling when migration state cannot be read.
 
 Run only that test with:
 
@@ -160,8 +163,8 @@ pnpm test:integration
 ## Known limitations
 
 - Module migration ordering is explicit in the composition/migration script; there is no automatic discovery.
-- No destructive-migration flag or readiness gate for pending module migrations exists yet.
-- HTTP health endpoints exist but do not report per-module migration state.
+- No destructive-migration flag exists; migration remains an explicit operator action.
+- A fail-closed readiness gate is available only when an application opts in and supplies every relevant migration folder. It verifies recorded hashes, not schema semantics, and HTTP readiness still does not report per-module migration details.
 - Audit events rely on database privileges: a superuser or schema owner can disable the append-only triggers.
 - Retention, archival, and controlled deletion of audit rows are operator responsibilities; there is no hash chain or external tamper-evidence service.
 - Backups, restore drills, least-privilege database roles, and cleanup scheduling remain operator responsibilities.

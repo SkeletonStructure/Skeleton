@@ -8,6 +8,7 @@ The M11 entries below were merged to `main` through PR #7 after `v0.1.0`; no new
 
 ### Added
 
+- M12 reusable application startup and migration helpers: `startApplication()` and `runApplicationMigrations()` in `@skeletonstructure/app-composition`, an opt-in migration readiness check in core, the `templates/basic-app` starter, and ADR 0013.
 - M11.1 governance evidence for rulesets, CodeQL alerts, secret scanning, and the latest `main` CI failure; the eight pre-existing Biome formatting errors on `main` were fixed in PR #7.
 - M11.2 provider-independent shared rate limiting: core `RateLimitStoreProvider` port, default in-memory store, optional injected ioredis-compatible adapter, explicit `security.rateLimit.store`, and fail-closed `skipOnError: false` enforcement before authorization/CSRF hooks.
 - M11.3 persistent append-only audit events: `core_audit_events` table, database triggers, validated core sink, transaction-aware auth/users events, readiness check, and ADRs for audit logging and integrity.
@@ -16,6 +17,8 @@ The M11 entries below were merged to `main` through PR #7 after `v0.1.0`; no new
 
 ### Changed
 
+- Root and e-commerce demo scripts now delegate to the shared runtime and migration helpers; their CLI commands and startup order remain unchanged.
+- The `templates/*` workspace glob now has a `basic-app` starter with its own config, scripts, and integration test.
 - Rate limits can now be shared across instances when an application injects the Redis provider; the zero-configuration in-memory behavior and all existing configuration defaults remain unchanged.
 - Startup scripts now create the configured logger, mark readiness only after `listen()`, drain readiness before closing resources, and re-raise the original termination signal.
 - Skill, architecture, security, API, database, QA, and current-state documentation reflects the post-v0.1.0 implementation without rewriting the tagged release record.
@@ -31,6 +34,7 @@ The M11 entries below were merged to `main` through PR #7 after `v0.1.0`; no new
 
 ### Security
 
+- Applications may opt into a fail-closed migration preflight that reports only `MIGRATIONS_PENDING`; SQL, migration paths, and database errors are not exposed through readiness.
 - Shared limiter storage errors no longer permit unmetered requests, audit writes no longer fail silently, and readiness reports `RATE_LIMIT_STORE_UNAVAILABLE`, `AUDIT_STORE_UNAVAILABLE`, or lifecycle reasons instead of generic success.
 - No CodeQL alert was dismissed and no repository setting was changed. PR #7's five checks and two post-merge runs on `main` passed; no approving review was recorded.
 

@@ -21,14 +21,14 @@ Use this as a checklist before claiming a capability or starting work.
 - QA and governance docs now distinguish local verification, PR #7 CI results, post-merge runs, and GitHub alert state; re-query GitHub before relying on external facts.
 - `CONTRIBUTING.md` and some milestone docs still mention `pnpm test` as the main gate; use `docs/quality-assurance.md` and the PR template.
 - README's `test:migration-smoke` table entry is self-referential; `package.json` has the real command.
-- `templates/*` is in workspace config/README but the directory is absent.
+- `templates/basic-app` is a minimal starter, not a deployment manifest; it composes shared M8 modules and adds no application-local domain module.
 - `SESSION_SECRET` is declared as a secret env key but no consuming implementation was found.
 - Public OpenAPI operations have blank/missing `operationId` and `tags`; SDK names come from path/method generation.
 - The shared SDK sanitizes error messages; the demo-local client passes messages through. Do not generalize demo behavior.
 
 ## Repository/remote state
 
-- GitHub `main` was verified at `b399a21` after PR #7; local tracking refs can still lag. Always verify; do not reset based on an unverified ref.
+- GitHub `main` was re-verified at `e4eae56` after PR #8; local tracking refs can still lag. Always verify; do not reset based on an unverified ref. M12 remains on a task branch until merged.
 - `v0.1.0` points to `9d665ff`; post-tag QA hardening is not in the tag.
 - GitHub canonical repo is `SkeletonStructure/SkeletonStructure`; old remote URL redirects.
 - `Skeleton-0.1.0.zip` provenance/checksum is not documented in repository docs.
@@ -53,6 +53,7 @@ Use this as a checklist before claiming a capability or starting work.
 - Buyer context is user-only in v0.1.0; guest refs are typed but rejected.
 - Client-supplied amounts are rejected when a price resolver exists; prices are server-authoritative.
 - Migrations are explicit operator actions; no auto-migration on startup. Old migrations are hash-pinned and must not be rewritten.
+- Migration readiness is opt-in: applications must list every applied folder. It verifies Drizzle hash presence, not schema semantics, and cannot recognize custom runners that do not write `drizzle.__drizzle_migrations`.
 - `/health/live` and `/health/ready` are internal and excluded from public OpenAPI. In M11, readiness can also fail on lifecycle, rate-limit store, and audit checks.
 - Audit rows are append-only only against ordinary database roles; a superuser/schema owner can disable triggers, and the foundation does not provide hash-chain tamper evidence or retention automation.
 - Graceful shutdown drains readiness before closing resources and ends hung cleanup with `SIGKILL` after a bounded timeout; tune the timeout for slow dependencies.

@@ -46,7 +46,7 @@ A sibling local `bookstore` workspace is the concrete integration example:
 Coupling risks observed locally, not necessarily defects:
 
 - Bookstore backend has no committed application history; it is a fork with uncommitted app code.
-- It is pinned to `v0.1.0` and does not inherit post-tag fixes in `dde23ba`/remote `main`.
+- It is pinned to `v0.1.0` and does not inherit post-tag fixes; remote `main` was re-verified at `e4eae56` on 2026-11-27.
 - Its CI script still ends with demo checks and does not include bookstore verification; workflow is unchanged from v0.1.0.
 - Local `.env` files and embedded PostgreSQL data exist; never copy them into the foundation.
 - No production deployment manifests were found.

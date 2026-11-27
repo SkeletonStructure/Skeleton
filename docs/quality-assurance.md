@@ -4,17 +4,17 @@ SkeletonStructure uses layered tests and CI checks to catch regressions before m
 
 ## Test layers
 
-| Layer           | Command                                                                | What it covers                                                                                                   |
-| --------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Unit            | `pnpm test:unit`                                                       | Pure logic, schemas, registry, security primitives, module contracts that do not need infrastructure             |
-| Integration     | `pnpm test:integration`                                                | Fastify/PostgreSQL integration for core, modules, app composition, and the e-commerce demo, using Testcontainers |
-| Contract        | `pnpm test:contract`                                                   | Public SDK boundaries and generated operation type aliases                                                       |
-| Regression      | `pnpm test:regression`                                                 | Explicit tests for previously fixed failure modes and invariants                                                 |
-| Migration smoke | `pnpm test:migration-smoke`                                            | Real `pnpm db:migrate` run against a temporary PostgreSQL container, including the no-op re-run                  |
-| Full suite      | `pnpm test`                                                            | Everything in the four layers above, plus any future Vitest layer added to the root config                       |
-| Browser E2E     | `pnpm demo:ecommerce:test:e2e`                                         | Real browser storefront flow against a real API and PostgreSQL container                                         |
-| Artifact checks | `pnpm sdk:check`, `pnpm openapi:check`, `pnpm demo:ecommerce:verify`   | Generated artifacts match their committed sources                                                                |
-| Config docs     | `pnpm config:docs && git diff --exit-code -- docs/config/reference.md` | Configuration reference matches the live schema                                                                  |
+| Layer           | Command                                                                | What it covers                                                                                                                                               |
+| --------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Unit            | `pnpm test:unit`                                                       | Pure logic, schemas, registry, security primitives, module contracts that do not need infrastructure                                                         |
+| Integration     | `pnpm test:integration`                                                | Fastify/PostgreSQL integration for core, modules, app composition, migration preflight, the basic-app starter, and the e-commerce demo, using Testcontainers |
+| Contract        | `pnpm test:contract`                                                   | Public SDK boundaries and generated operation type aliases                                                                                                   |
+| Regression      | `pnpm test:regression`                                                 | Explicit tests for previously fixed failure modes and invariants                                                                                             |
+| Migration smoke | `pnpm test:migration-smoke`                                            | Real `pnpm db:migrate` run against a temporary PostgreSQL container, including the no-op re-run                                                              |
+| Full suite      | `pnpm test`                                                            | Everything in the four layers above, plus any future Vitest layer added to the root config                                                                   |
+| Browser E2E     | `pnpm demo:ecommerce:test:e2e`                                         | Real browser storefront flow against a real API and PostgreSQL container                                                                                     |
+| Artifact checks | `pnpm sdk:check`, `pnpm openapi:check`, `pnpm demo:ecommerce:verify`   | Generated artifacts match their committed sources                                                                                                            |
+| Config docs     | `pnpm config:docs && git diff --exit-code -- docs/config/reference.md` | Configuration reference matches the live schema                                                                                                              |
 
 `pnpm test` is the local convenience command. CI runs the layers separately so each result is visible as its own check result; these are not currently required by the `protect-main` ruleset.
 

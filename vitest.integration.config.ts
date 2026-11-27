@@ -7,6 +7,7 @@ export default defineConfig({
       'packages/*/tests/**/*.integration.test.ts',
       'packages/*/tests/**/integration.test.ts',
       'apps/*/tests/**/*.integration.test.ts',
+      'templates/*/tests/**/*.integration.test.ts',
     ],
     testTimeout: 120_000,
     hookTimeout: 120_000,

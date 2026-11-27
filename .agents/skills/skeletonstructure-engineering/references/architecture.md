@@ -15,6 +15,7 @@ packages/module-orders        idempotent orders, immutable snapshots
 packages/app-composition      checked-in M8 static wiring and migrations
 packages/sdk                  generated types + thin fetch client
 apps/demo-ecommerce           separate Fastify API + Vite storefront
+templates/basic-app           minimal starter app with opt-in migration readiness
 examples/frontend-*           vanilla and React SDK examples
 openapi/                      committed public OpenAPI artifact
 tests/regression/             cross-cutting invariant tests
@@ -22,7 +23,7 @@ docs/                         architecture, API, security, release, QA docs
 scripts/                      start, migrate, cleanup, artifact generation
 ```
 
-`pnpm-workspace.yaml` includes `templates/*`, but no such directory exists in the current tree.
+`templates/basic-app` is the workspace starter added by the M12 branch; it composes shared modules without adding domain code to `packages/`.
 
 Core public subpaths: `.`, `./api`, `./config`, `./database`, `./lifecycle`, `./logging`, `./modules`, `./security`. The SDK exposes one root entrypoint and has zero runtime dependencies. All packages/apps are private and version `0.1.0`.
 
@@ -57,7 +58,7 @@ Port IDs are mirrored as strings across modules to avoid implementation coupling
 5. Filters route handlers to the activation report.
 6. Returns registry, activation report, route handlers, authenticator, CSRF guard, and public APIs.
 
-`additionalModules` is for applications declaring their own static providers; it is not plugin discovery. Startup loads config, creates the configured logger and lifecycle, initializes the database, composes modules with an audit sink, creates one Fastify server, installs the bounded shutdown coordinator, listens, then marks readiness. Composition failures happen before listen.
+`additionalModules` is for applications declaring their own static providers; it is not plugin discovery. `startApplication()` now owns the established startup sequence: load config, create the configured logger and lifecycle, initialize the database, create the audit sink, call the injected composer, create one Fastify server, install the bounded shutdown coordinator, listen, then mark readiness. It returns the app plus config, composition, logger, lifecycle, and `close()`. `runApplicationMigrations()` owns the matching CLI sequence. Composition failures happen before listen.
 
 ## Request/data flow
 
@@ -101,6 +102,7 @@ Consumers must not add health/private config to public OpenAPI or hand-edit gene
 - The pinned v0.1.0 core baseline migration intentionally contains no application tables; M11 appends a core migration for the append-only `core_audit_events` table before the users/auth migrations.
 - M8 migration order: core → users → auth → catalog → products → inventory → orders. Demo adds its cart migration after shared migrations.
 - Each module owns a Drizzle config and migration folder. Future migrations are appended and reviewed; production must not auto-migrate on startup.
+- An opt-in readiness check compares expected Drizzle SQL hashes from explicit folders with `drizzle.__drizzle_migrations`; its only failure reason is `MIGRATIONS_PENDING`.
 - Important constraints: unique user email, unique catalog slug, unique SKU, non-negative prices/stock, unique `(buyer_ref, idempotency_key)`, buyer kind `user`, confirmed order status, and immutable order-line snapshots.
 
 Orders idempotency is transaction-scoped: insert pending record; same hash returns the original order; different hash returns `IDEMPOTENCY_CONFLICT`; pending conflict returns `CONFLICT`. Prices are server-authoritative and line details are snapshotted at creation.
@@ -121,7 +123,7 @@ Production validation requires secure cookies, JSON logs, CSRF enabled, no wildc
 - **App-local additions**: pass static providers in `additionalModules`; declare their own migrations, routes, permissions, and public APIs.
 - **Catalog extensions**: expansion providers keyed by `kind`; domain extensions own their tables and snapshots.
 - **Optional capabilities**: `price-resolver@1` and `inventory@1` are consumed only when declared and unambiguously provided.
-- **Readiness**: injected `ReadinessCheck` seam exists; core reserves `config`, `database`, `rateLimitStore`, `audit`, and `lifecycle` IDs, and default startup does not pass a migration check.
+- **Readiness**: injected `ReadinessCheck` seam exists; core reserves `config`, `database`, `rateLimitStore`, `audit`, and `lifecycle` IDs. Migration readiness uses the separate `migrationCheck` server option and remains opt-in; `templates/basic-app` enables it.
 - **Clients**: shared SDK for public routes; app-local generated client for app-only routes.
 - **Artifacts**: deterministic generators/checks for OpenAPI, SDK types, demo client, and config reference.
 

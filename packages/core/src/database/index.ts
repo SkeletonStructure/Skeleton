@@ -21,6 +21,12 @@ export {
   isDatabaseInitialized,
   runDatabaseMigrations,
 } from './manager.js';
+export {
+  createMigrationReadinessCheck,
+  type MigrationReadinessOptions,
+  readExpectedMigrationHashes,
+} from './migration-readiness.js';
+export { defaultMigrationsFolder } from './migrations.js';
 export { createPostgresDatabase, type PostgresDatabaseDependencies } from './postgres.js';
 export { auditEvents } from './schema.js';
 export type {

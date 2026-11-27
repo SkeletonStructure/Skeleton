@@ -6,6 +6,7 @@ export default defineConfig({
     include: [
       'packages/*/tests/**/*.test.ts',
       'apps/*/tests/**/*.integration.test.ts',
+      'templates/*/tests/**/*.test.ts',
       'tests/regression/**/*.regression.test.ts',
     ],
     testTimeout: 120_000,

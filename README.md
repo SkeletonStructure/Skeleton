@@ -4,7 +4,7 @@ A self-hosted, MIT-licensed backend foundation built as a modular monolith. This
 
 ## Status
 
-v0.1.0 is the first usable release of the backend foundation. It includes M1–M8, the complete M9a e-commerce demonstration, and the M10 release documentation and verification work. M9b (the restaurant demonstration) is deliberately deferred and is not required for this release. The e-commerce demo is the primary demonstration application. Post-v0.1.0 M11 security and operational hardening is merged on `main` through PR #7 but has no separate release tag; see [`CHANGELOG.md`](./CHANGELOG.md) for its scope.
+v0.1.0 is the first usable release of the backend foundation. It includes M1–M8, the complete M9a e-commerce demonstration, and the M10 release documentation and verification work. M9b (the restaurant demonstration) is deliberately deferred and is not required for this release. The e-commerce demo is the primary demonstration application. Post-v0.1.0 M11 security and operational hardening is merged on `main` through PR #7 but has no separate release tag. The M12 reusable application runtime, minimal starter template, and opt-in migration readiness preflight are prepared in this branch; see [`CHANGELOG.md`](./CHANGELOG.md) for scope and current status.
 
 This is an early foundation, not a production-ready platform. It has no payments, MFA, CAPTCHA, per-account limits, real email adapter, or multi-tenancy. M11 adds provider-independent shared rate limiting and a persistent append-only audit log, but a Redis store must still be supplied explicitly by the application, and operators remain responsible for deployment hardening. Careful defaults lower risk, but they do not replace review, testing, and updates. See [`SECURITY.md`](./SECURITY.md), [`docs/security/checklist.md`](./docs/security/checklist.md), and [`docs/releases/v0.1.0.md`](./docs/releases/v0.1.0.md) for explicit limitations.
 
@@ -42,6 +42,8 @@ curl http://localhost:3000/health/ready
 For an actual deployment, use a least-privilege database role, set `NODE_ENV=production`, `COOKIE_SECURE=true`, `DATABASE_SSL=true`, and an exact `CORS_ORIGINS` allowlist. Operator responsibilities are listed in [`SECURITY.md`](./SECURITY.md).
 
 To run the M9a e-commerce demo, follow [`apps/demo-ecommerce/README.md`](./apps/demo-ecommerce/README.md). In short, set its `DATABASE_URL`, then run `pnpm demo:ecommerce:migrate`, `pnpm demo:ecommerce:seed`, `pnpm demo:ecommerce:api`, and `pnpm demo:ecommerce:dev`. The seeded login and verification commands are documented there and in [`docs/m9.md`](./docs/m9.md).
+
+To start a new application, copy [`templates/basic-app`](./templates/basic-app/README.md), edit its `.env`, and run its `db:migrate` and `start` scripts. The template uses the shared runtime helper and enables an opt-in migration readiness check; it contains no app-local domain module or shared package change.
 
 ## Scripts
 
@@ -161,7 +163,7 @@ const app = await createServer({ appConfig: config, activationReport: report, da
 await app.listen({ host: config.server.host, port: config.server.port });
 ```
 
-`GET /health/live` checks only process responsiveness. `GET /health/ready` returns `503` with a short reason code when config, database, migration, or injected readiness checks fail. `GET /v1/config/public` exposes only the frontend-safe allowlist.
+`GET /health/live` checks only process responsiveness. `GET /health/ready` returns `503` with a short reason code when config, database, injected, or application-supplied migration checks fail. The basic-app template enables the migration check; root and demo startup retain their prior readiness behavior. `GET /v1/config/public` exposes only the frontend-safe allowlist.
 
 M6 implements sessions, login, CSRF, roles/permissions, and password reset behind that boundary. Protected routes still deny by default unless an injected authenticator supplies a principal; disabled modules register no routes rather than making them public. M8 adds catalog CRUD with validated expansion, separate product and inventory routes, and authenticated orders with idempotency and immutable snapshots. M7's SDK now covers catalog/products/inventory/orders namespaces derived from the committed OpenAPI artifact. M9a adds demo-local cart routes with a separate OpenAPI artifact and typed client; checkout stops at order confirmation and captures no payment. See [`docs/api.md`](./docs/api.md), [`docs/auth.md`](./docs/auth.md), [`docs/sdk.md`](./docs/sdk.md), [`docs/m8.md`](./docs/m8.md), and [`docs/m9.md`](./docs/m9.md).
 
@@ -174,7 +176,7 @@ M11, merged on `main` after `v0.1.0`, adds four foundation-owned capabilities wi
 - **Structured logging:** `createLogger()` implements the validated level/format/redaction settings, binds `requestId` to each request, and never logs bodies, raw URLs, headers, or credentials.
 - **Graceful shutdown:** `createLifecycle()` and `createShutdownCoordinator()` flip readiness to draining, close HTTP/providers/database once within a bounded timeout, and re-raise the original signal.
 
-See [`docs/api.md`](./docs/api.md), [`docs/database.md`](./docs/database.md), [`docs/security/checklist.md`](./docs/security/checklist.md), and ADRs 0008–0012 in [`docs/architecture/adr/`](./docs/architecture/adr/) for boundaries and residual risks.
+See [`docs/api.md`](./docs/api.md), [`docs/database.md`](./docs/database.md), [`docs/security/checklist.md`](./docs/security/checklist.md), and ADRs 0008–0013 in [`docs/architecture/adr/`](./docs/architecture/adr/) for boundaries and residual risks.
 
 ## Layout
 
@@ -190,7 +192,7 @@ packages/app-composition/  non-domain static M8 wiring and migration runner
 packages/sdk/          OpenAPI-derived browser-safe client and typed errors
 examples/              frontend-vanilla and frontend-react SDK examples
 apps/                  demonstration applications (M9a: demo-ecommerce with an app-local cart)
-templates/           starter application template
+templates/basic-app/ minimal starter application with migration preflight
 docs/config/         generated configuration reference
 docs/database.md     database infrastructure guide
 docs/modules.md      module contract and registry guide
