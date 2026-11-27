@@ -109,7 +109,7 @@ PostgreSQL triggers reject `UPDATE` and `DELETE` on the table. This protects aga
 
 ## Migrations
 
-Core migration SQL lives in `packages/core/migrations/`. The committed `0000_core_baseline` migration is intentionally empty and remains byte-for-byte pinned as the v0.1.0 baseline. M11 appends `0001_supreme_blazing_skull.sql` before the users/auth migrations; it creates `core_audit_events`, its indexes, outcome constraint, and append-only triggers. M6 modules own their SQL in `packages/module-users/migrations/` and `packages/module-auth/migrations/`; M8 modules own `catalog_items`, `commerce_products`, `inventory_items`, and the three `orders_*` tables in their respective package folders.
+Core migration SQL lives in `packages/core/migrations/`. The committed `0000_core_baseline` migration is intentionally empty and remains byte-for-byte pinned as the v0.1.0 baseline. v0.2.0 appends `0001_supreme_blazing_skull.sql` before the users/auth migrations; it creates `core_audit_events`, its indexes, outcome constraint, and append-only triggers. M6 modules own their SQL in `packages/module-users/migrations/` and `packages/module-auth/migrations/`; M8 modules own `catalog_items`, `commerce_products`, `inventory_items`, and the three `orders_*` tables in their respective package folders.
 
 Generate a reviewed SQL migration:
 

@@ -13,7 +13,7 @@ Release candidate reviewed: `a5fb7c3575cfafdfb454b6fc5df0db81efd5ce91` and later
 
 The repository owner supplied this sign-off directly. It is recorded as the v0.1.0 release decision. Because the reviewer is the owner rather than a separately identified second maintainer, the blueprint's independent-maintainer criterion is documented as an owner self-review limitation in the release notes rather than claimed as independently verified.
 
-> The tables and sign-off below are the historical v0.1.0 review record. M11 hardening merged after that tag is listed in “Post-v0.1.0 M11 additions” at the end. It does not retroactively change the release decision or claim an independent review.
+> The tables and sign-off below are the historical v0.1.0 review record. M11 and M12 are included in `v0.2.0` and summarized at the end; they do not retroactively change the `v0.1.0` release decision or claim an independent review.
 
 ## Threat model review
 
@@ -99,9 +99,9 @@ Fresh clone verification applied migrations twice: seven migrations on the first
 - The sample config is development-oriented and must be replaced for deployment.
 - Operators are responsible for TLS, least-privilege database roles, backups, dependency updates, and monitoring.
 
-## Post-v0.1.0 M11 additions
+## M11 additions included in v0.2.0
 
-These controls are merged on `main` through PR #7 but are not part of the tagged `v0.1.0` review. They have no new independent sign-off.
+These controls were merged through PR #7 and are included in `v0.2.0`, but they are not part of the historical `v0.1.0` review and have no new independent sign-off.
 
 | Control                         | Implementation                                                                                                                                                  | Residual risk or owner action                                                                                                                                       |
 | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -113,9 +113,9 @@ These controls are merged on `main` through PR #7 but are not part of the tagged
 
 CodeQL findings #4 and #5 were marked `fixed` by GitHub at 2026-11-27T11:05:45Z after PR #7 merged. M11 registers the limiter before the relevant hooks, and the merged source was inspected directly; no alert was dismissed. Re-query GitHub before any future annotation; see [`github-governance.md`](./github-governance.md).
 
-## Post-v0.1.0 M12 additions
+## M12 additions included in v0.2.0
 
-M12 merged through PR #9 and is not part of the tagged `v0.1.0` review. It does not add a new default security control or an independent sign-off. Its one security-relevant seam is an **opt-in** migration readiness check: applications that pass explicit Drizzle folders to `startApplication()` fail readiness with only `MIGRATIONS_PENDING` when a recorded hash is missing or the state cannot be read. It never auto-migrates, changes config, or exposes SQL, paths, or database errors.
+M12 merged through PR #9 and is included in `v0.2.0`, but it is not part of the historical `v0.1.0` review. It does not add a new default security control or an independent sign-off. Its one security-relevant seam is an **opt-in** migration readiness check: applications that pass explicit Drizzle folders to `startApplication()` fail readiness with only `MIGRATIONS_PENDING` when a recorded hash is missing or the state cannot be read. It never auto-migrates, changes config, or exposes SQL, paths, or database errors.
 
 The application remains responsible for listing every applied migration folder. The check proves recorded hash presence, not schema correctness, and custom migration runners must write `drizzle.__drizzle_migrations` to be recognized. See [ADR 0013](../architecture/adr/0013-application-runtime-and-migration-readiness.md).
 

@@ -4,7 +4,7 @@ M7 introduced `@skeletonstructure/sdk`, a small browser-safe HTTP client for the
 
 ## Installation and generation
 
-The SDK is a private workspace package in v0.1.0. It is distributed with the repository source, not through npm. Frontend examples in this monorepo import `@skeletonstructure/sdk` through the pnpm workspace; an external application can consume it by adding the package to its own workspace or by copying the generated API types and thin client into its source tree. There is no npm publication in v0.1.0.
+The SDK is a private workspace package in `v0.2.0`. It is distributed with the repository source, not through npm. Frontend examples in this monorepo import `@skeletonstructure/sdk` through the pnpm workspace; an external application can consume it by adding the package to its own workspace or by copying the generated API types and thin client into its source tree. There is no npm publication.
 
 Regenerate its types after changing public routes or response schemas:
 

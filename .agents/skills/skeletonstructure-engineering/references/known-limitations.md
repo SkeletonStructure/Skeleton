@@ -4,10 +4,10 @@ Use this as a checklist before claiming a capability or starting work.
 
 ## Product and release scope
 
-- `v0.1.0` is a first usable release, **not** production-ready beyond tested scope.
+- `v0.2.0` is the current usable release, **not** production-ready beyond tested scope; `v0.1.0` remains the frozen compatibility baseline.
 - M9b restaurant demo is deferred, not implemented or started.
 - No payments, guest checkout, refunds, cancellations, inventory release, MFA, OAuth, CAPTCHA, per-account limits, real email, file uploads, webhooks, multi-tenancy, or extra database engines.
-- M11, merged on `main` after `v0.1.0` with no separate tag, adds persistent audit events and shared rate-limit storage; the tagged `v0.1.0` does not. Shared Redis requires an application-injected client; no Redis dependency or default service is bundled. The memory limiter caps keys at 5,000 with LRU eviction and reclaims keys on reuse or close, not by periodic sweep; it remains a single-process default.
+- M11, included in `v0.2.0`, adds persistent audit events and shared rate-limit storage; the historical `v0.1.0` tag does not. Shared Redis requires an application-injected client; no Redis dependency or default service is bundled. The memory limiter caps keys at 5,000 with LRU eviction and reclaims keys on reuse or close, not by periodic sweep; it remains a single-process default.
 - CSRF and rate-limit audit failures precede authentication and normally have no `actorId`; the request ID is the reliable correlation key.
 - No npm publication; all packages/apps are private.
 - No production deployment manifests or documented fork-upgrade procedure.
@@ -28,8 +28,8 @@ Use this as a checklist before claiming a capability or starting work.
 
 ## Repository/remote state
 
-- GitHub `main` was re-verified at `9f14557` after PR #9; local tracking refs can still lag. Always verify; do not reset based on an unverified ref. M11 and M12 are merged, but no post-`v0.1.0` tag or release has been published.
-- `v0.1.0` points to `9d665ff`; post-tag QA hardening is not in the tag.
+- GitHub `main` was re-verified through the PR #9 and PR #10 merges on 2026-11-27; local tracking refs can still lag. Always verify; do not reset based on an unverified ref. M11 and M12 are included in `v0.2.0`.
+- `v0.1.0` points to `9d665ff`; `v0.2.0` is the annotated tag on the merged release commit and includes post-`v0.1.0` hardening.
 - GitHub canonical repo is `SkeletonStructure/SkeletonStructure`; old remote URL redirects.
 - `Skeleton-0.1.0.zip` provenance/checksum is not documented in repository docs.
 - Commit author display names vary; git metadata uses the same owner email. No distinct second maintainer is evidenced.

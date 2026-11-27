@@ -5,14 +5,14 @@ description: Institutional engineering guide for the SkeletonStructure backend f
 license: MIT
 metadata:
 skill-version: "1.1.0"
-project-baseline: "v0.1.0"
+project-baseline: "v0.2.0"
 repository: "SkeletonStructure/SkeletonStructure"
 verified-on: "2026-11-27"
 ---
 
 # SkeletonStructure Engineering
 
-SkeletonStructure is a reusable backend foundation for building independent applications. It is a private, source-distributed pnpm monorepo at `v0.1.0`: a modular Fastify/TypeScript core, explicitly composed business modules, one shared PostgreSQL pool, a generated public OpenAPI contract, and a thin browser-safe SDK. It is a first usable release, **not** a production-ready platform.
+SkeletonStructure is a reusable backend foundation for building independent applications. It is a private, source-distributed pnpm monorepo at `v0.2.0`: a modular Fastify/TypeScript core, explicitly composed business modules, one shared PostgreSQL pool, a generated public OpenAPI contract, and a thin browser-safe SDK. It is a usable foundation release, **not** a production-ready platform.
 
 This skill is the project's institutional memory. It exists so any compatible coding agent can understand why the foundation exists, how it is built, what has already been decided, what is currently true, and how to contribute without weakening the architecture.
 

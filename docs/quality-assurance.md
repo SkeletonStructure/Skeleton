@@ -133,7 +133,7 @@ New CodeQL findings must be triaged before merge: fix them or record a written j
 
 ## Compatibility strategy
 
-Compatibility is checked without adding a second demonstration application.
+Compatibility is checked without adding a second demonstration application. The `v0.2.0` release preserves these `v0.1.0` baselines; only OpenAPI `info.version` metadata was bumped.
 
 1. **Public API:** the committed OpenAPI artifact and regression tests fail on internal route exposure or loss of the `/v1` boundary. `docs/compatibility/v0.1.0-operations.json` freezes the v0.1.0 paths, operations, required parameters/body fields, and response codes. An intentional breaking change must update the artifact deliberately or add an entry to `docs/compatibility/v0.1.0-allowlist.json`. The allowlist is a JSON array of operation keys in the form `/v1/path:method` (for example, `/v1/orders:get`); a bare path key such as `/v1/orders` permits the removal of that path and all its operations. New operations are not treated as v0.1.0 breaks; response body schemas are not frozen by the operation snapshot.
 2. **SDK:** generated type checks and contract tests fail on drift. `tests/regression/sdk-runtime.regression.test.ts` runs the real SDK client against a real Fastify server through an in-process fetch adapter, covering success and error envelopes.
