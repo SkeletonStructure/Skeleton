@@ -172,6 +172,29 @@ describe('security infrastructure failure behavior', () => {
     );
   });
 
+  it('does not leak audit exception text when a rate-limit audit write fails', async () => {
+    const appConfig = await makeAppConfig({ rateLimitMax: 1 });
+    const lines: string[] = [];
+    const logger = createLogger({ ...appConfig.logging, sink: (line) => lines.push(line) });
+    const auditSink: AuditSink = {
+      ...failingAuditSink(),
+      async record() {
+        throw new Error('AUDIT_DSN=postgres://user:secret@host/db');
+      },
+    };
+
+    await withServer({ appConfig, logger, auditSink }, async (app) => {
+      expect((await app.inject({ method: 'GET', url: '/v1/config/public' })).statusCode).toBe(200);
+
+      const limited = await app.inject({ method: 'GET', url: '/v1/config/public' });
+      expect(limited.statusCode).toBe(500);
+      expect(limited.json()).toMatchObject({ error: { code: 'INTERNAL' } });
+      expect(limited.body).not.toContain('AUDIT_DSN');
+      expect(limited.body).not.toContain('postgres://');
+      expect(lines.join('\n')).not.toContain('secret@host');
+    });
+  });
+
   it('reports an unavailable audit sink as unready', async () => {
     const appConfig = await makeAppConfig();
 

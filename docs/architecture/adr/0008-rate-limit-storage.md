@@ -26,7 +26,7 @@ The default `security.rateLimit.{enabled,max,windowMs}` values, `RATE_LIMIT_MAX`
 ## Consequences
 
 - Single-process applications need no new configuration, package, or service.
-- The memory store reclaims a key when it is reused after expiry or when the provider closes, but it does not periodically sweep unused keys. It is intended for bounded client cardinality in one process; high-cardinality or multi-process deployments must inject the Redis provider.
+- The memory store keeps at most 5,000 distinct keys per process, evicting the least recently used key when the cap is reached and reclaiming a key when it is reused after expiry or the provider closes. It has no periodic sweep and remains a single-process default; multi-process or very high-cardinality deployments must inject the Redis provider.
 - Multi-process deployments must provide a shared client at composition time; startup fails closed if `store: 'redis'` has no matching provider.
 - Storage outages produce errors and an unready health state instead of unmetered traffic.
 - Health probes are not rate limited; other routes, including guarded routes, are.

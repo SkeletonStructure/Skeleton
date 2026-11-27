@@ -24,6 +24,8 @@ All notable changes are recorded here. The format is based on Keep a Changelog a
 - Log messages are restricted to stable event names; arbitrary text, including embedded credentials, is replaced with `log.invalid_message`.
 - Rate-limit and audit close hooks are attempted independently, so one failure cannot skip the other.
 - Audit timestamps are always server-generated; callers can no longer supply `occurredAt`.
+- An audit failure while recording a `429` now returns a safe `500 INTERNAL` envelope instead of letting Fastify expose raw exception text.
+- The default memory limiter is capped at 5,000 keys with least-recently-used eviction, matching the bounded behavior of the previous Fastify store.
 
 ### Security
 

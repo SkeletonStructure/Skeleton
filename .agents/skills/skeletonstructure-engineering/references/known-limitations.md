@@ -7,7 +7,7 @@ Use this as a checklist before claiming a capability or starting work.
 - `v0.1.0` is a first usable release, **not** production-ready beyond tested scope.
 - M9b restaurant demo is deferred, not implemented or started.
 - No payments, guest checkout, refunds, cancellations, inventory release, MFA, OAuth, CAPTCHA, per-account limits, real email, file uploads, webhooks, multi-tenancy, or extra database engines.
-- Unreleased M11 adds persistent audit events and shared rate-limit storage, but the tagged `v0.1.0` does not. Shared Redis requires an application-injected client; no Redis dependency or default service is bundled. The memory limiter reclaims keys on reuse or close, not by periodic sweep, so it is for bounded single-process cardinality.
+- Unreleased M11 adds persistent audit events and shared rate-limit storage, but the tagged `v0.1.0` does not. Shared Redis requires an application-injected client; no Redis dependency or default service is bundled. The memory limiter caps keys at 5,000 with LRU eviction and reclaims keys on reuse or close, not by periodic sweep; it remains a single-process default.
 - CSRF and rate-limit audit failures precede authentication and normally have no `actorId`; the request ID is the reliable correlation key.
 - No npm publication; all packages/apps are private.
 - No production deployment manifests or documented fork-upgrade procedure.

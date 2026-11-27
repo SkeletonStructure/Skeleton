@@ -63,21 +63,31 @@ class PrefixedRateLimitStore implements RateLimitStore {
   }
 }
 
+const DEFAULT_MEMORY_STORE_MAX_ENTRIES = 5_000;
+
 class MemoryRateLimitBackend implements RateLimitBackend {
   private readonly entries = new Map<string, { current: number; expiresAt: number }>();
 
-  constructor(private readonly now: () => number = Date.now) {}
+  constructor(
+    private readonly now: () => number = Date.now,
+    private readonly maxEntries: number = DEFAULT_MEMORY_STORE_MAX_ENTRIES,
+  ) {}
 
   async increment(key: string, timeWindow: number): Promise<RateLimitResult> {
     const now = this.now();
     const existing = this.entries.get(key);
-    if (existing === undefined || existing.expiresAt <= now) {
-      this.entries.set(key, { current: 1, expiresAt: now + timeWindow });
-      return { current: 1, ttl: timeWindow };
+    if (existing !== undefined && existing.expiresAt > now) {
+      const current = existing.current + 1;
+      this.entries.delete(key);
+      this.entries.set(key, { current, expiresAt: existing.expiresAt });
+      return { current, ttl: Math.max(0, existing.expiresAt - now) };
     }
-    const current = existing.current + 1;
-    this.entries.set(key, { current, expiresAt: existing.expiresAt });
-    return { current, ttl: Math.max(0, existing.expiresAt - now) };
+    if (this.entries.size >= this.maxEntries) {
+      const oldest = this.entries.keys().next();
+      if (!oldest.done) this.entries.delete(oldest.value);
+    }
+    this.entries.set(key, { current: 1, expiresAt: now + timeWindow });
+    return { current: 1, ttl: timeWindow };
   }
 
   clear(): void {
@@ -88,13 +98,19 @@ class MemoryRateLimitBackend implements RateLimitBackend {
 export interface MemoryRateLimitStoreOptions {
   /** Injectable clock for deterministic window-expiry tests. */
   readonly now?: () => number;
+  /** Maximum distinct keys retained per process; defaults to 5,000. */
+  readonly maxEntries?: number;
 }
 
-/** Default provider: one shared, bounded-by-window map inside each process. */
+/** Default provider: one shared, LRU-bounded map inside each process. */
 export function createMemoryRateLimitStore(
   options: MemoryRateLimitStoreOptions = {},
 ): RateLimitStoreProvider {
-  const backend = new MemoryRateLimitBackend(options.now);
+  const maxEntries =
+    options.maxEntries !== undefined && Number.isFinite(options.maxEntries)
+      ? Math.max(1, Math.floor(options.maxEntries))
+      : DEFAULT_MEMORY_STORE_MAX_ENTRIES;
+  const backend = new MemoryRateLimitBackend(options.now, maxEntries);
   let closed = false;
   return {
     id: 'memory',

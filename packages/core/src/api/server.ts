@@ -123,12 +123,22 @@ export async function createServer(options: ApiServerOptions): Promise<FastifyIn
       errorCode: mapped.body.error.code,
     });
     if (mapped.statusCode === 429 && resolved.auditSink !== undefined) {
-      await resolved.auditSink.record({
-        action: 'security.rate_limit',
-        outcome: 'failure',
-        requestId: request.requestId,
-        ...(request.principal === undefined ? {} : { actorId: request.principal.id }),
-      });
+      try {
+        await resolved.auditSink.record({
+          action: 'security.rate_limit',
+          outcome: 'failure',
+          requestId: request.requestId,
+          ...(request.principal === undefined ? {} : { actorId: request.principal.id }),
+        });
+      } catch {
+        request.logger.error('audit.record_failed', { action: 'security.rate_limit' });
+        const auditFailure = mapRequestError(
+          new Error('Audit storage unavailable.'),
+          request.requestId,
+        );
+        reply.code(auditFailure.statusCode).send(auditFailure.body);
+        return;
+      }
     }
     reply.code(mapped.statusCode).send(mapped.body);
   });

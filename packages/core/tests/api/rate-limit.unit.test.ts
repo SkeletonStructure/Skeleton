@@ -46,6 +46,18 @@ describe('rate-limit storage providers', () => {
     expect((await increment(provider.createStore(), 'client', 60_000)).current).toBe(1);
   });
 
+  it('bounds the default store by evicting the least recently used key', async () => {
+    const provider = createMemoryRateLimitStore({ maxEntries: 2 });
+    const store = provider.createStore();
+
+    expect((await increment(store, 'a', 60_000)).current).toBe(1);
+    expect((await increment(store, 'b', 60_000)).current).toBe(1);
+    expect((await increment(store, 'a', 60_000)).current).toBe(2);
+    expect((await increment(store, 'c', 60_000)).current).toBe(1);
+    expect((await increment(store, 'a', 60_000)).current).toBe(3);
+    expect((await increment(store, 'b', 60_000)).current).toBe(1);
+  });
+
   it('isolates per-route budgets even for the same client key', async () => {
     const provider = createMemoryRateLimitStore();
     const store = provider.createStore();
