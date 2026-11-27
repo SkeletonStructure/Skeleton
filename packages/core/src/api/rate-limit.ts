@@ -66,8 +66,10 @@ class PrefixedRateLimitStore implements RateLimitStore {
 class MemoryRateLimitBackend implements RateLimitBackend {
   private readonly entries = new Map<string, { current: number; expiresAt: number }>();
 
+  constructor(private readonly now: () => number = Date.now) {}
+
   async increment(key: string, timeWindow: number): Promise<RateLimitResult> {
-    const now = Date.now();
+    const now = this.now();
     const existing = this.entries.get(key);
     if (existing === undefined || existing.expiresAt <= now) {
       this.entries.set(key, { current: 1, expiresAt: now + timeWindow });
@@ -83,9 +85,16 @@ class MemoryRateLimitBackend implements RateLimitBackend {
   }
 }
 
+export interface MemoryRateLimitStoreOptions {
+  /** Injectable clock for deterministic window-expiry tests. */
+  readonly now?: () => number;
+}
+
 /** Default provider: one shared, bounded-by-window map inside each process. */
-export function createMemoryRateLimitStore(): RateLimitStoreProvider {
-  const backend = new MemoryRateLimitBackend();
+export function createMemoryRateLimitStore(
+  options: MemoryRateLimitStoreOptions = {},
+): RateLimitStoreProvider {
+  const backend = new MemoryRateLimitBackend(options.now);
   let closed = false;
   return {
     id: 'memory',

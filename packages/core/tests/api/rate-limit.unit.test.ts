@@ -34,12 +34,13 @@ function increment(
 
 describe('rate-limit storage providers', () => {
   it('counts requests in the default in-memory store and expires windows', async () => {
-    const provider = createMemoryRateLimitStore();
+    let now = 1_000;
+    const provider = createMemoryRateLimitStore({ now: () => now });
     const store = provider.createStore();
 
     expect((await increment(store, 'client', 5)).current).toBe(1);
     expect((await increment(store, 'client', 5)).current).toBe(2);
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    now += 10;
     expect((await increment(store, 'client', 5)).current).toBe(1);
     await provider.close?.();
     expect((await increment(provider.createStore(), 'client', 60_000)).current).toBe(1);

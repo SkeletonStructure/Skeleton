@@ -35,6 +35,7 @@ export { buildPublicConfig } from './public-config.js';
 export {
   createMemoryRateLimitStore,
   createRedisRateLimitStore,
+  type MemoryRateLimitStoreOptions,
   type RateLimitCallback,
   type RateLimitResult,
   type RateLimitStore,
