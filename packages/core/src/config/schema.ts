@@ -7,6 +7,8 @@ export const LOG_LEVELS = ['trace', 'debug', 'info', 'warn', 'error'] as const;
 export const LOG_FORMATS = ['json', 'pretty'] as const;
 export const COOKIE_SAME_SITE_MODES = ['lax', 'strict'] as const;
 export const EMAIL_DRIVERS = ['console'] as const;
+export const RATE_LIMIT_STORES = ['memory', 'redis'] as const;
+export const RATE_LIMIT_FAILURE_POLICIES = ['deny'] as const;
 
 export const DEFAULT_REDACT_KEYS: readonly string[] = [
   'password',
@@ -82,6 +84,13 @@ export const configSchema = z
             enabled: z.boolean().default(true),
             max: z.number().int().min(1).default(100),
             windowMs: z.number().int().min(1).default(60_000),
+            store: z.enum(RATE_LIMIT_STORES).default('memory'),
+            failurePolicy: z.enum(RATE_LIMIT_FAILURE_POLICIES).default('deny'),
+            redis: z
+              .object({
+                keyPrefix: z.string().min(1).default('skel:ratelimit:'),
+              })
+              .prefault({}),
           })
           .prefault({}),
       })
@@ -163,6 +172,14 @@ export const configSchema = z
         code: 'custom',
         path: ['security', 'csrf', 'enabled'],
         message: 'CSRF protection cannot be disabled in production',
+      });
+    }
+
+    if (production && !config.security.rateLimit.enabled) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['security', 'rateLimit', 'enabled'],
+        message: 'Rate limiting cannot be disabled in production',
       });
     }
 

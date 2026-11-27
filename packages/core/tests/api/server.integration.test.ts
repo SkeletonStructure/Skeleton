@@ -4,6 +4,8 @@ import {
   type ApiRouteDefinition,
   createServer,
   generateOpenApiDocument,
+  type RateLimitStore,
+  type RateLimitStoreProvider,
 } from '../../src/api/index.js';
 import type { AppConfig } from '../../src/config/index.js';
 import type { ActivationReport } from '../../src/modules/index.js';
@@ -323,6 +325,88 @@ describe('API server (integration)', () => {
         code: 'RATE_LIMITED',
         requestId: expect.any(String),
       });
+    });
+  });
+
+  it('limits guarded routes before authentication runs', async () => {
+    const appConfig = await makeAppConfig({ rateLimitMax: 2, rateLimitWindowMs: 60_000 });
+    let authentications = 0;
+
+    await withServer(
+      {
+        appConfig,
+        activationReport: fixtureReport(),
+        routeHandlers: fixtureHandlers(),
+        authenticator: {
+          authenticate: async () => {
+            authentications += 1;
+            return { id: 'user_1', permissions: ['fixture:read'] };
+          },
+        },
+      },
+      async (app) => {
+        expect((await app.inject({ method: 'GET', url: '/v1/fixture' })).statusCode).toBe(200);
+        expect((await app.inject({ method: 'GET', url: '/v1/fixture' })).statusCode).toBe(200);
+        const limited = await app.inject({ method: 'GET', url: '/v1/fixture' });
+        expect(limited.statusCode).toBe(429);
+        expect(limited.json().error.code).toBe('RATE_LIMITED');
+        expect(authentications).toBe(2);
+      },
+    );
+  });
+
+  it('fails closed and reports unready when the injected limiter store fails', async () => {
+    const appConfig = await makeAppConfig();
+    const failingStore: RateLimitStore = {
+      incr: (_key, callback) => callback(new Error('store unavailable')),
+      child: () => failingStore,
+    };
+    let healthCalls = 0;
+    let closes = 0;
+    const provider: RateLimitStoreProvider = {
+      id: 'memory',
+      createStore: () => failingStore,
+      health: async () => {
+        healthCalls += 1;
+        return { status: 'error', reason: 'RATE_LIMIT_STORE_UNAVAILABLE' };
+      },
+      close: async () => {
+        closes += 1;
+      },
+    };
+
+    await withServer(
+      { appConfig, database: fakeDatabase(), rateLimitStore: provider },
+      async (app) => {
+        const denied = await app.inject({ method: 'GET', url: '/v1/config/public' });
+        expect(denied.statusCode).toBe(500);
+        expect(denied.json().error).toMatchObject({
+          code: 'INTERNAL',
+          requestId: expect.any(String),
+        });
+        const ready = await app.inject({ method: 'GET', url: '/health/ready' });
+        expect(ready.statusCode).toBe(503);
+        expect(ready.json()).toMatchObject({
+          reason: 'RATE_LIMIT_STORE_UNAVAILABLE',
+          requestId: expect.any(String),
+        });
+        expect(healthCalls).toBeGreaterThan(0);
+      },
+    );
+    expect(closes).toBe(1);
+  });
+
+  it('rejects a Redis configuration without an injected provider', async () => {
+    const appConfig = await makeAppConfig();
+    const redis = {
+      ...appConfig,
+      security: {
+        ...appConfig.security,
+        rateLimit: { ...appConfig.security.rateLimit, store: 'redis' as const },
+      },
+    };
+    await expect(createServer({ appConfig: redis })).rejects.toMatchObject({
+      code: 'INVALID_RATE_LIMIT_STORE',
     });
   });
 

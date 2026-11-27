@@ -3,6 +3,7 @@ import type { FastifyReply, FastifyRequest, FastifySchema } from 'fastify';
 import type { AppConfig } from '../config/index.js';
 import type { Database } from '../database/index.js';
 import type { ActivationReport, ModuleHttpMethod } from '../modules/index.js';
+import type { RateLimitStoreProvider } from './rate-limit.js';
 
 export interface RequestPrincipal {
   readonly id: string;
@@ -82,6 +83,8 @@ export interface ApiServerOptions {
   readonly readinessChecks?: readonly ReadinessCheck[];
   /** Read-only migration-state check supplied by the application. */
   readonly migrationCheck?: ReadinessCheck;
+  /** Replaceable limiter storage; required when `security.rateLimit.store` is `redis`. */
+  readonly rateLimitStore?: RateLimitStoreProvider;
 }
 
 export interface ResolvedApiServerOptions {
@@ -93,6 +96,7 @@ export interface ResolvedApiServerOptions {
   readonly routeHandlers: readonly ApiRouteDefinition[];
   readonly readinessChecks: readonly ReadinessCheck[];
   readonly migrationCheck: ReadinessCheck | undefined;
+  readonly rateLimitStore: RateLimitStoreProvider | undefined;
 }
 
 declare module 'fastify' {

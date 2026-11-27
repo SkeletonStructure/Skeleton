@@ -77,7 +77,7 @@ export async function registerResolvedRoutes(
     '/health/live',
     {
       schema: { response: { 200: liveResponseSchema }, tags: ['internal'] },
-      config: { internal: true },
+      config: { internal: true, rateLimit: false },
     },
     async () => ({ status: 'ok' }) as const,
   );
@@ -89,7 +89,7 @@ export async function registerResolvedRoutes(
         response: { 200: liveResponseSchema, 503: readyErrorResponseSchema },
         tags: ['internal'],
       },
-      config: { internal: true },
+      config: { internal: true, rateLimit: false },
     },
     async (request, reply) => {
       const result = await evaluateReadiness(readinessChecks);

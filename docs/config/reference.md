@@ -40,9 +40,12 @@ Secret fields can only be supplied through environment variables using `env(...)
 | `security.csrf.enabled` | — | no | no | `boolean` | `true` | CSRF protection for cookie-based mutations; cannot be disabled in production |
 | `security.cors.origins` | `CORS_ORIGINS` | no | no | `string[]` | `[]` | Exact allowed origins; empty means same-origin only |
 | `security.cors.credentials` | — | no | no | `boolean` | `true` | Allow credentials for explicitly listed origins |
-| `security.rateLimit.enabled` | — | no | no | `boolean` | `true` | Enable the global in-process rate limiter |
+| `security.rateLimit.enabled` | — | no | no | `boolean` | `true` | Enable the global request limiter; cannot be disabled in production |
+| `security.rateLimit.store` | `RATE_LIMIT_STORE` | no | no | `memory \| redis` | `memory` | Shared limiter storage; redis requires an injected client |
+| `security.rateLimit.failurePolicy` | — | no | no | `deny` | `deny` | Storage failures deny requests instead of silently skipping limits |
 | `security.rateLimit.max` | `RATE_LIMIT_MAX` | no | no | `integer` | `100` | Maximum requests per window |
 | `security.rateLimit.windowMs` | `RATE_LIMIT_WINDOW_MS` | no | no | `integer` | `60000` | Rate-limit window length in milliseconds |
+| `security.rateLimit.redis.keyPrefix` | `RATE_LIMIT_REDIS_KEY_PREFIX` | no | no | `string` | `skel:ratelimit:` | Key prefix for the optional Redis limiter provider |
 | `modules.auth.enabled` | — | no | no | `boolean` | `false` | Enable authentication and opaque database sessions |
 | `modules.auth.passwordMinLength` | — | no | no | `integer` | `12` | Minimum accepted password length |
 | `modules.users.enabled` | — | no | no | `boolean` | `false` | Enable user profiles |

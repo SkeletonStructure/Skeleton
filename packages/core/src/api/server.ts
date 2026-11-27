@@ -7,6 +7,11 @@ import fastify, { type FastifyInstance } from 'fastify';
 import { createPermissionGuard } from './auth.js';
 import { resolveApiServerOptions } from './config.js';
 import { HttpError, mapRequestError } from './errors.js';
+import {
+  createMemoryRateLimitStore,
+  type RateLimitStoreProvider,
+  rateLimitStoreConstructor,
+} from './rate-limit.js';
 import { newRequestId } from './request.js';
 import { registerResolvedRoutes } from './routes.js';
 import type { ApiServerOptions } from './types.js';
@@ -17,6 +22,25 @@ export async function createServer(options: ApiServerOptions): Promise<FastifyIn
   const app = fastify({
     logger: false,
     trustProxy: resolved.appConfig.server.trustProxy,
+  });
+
+  // Register the shared limiter before the request hooks it protects. Its
+  // onRoute hook installs the limiter on every registered route, including the
+  // CSRF and permission-guarded ones below.
+  const rateLimitConfig = resolved.appConfig.security.rateLimit;
+  const rateLimitStore: RateLimitStoreProvider =
+    resolved.rateLimitStore ?? createMemoryRateLimitStore();
+  await app.register(rateLimit, {
+    global: rateLimitConfig.enabled,
+    max: rateLimitConfig.max,
+    timeWindow: rateLimitConfig.windowMs,
+    hook: 'onRequest',
+    skipOnError: false,
+    store: rateLimitStoreConstructor(rateLimitStore),
+    errorResponseBuilder: () => new HttpError({ status: 429, code: 'RATE_LIMITED' }),
+  });
+  app.addHook('onClose', async () => {
+    await rateLimitStore.close?.();
   });
 
   app.decorateRequest('requestId', '');
@@ -54,14 +78,6 @@ export async function createServer(options: ApiServerOptions): Promise<FastifyIn
     credentials: corsConfig.origins.length > 0 ? corsConfig.credentials : false,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['content-type', 'authorization', 'idempotency-key', 'x-csrf-token'],
-  });
-
-  const rateLimitConfig = resolved.appConfig.security.rateLimit;
-  await app.register(rateLimit, {
-    global: rateLimitConfig.enabled,
-    max: rateLimitConfig.max,
-    timeWindow: rateLimitConfig.windowMs,
-    errorResponseBuilder: () => new HttpError({ status: 429, code: 'RATE_LIMITED' }),
   });
 
   await app.register(swagger, {
