@@ -23,6 +23,7 @@ export {
   buildReadinessChecks,
   databaseReadinessCheck,
   evaluateReadiness,
+  lifecycleReadinessCheck,
   rateLimitStoreReadinessCheck,
 } from './health.js';
 export {
