@@ -4,18 +4,18 @@ Snapshot verified 2026-11-27 from the repository, git history, GitHub API, and s
 
 ## Verified completed milestones
 
-| Milestone | Commit evidence | Result |
-|---|---|---|
-| M1 foundation | `16bf2c8` (+ `b4cda5b`) | pnpm monorepo, strict TypeScript, Biome, Vitest, CI skeleton, README, security/contributing docs, LICENSE, VERSION. |
-| M2 configuration | `2dd7528` | `defineConfig`, env precedence, Zod validation, aggregated errors, `env(...)` secrets, redacted summary, generated config reference. |
-| M3 database | `2fda574` | Shared PostgreSQL pool/Drizzle, verified init, graceful shutdown, transactions, health, advisory-locked migrations, Testcontainers coverage. |
-| M4 module registry | `24df635` | `ModuleDefinition`, static composition, explicit enable/disable, dependency/port validation, activation report, ADR 0001. |
-| M5 API | `38d6f0c` | One Fastify instance, `/v1`, request IDs, envelopes, permission guard, exact-origin CORS, per-process rate limit, health, public config, generated OpenAPI, ADR 0002. |
-| M6 auth/authz | `59b72b8` | users/auth modules, Argon2id, opaque hashed sessions, httpOnly cookies, CSRF, roles/permissions, single-use resets, console email, cleanup job, ADR 0003. |
-| M7 SDK | `8433ae1` | OpenAPI-derived types, deterministic generate/check, thin `fetch` client, cookie/bearer auth, typed errors, examples, ADR 0004. |
-| M8 business modules | `8f10e0c` | catalog/products/inventory/orders, ports, server-authoritative prices, immutable snapshots, transactional idempotency, static composition, ADRs 0005/0006. |
-| M9a demo | `be76283` | Vite storefront, separate Fastify API, app-local cart/migration, seeded user/products, checkout to confirmation, order history, generated demo artifacts, Playwright E2E, ADR 0007. |
-| M10 release | `a5fb7c3`, `d37d01b`, `d09987b`, `1e04788`, `9d665ff` | Release docs, threat model, security/release checklists, CHANGELOG, VERSION/package alignment, release notes, owner sign-off, GitHub release. |
+| Milestone           | Commit evidence                                       | Result                                                                                                                                                                              |
+| ------------------- | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| M1 foundation       | `16bf2c8` (+ `b4cda5b`)                               | pnpm monorepo, strict TypeScript, Biome, Vitest, CI skeleton, README, security/contributing docs, LICENSE, VERSION.                                                                 |
+| M2 configuration    | `2dd7528`                                             | `defineConfig`, env precedence, Zod validation, aggregated errors, `env(...)` secrets, redacted summary, generated config reference.                                                |
+| M3 database         | `2fda574`                                             | Shared PostgreSQL pool/Drizzle, verified init, graceful shutdown, transactions, health, advisory-locked migrations, Testcontainers coverage.                                        |
+| M4 module registry  | `24df635`                                             | `ModuleDefinition`, static composition, explicit enable/disable, dependency/port validation, activation report, ADR 0001.                                                           |
+| M5 API              | `38d6f0c`                                             | One Fastify instance, `/v1`, request IDs, envelopes, permission guard, exact-origin CORS, per-process rate limit, health, public config, generated OpenAPI, ADR 0002.               |
+| M6 auth/authz       | `59b72b8`                                             | users/auth modules, Argon2id, opaque hashed sessions, httpOnly cookies, CSRF, roles/permissions, single-use resets, console email, cleanup job, ADR 0003.                           |
+| M7 SDK              | `8433ae1`                                             | OpenAPI-derived types, deterministic generate/check, thin `fetch` client, cookie/bearer auth, typed errors, examples, ADR 0004.                                                     |
+| M8 business modules | `8f10e0c`                                             | catalog/products/inventory/orders, ports, server-authoritative prices, immutable snapshots, transactional idempotency, static composition, ADRs 0005/0006.                          |
+| M9a demo            | `be76283`                                             | Vite storefront, separate Fastify API, app-local cart/migration, seeded user/products, checkout to confirmation, order history, generated demo artifacts, Playwright E2E, ADR 0007. |
+| M10 release         | `a5fb7c3`, `d37d01b`, `d09987b`, `1e04788`, `9d665ff` | Release docs, threat model, security/release checklists, CHANGELOG, VERSION/package alignment, release notes, owner sign-off, GitHub release.                                       |
 
 Tag: annotated `v0.1.0` → release commit `9d665ff3462cfc3b4f7adb7f96a2b95974f7ffff`.
 
@@ -23,10 +23,10 @@ Tag: annotated `v0.1.0` → release commit `9d665ff3462cfc3b4f7adb7f96a2b95974f7
 
 Verified as merged, not part of the `v0.1.0` tag:
 
-| Change | Evidence |
-|---|---|
+| Change                                                                                     | Evidence                                                                                                                    |
+| ------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
 | Layered QA/CI, compatibility baselines, regression tests, ReDoS fixes, migration CLI smoke | PR #1, head `dde23ba59df044ce766932ceeeeded5a8c6b2f05`, merged as `1940dfc1537e27d4c91e8930d1f7dd26408c285b` on 2026-11-26. |
-| Dependabot action/dependency bumps | PRs #2–#5 merged; remote `main` at `b71653cfc45553101a7968002818220a50bffa6e` on 2026-11-27. |
+| Dependabot action/dependency bumps                                                         | PRs #2–#5 merged; remote `main` at `b71653cfc45553101a7968002818220a50bffa6e` on 2026-11-27.                                |
 
 PR #1 reported all checks successful: `verify`, `demo-ecommerce-e2e`, `Analyze (javascript-typescript)`, `Analyze (actions)`, `CodeQL`, and Dependabot config check. Remote `main` at `b71653c` also had successful `CI` and `Push on main` runs at the time of research. Confirm with `gh run list` before repeating these results.
 

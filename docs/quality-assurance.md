@@ -72,16 +72,16 @@ The verify job reports the migration CLI smoke check as its own step. The workfl
 
 ## CodeQL triage
 
-GitHub CodeQL default setup is configured outside the repository. The initial run produced five warning-level findings. Current disposition:
+GitHub CodeQL default setup is configured outside the repository. The initial run produced five warning-level findings. GitHub state queried on 2026-11-27 (re-query before relying on it):
 
-| Finding                        | Location                                                    | Disposition                                                                                                                                                                                                       |
-| ------------------------------ | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `js/missing-rate-limiting` × 2 | `packages/core/src/api/server.ts` pre-handler hooks         | Accepted. The global Fastify rate-limit plugin is registered later in the same `createServer` function; CodeQL analyzes the hooks in isolation. Owner action is required to annotate or dismiss these two alerts. |
-| `js/polynomial-redos`          | `packages/sdk/src/client.ts` base URL normalization         | Fixed with a linear trailing-slash loop; regression test added. The GitHub alert remains open until CodeQL rescans the pushed change.                                                                             |
-| `js/polynomial-redos`          | `packages/module-users/src/service.ts` email validation     | Fixed with linear parsing that preserves v0.1.0 acceptance; regression test added. The GitHub alert remains open until CodeQL rescans the pushed change.                                                          |
-| `js/polynomial-redos`          | `packages/module-auth/src/service.ts` bearer header parsing | Fixed with a linear prefix/whitespace scan; regression test added. The GitHub alert remains open until CodeQL rescans the pushed change.                                                                          |
+| Finding                        | Location                                             | GitHub state        | Disposition                                                                                                                                                                                              |
+| ------------------------------ | ---------------------------------------------------- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `js/missing-rate-limiting` × 2 | `packages/core/src/api/server.ts` pre-handler hooks  | open (#4 and #5)    | The limiter existed but was registered after those hooks; M11 registers explicit shared policies before the hooks. No dismissal: re-query after merge and record fresh evidence before any owner action. |
+| `js/polynomial-redos`          | `packages/sdk/src/client.ts` base URL normalization  | fixed on 2026-11-26 | Fixed with a linear trailing-slash loop; regression test retained.                                                                                                                                       |
+| `js/polynomial-redos`          | `packages/module-users/src/service.ts` email parsing | fixed on 2026-11-26 | Fixed with linear parsing that preserves v0.1.0 acceptance; regression test retained.                                                                                                                    |
+| `js/polynomial-redos`          | `packages/module-auth/src/service.ts` bearer parsing | fixed on 2026-11-26 | Fixed with a linear prefix/whitespace scan; regression test retained.                                                                                                                                    |
 
-New CodeQL findings must be triaged before merge: fix them or record a written justification in this file.
+New CodeQL findings must be triaged before merge: fix them or record a written justification in this file. Evidence, exact alert IDs, and owner actions are in [`security/github-governance.md`](./security/github-governance.md).
 
 ## Compatibility strategy
 
@@ -94,11 +94,12 @@ Compatibility is checked without adding a second demonstration application.
 
 ## GitHub settings not enforced by files
 
-The following must be configured by a repository owner in GitHub settings:
+The following must be configured by a repository owner in GitHub settings. The active `protect-main` ruleset currently has zero required checks and zero required approvals:
 
-- Branch protection for `main` with required status checks and approvals.
-- A valid CODEOWNERS team or individual owners (currently `@MrUranium1`), plus at least one second maintainer with write access.
-- Optional secret-scanning enhancements: non-provider patterns and validity checks.
-- Confirmation that CodeQL checks are required status checks for pull requests.
+- Require these exact status checks: `verify`, `demo-ecommerce-e2e`, `Analyze (javascript-typescript)`, and `Analyze (actions)`. The last two are CodeQL **job** names; the CodeQL workflow run name is dynamic.
+- Require at least one approving review, dismiss stale approvals on new pushes, and keep deletion, non-fast-forward, PR-only, and no-bypass rules active.
+- Add a second maintainer with write access and update CODEOWNERS if independent review is required. Current CODEOWNERS is `* @MrUranium1`.
+- Confirm secret scanning and push protection; enable non-provider patterns and validity checks if accepted by the owner.
+- Confirm Dependabot security updates in addition to the committed version-update file.
 
-See `.github/pull_request_template.md` and the repository security settings for the current checklist.
+See [`security/github-governance.md`](./security/github-governance.md) for the dated API evidence and exact commands, and `.github/pull_request_template.md` for the PR checklist.

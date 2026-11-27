@@ -34,15 +34,15 @@ The frozen `ModuleContext` exposes config, app config, database, scoped permissi
 
 Verified module graph:
 
-| Module | Hard `requires` | Provides | Consumes |
-|---|---|---|---|
-| `users` | — | public API | — |
-| `auth` | `users` | `buyer-context@1` | — |
-| `catalog` | — | public API | — |
-| `products` | `catalog` | `price-resolver@1` | — |
-| `inventory` | `catalog` | `inventory@1` | — |
-| `orders` | `auth`, `users`, `catalog` | public API | required `buyer-context@1`; optional `price-resolver@1`, `inventory@1` |
-| demo `cart` | `catalog`, `products`, `orders` | public API | `buyer-context@1` |
+| Module      | Hard `requires`                 | Provides           | Consumes                                                               |
+| ----------- | ------------------------------- | ------------------ | ---------------------------------------------------------------------- |
+| `users`     | —                               | public API         | —                                                                      |
+| `auth`      | `users`                         | `buyer-context@1`  | —                                                                      |
+| `catalog`   | —                               | public API         | —                                                                      |
+| `products`  | `catalog`                       | `price-resolver@1` | —                                                                      |
+| `inventory` | `catalog`                       | `inventory@1`      | —                                                                      |
+| `orders`    | `auth`, `users`, `catalog`      | public API         | required `buyer-context@1`; optional `price-resolver@1`, `inventory@1` |
+| demo `cart` | `catalog`, `products`, `orders` | public API         | `buyer-context@1`                                                      |
 
 Port IDs are mirrored as strings across modules to avoid implementation coupling. Catalog owns generic port contracts (`PriceResolverPort`, `InventoryPort`, money/context/snapshot types). Orders depends on auth/users in the module graph but imports only public APIs injected by composition.
 

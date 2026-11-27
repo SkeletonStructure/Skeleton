@@ -43,27 +43,27 @@ Report only what was actually done. Distinguish executed results from documented
 ## Tests added or updated
 
 | Test | Layer | Invariant covered |
-|---|---|---|
-|  |  |  |
+| ---- | ----- | ----------------- |
+|      |       |                   |
 
 State explicitly if no tests were added and why.
 
 ## Verification results
 
-| Command | Result | Notes |
-|---|---|---|
-| `pnpm run ci` |  |  |
-| `pnpm typecheck` |  |  |
-| `pnpm lint` |  |  |
-| `pnpm test:unit` |  |  |
-| `pnpm test:integration` |  |  |
-| `pnpm test:contract` |  |  |
-| `pnpm test:regression` |  |  |
-| `pnpm test:migration-smoke` |  |  |
-| `pnpm demo:ecommerce:verify` / E2E |  |  |
-| Artifact/config drift checks |  |  |
-| `pnpm audit --audit-level=high` |  |  |
-| `git diff --check` |  |  |
+| Command                            | Result | Notes |
+| ---------------------------------- | ------ | ----- |
+| `pnpm run ci`                      |        |       |
+| `pnpm typecheck`                   |        |       |
+| `pnpm lint`                        |        |       |
+| `pnpm test:unit`                   |        |       |
+| `pnpm test:integration`            |        |       |
+| `pnpm test:contract`               |        |       |
+| `pnpm test:regression`             |        |       |
+| `pnpm test:migration-smoke`        |        |       |
+| `pnpm demo:ecommerce:verify` / E2E |        |       |
+| Artifact/config drift checks       |        |       |
+| `pnpm audit --audit-level=high`    |        |       |
+| `git diff --check`                 |        |       |
 
 Include exact file/test counts and failure output where relevant. Do not claim a check passed if it was skipped.
 

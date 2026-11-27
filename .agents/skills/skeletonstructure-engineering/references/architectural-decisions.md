@@ -24,22 +24,22 @@ Never mark a decision superseded merely because an implementation detail evolved
 
 ## Blueprint decisions (historical approval, current boundaries)
 
-| ID | Decision | Current consequence |
-|---|---|---|
-| D-01 | Modular monolith | Keep shared capabilities in one explicit foundation, not many repos. |
-| D-02 | Technology stack | TypeScript/Fastify/Drizzle/PostgreSQL/Zod/Vitest/Biome/pnpm are established. |
-| D-03 | Config file + env secrets | Use `defineConfig()` and `env(...)`; never literal secrets. |
-| D-04 | Module contract + registry | Explicit `ModuleDefinition`; no disk discovery. |
-| D-05 | Opaque server-side sessions | Do not switch to JWT/stateless sessions without an ADR. |
-| D-06 | OpenAPI artifact + thin SDK | Generate artifacts; keep SDK browser-safe. |
-| D-07 | Narrow DB port, PostgreSQL-only | One shared pool; no module-owned pools or extra engines in v0.1.0. |
-| D-08 | Monorepo with packages | Keep private workspace packages; no per-module repos. |
-| D-09 | Catalog core with domain extensions | Domain details live in extensions, not generic catalog core. |
-| D-10 | Single-tenant v0.1 | Multi-tenancy is deferred. |
-| D-11 | Website/organization boundary | Static site stays separate; do not rewrite it from backend work. |
-| D-12 | Catalog extension design | Extensions own tables/snapshots and use generic expansion. |
-| D-13 | Demo sequencing | M9a e-commerce first; M9b restaurant later and explicitly approved. |
-| D-14 | Immutable order snapshots + guest ownership seam | Snapshots are immutable; guest buyer ref exists but is rejected in v0.1.0. |
+| ID   | Decision                                         | Current consequence                                                          |
+| ---- | ------------------------------------------------ | ---------------------------------------------------------------------------- |
+| D-01 | Modular monolith                                 | Keep shared capabilities in one explicit foundation, not many repos.         |
+| D-02 | Technology stack                                 | TypeScript/Fastify/Drizzle/PostgreSQL/Zod/Vitest/Biome/pnpm are established. |
+| D-03 | Config file + env secrets                        | Use `defineConfig()` and `env(...)`; never literal secrets.                  |
+| D-04 | Module contract + registry                       | Explicit `ModuleDefinition`; no disk discovery.                              |
+| D-05 | Opaque server-side sessions                      | Do not switch to JWT/stateless sessions without an ADR.                      |
+| D-06 | OpenAPI artifact + thin SDK                      | Generate artifacts; keep SDK browser-safe.                                   |
+| D-07 | Narrow DB port, PostgreSQL-only                  | One shared pool; no module-owned pools or extra engines in v0.1.0.           |
+| D-08 | Monorepo with packages                           | Keep private workspace packages; no per-module repos.                        |
+| D-09 | Catalog core with domain extensions              | Domain details live in extensions, not generic catalog core.                 |
+| D-10 | Single-tenant v0.1                               | Multi-tenancy is deferred.                                                   |
+| D-11 | Website/organization boundary                    | Static site stays separate; do not rewrite it from backend work.             |
+| D-12 | Catalog extension design                         | Extensions own tables/snapshots and use generic expansion.                   |
+| D-13 | Demo sequencing                                  | M9a e-commerce first; M9b restaurant later and explicitly approved.          |
+| D-14 | Immutable order snapshots + guest ownership seam | Snapshots are immutable; guest buyer ref exists but is rejected in v0.1.0.   |
 
 ## ADR 0001 — Explicit module registry
 
