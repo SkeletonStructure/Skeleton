@@ -4,7 +4,7 @@ All notable changes are recorded here. The format is based on Keep a Changelog a
 
 ## [Unreleased]
 
-The M11 entries below were merged to `main` through PR #7 after `v0.1.0`; no new version tag was created.
+The M11 entries below were merged to `main` through PR #7 and the M12 entry through PR #9 after `v0.1.0`; no new version tag or GitHub release has been published.
 
 ### Added
 
@@ -36,7 +36,7 @@ The M11 entries below were merged to `main` through PR #7 after `v0.1.0`; no new
 
 - Applications may opt into a fail-closed migration preflight that reports only `MIGRATIONS_PENDING`; SQL, migration paths, and database errors are not exposed through readiness.
 - Shared limiter storage errors no longer permit unmetered requests, audit writes no longer fail silently, and readiness reports `RATE_LIMIT_STORE_UNAVAILABLE`, `AUDIT_STORE_UNAVAILABLE`, or lifecycle reasons instead of generic success.
-- No CodeQL alert was dismissed and no repository setting was changed. PR #7's five checks and two post-merge runs on `main` passed; no approving review was recorded.
+- No CodeQL alert was dismissed and no repository setting was changed. PR #7 and PR #9 each reported five successful checks and two successful post-merge runs on `main`; neither had an approving review.
 
 ## [0.1.0] - 2026-11-24
 

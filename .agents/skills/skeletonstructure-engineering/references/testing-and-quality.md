@@ -1,6 +1,6 @@
 # Testing and quality
 
-Counts below are from the M12 verification pass on `task/m12-application-runtime` before PR review. Re-run to confirm numbers after dependency or test changes. The full PR-level gate passed locally: frozen install, typecheck, lint, all four Vitest layers, the full Vitest suite, artifact checks, migration smoke, demo E2E/build, config drift, and `pnpm audit --audit-level=high` (three moderate dev/transitive advisories; no high/critical). M11's final pass at `b09356f`, PR #7's five checks, and two post-merge runs at `b399a21` also passed.
+Counts below are from the M12 verification pass on `task/m12-application-runtime`; PR #9 merged that work on 2026-11-27. Re-run to confirm numbers after dependency or test changes. The full PR-level gate passed locally: frozen install, typecheck, lint, all four Vitest layers, the full Vitest suite, artifact checks, migration smoke, demo E2E/build, config drift, and `pnpm audit --audit-level=high` (three moderate dev/transitive advisories; no high/critical). PR #9's five checks and two post-merge runs at `9f14557` passed. M11's final pass at `b09356f`, PR #7's five checks, and two post-merge runs at `b399a21` also passed. See [`../../../../docs/quality-assurance.md`](../../../../docs/quality-assurance.md) for GitHub evidence.
 
 ## Test layers
 

@@ -113,6 +113,12 @@ These controls are merged on `main` through PR #7 but are not part of the tagged
 
 CodeQL findings #4 and #5 were marked `fixed` by GitHub at 2026-11-27T11:05:45Z after PR #7 merged. M11 registers the limiter before the relevant hooks, and the merged source was inspected directly; no alert was dismissed. Re-query GitHub before any future annotation; see [`github-governance.md`](./github-governance.md).
 
+## Post-v0.1.0 M12 additions
+
+M12 merged through PR #9 and is not part of the tagged `v0.1.0` review. It does not add a new default security control or an independent sign-off. Its one security-relevant seam is an **opt-in** migration readiness check: applications that pass explicit Drizzle folders to `startApplication()` fail readiness with only `MIGRATIONS_PENDING` when a recorded hash is missing or the state cannot be read. It never auto-migrates, changes config, or exposes SQL, paths, or database errors.
+
+The application remains responsible for listing every applied migration folder. The check proves recorded hash presence, not schema correctness, and custom migration runners must write `drizzle.__drizzle_migrations` to be recognized. See [ADR 0013](../architecture/adr/0013-application-runtime-and-migration-readiness.md).
+
 ## Reviewer sign-off
 
 ```text

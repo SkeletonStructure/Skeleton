@@ -90,14 +90,25 @@ PR #7 was merged at 2026-11-27T11:04:44Z as `b399a21cf86866a725eb29b9c95ff340585
 - `Analyze (javascript-typescript)` and `Analyze (actions)` — [run `45986855658`](https://github.com/SkeletonStructure/SkeletonStructure/actions/runs/45986855658).
 - `CodeQL` — [check run `140464885436`](https://github.com/SkeletonStructure/SkeletonStructure/runs/140464885436).
 
-`gh pr view 7` recorded no reviews and no approving review decision. Passing checks are not evidence of independent review.
+PR #9 was merged at 2026-11-27T12:33:15Z as `9f1455705d61dd8cd2fe6bddfc3164e31291b7f6` from head `b3aeb7dd7d6b34c66bcd2aa5596810e0edeb6980`. `gh pr checks 9` reported five completed, successful checks:
+
+- `verify` and `demo-ecommerce-e2e` — [run `45998899952`](https://github.com/SkeletonStructure/SkeletonStructure/actions/runs/45998899952).
+- `Analyze (javascript-typescript)` and `Analyze (actions)` — [run `45998897136`](https://github.com/SkeletonStructure/SkeletonStructure/actions/runs/45998897136).
+- `CodeQL` — [check run `140505465888`](https://github.com/SkeletonStructure/SkeletonStructure/runs/140505465888).
+
+`gh pr view 7` and `gh pr view 9` recorded no reviews and no approving review decision. Passing checks are not evidence of independent review.
 
 ### Post-merge verification
 
-`gh run list --commit b399a21cf86866a725eb29b9c95ff3405853c7b8` reported two successful completed runs at the merge commit:
+`gh run list --commit b399a21cf86866a725eb29b9c95ff3405853c7b8` reported two successful completed runs at the PR #7 merge commit:
 
 - [`CI` run `45987449807`](https://github.com/SkeletonStructure/SkeletonStructure/actions/runs/45987449807).
 - [`Push on main` run `45987449130`](https://github.com/SkeletonStructure/SkeletonStructure/actions/runs/45987449130).
+
+`gh run list --commit 9f1455705d61dd8cd2fe6bddfc3164e31291b7f6` reported two successful completed runs at the PR #9 merge commit:
+
+- [`CI` run `45999611587`](https://github.com/SkeletonStructure/SkeletonStructure/actions/runs/45999611587).
+- [`Push on main` run `45999611907`](https://github.com/SkeletonStructure/SkeletonStructure/actions/runs/45999611907).
 
 Re-query GitHub before relying on these external facts later.
 
@@ -109,7 +120,7 @@ The verify job reports the migration CLI smoke check as its own step. The workfl
 
 ## CodeQL triage
 
-GitHub CodeQL default setup is configured outside the repository. The initial run produced five warning-level findings. GitHub state re-queried after the PR #7 merge on 2026-11-27 (re-query before relying on it):
+GitHub CodeQL default setup is configured outside the repository. The initial run produced five warning-level findings. GitHub state re-queried after the PR #9 merge on 2026-11-27; all five remained `fixed` (re-query before relying on it):
 
 | Finding                        | Location                                             | GitHub state                           | Disposition                                                                                                                                                                                     |
 | ------------------------------ | ---------------------------------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -131,7 +142,7 @@ Compatibility is checked without adding a second demonstration application.
 
 ## Recommended owner-side GitHub settings (not enforced)
 
-The active `protect-main` ruleset enforces PR-only changes, deletion protection, and non-fast-forward protection, but has zero required status checks and zero required approvals. The PR #7 checks above passed without being required. The following remain recommendations, not active protections:
+The active `protect-main` ruleset enforces PR-only changes, deletion protection, and non-fast-forward protection, but has zero required status checks and zero required approvals. The PR #7 and PR #9 checks above passed without being required. The following remain recommendations, not active protections:
 
 - Require these exact status checks: `verify`, `demo-ecommerce-e2e`, `Analyze (javascript-typescript)`, and `Analyze (actions)`. The last two are CodeQL **job** names; the CodeQL workflow run name is dynamic.
 - Require at least one approving review, dismiss stale approvals on new pushes, and keep deletion, non-fast-forward, PR-only, and no-bypass rules active.
