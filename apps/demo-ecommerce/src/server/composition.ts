@@ -5,7 +5,7 @@ import {
 } from '@skeletonstructure/app-composition';
 import type { ApiRouteDefinition } from '@skeletonstructure/core/api';
 import type { AppConfig } from '@skeletonstructure/core/config';
-import type { Database } from '@skeletonstructure/core/database';
+import type { AuditSink, Database } from '@skeletonstructure/core/database';
 import type { ModuleConfigSource } from '@skeletonstructure/core/modules';
 
 import {
@@ -17,6 +17,7 @@ import {
 export interface DemoEcommerceCompositionOptions {
   readonly appConfig: AppConfig;
   readonly database: Database;
+  readonly audit?: AuditSink;
 }
 
 export interface DemoEcommerceComposition extends M8Composition {
@@ -40,6 +41,7 @@ export async function createDemoEcommerceComposition(
   const composition = await createM8Composition({
     appConfig: options.appConfig,
     database: options.database,
+    ...(options.audit === undefined ? {} : { audit: options.audit }),
     moduleConfig,
     additionalModules: [cart.definition],
   });

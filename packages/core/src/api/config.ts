@@ -6,6 +6,7 @@ export const API_CONFIGURATION_ERROR_CODES = [
   'INVALID_CORS_ORIGINS',
   'CORS_WILDCARD_ORIGIN',
   'INVALID_RATE_LIMIT',
+  'INVALID_RATE_LIMIT_STORE',
   'INVALID_ACTIVATION_REPORT',
   'UNKNOWN_ROUTE_PERMISSION',
   'DUPLICATE_ROUTE',
@@ -99,6 +100,50 @@ function validateRateLimit(options: ApiServerOptions): void {
       'Rate-limit max and windowMs must be positive integers.',
     );
   }
+  if (rateLimit.store !== 'memory' && rateLimit.store !== 'redis') {
+    throw new ApiConfigurationError('INVALID_RATE_LIMIT', 'Unknown rate-limit store.');
+  }
+  if (rateLimit.failurePolicy !== 'deny') {
+    throw new ApiConfigurationError(
+      'INVALID_RATE_LIMIT',
+      'Rate-limit failure policy must be deny.',
+    );
+  }
+  const provider = options.rateLimitStore;
+  if (provider !== undefined && provider.id !== rateLimit.store) {
+    throw new ApiConfigurationError(
+      'INVALID_RATE_LIMIT_STORE',
+      'Injected rate-limit store does not match the configured store.',
+    );
+  }
+  if (rateLimit.store === 'redis' && provider === undefined) {
+    throw new ApiConfigurationError(
+      'INVALID_RATE_LIMIT_STORE',
+      'Redis rate limiting requires an injected client provider.',
+    );
+  }
+}
+
+function validateRouteRateLimit(rateLimit: unknown): void {
+  if (!isObject(rateLimit)) {
+    throw new ApiConfigurationError('INVALID_RATE_LIMIT', 'Route rate limit must be an object.');
+  }
+  if (typeof rateLimit.max !== 'number' || !Number.isInteger(rateLimit.max) || rateLimit.max < 1) {
+    throw new ApiConfigurationError(
+      'INVALID_RATE_LIMIT',
+      'Route rate-limit max must be a positive integer.',
+    );
+  }
+  const window = rateLimit.timeWindow;
+  const validWindow =
+    (typeof window === 'number' && Number.isInteger(window) && window > 0) ||
+    (typeof window === 'string' && window.trim().length > 0);
+  if (!validWindow) {
+    throw new ApiConfigurationError(
+      'INVALID_RATE_LIMIT',
+      'Route rate-limit timeWindow must be a positive number or duration string.',
+    );
+  }
 }
 
 function validateActivationReportShape(report: ActivationReport): void {
@@ -183,6 +228,7 @@ function validateRoutes(
         `Handler for ${key} does not match its declaring module.`,
       );
     }
+    if (handler.rateLimit !== undefined) validateRouteRateLimit(handler.rateLimit);
   }
 
   for (const route of report.routes) {
@@ -197,7 +243,7 @@ function validateRoutes(
 
 function validateReadinessChecks(checks: readonly { readonly id: string }[]): void {
   const seen = new Set<string>();
-  const reserved = new Set(['config', 'database']);
+  const reserved = new Set(['config', 'database', 'rateLimitStore', 'audit', 'lifecycle']);
   for (const check of checks) {
     if (reserved.has(check.id)) {
       throw new ApiConfigurationError(
@@ -252,5 +298,9 @@ export function resolveApiServerOptions(options: ApiServerOptions): ResolvedApiS
     routeHandlers,
     readinessChecks,
     migrationCheck: options.migrationCheck,
+    rateLimitStore: options.rateLimitStore,
+    auditSink: options.auditSink,
+    logger: options.logger,
+    lifecycle: options.lifecycle,
   };
 }

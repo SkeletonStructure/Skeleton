@@ -1,4 +1,5 @@
 import { HttpError, validationError } from '@skeletonstructure/core/api';
+import type { AuditSink } from '@skeletonstructure/core/database';
 import { and, eq } from 'drizzle-orm';
 import { rolePermissions, userRoles, users } from './schema.js';
 import type {
@@ -81,9 +82,10 @@ export interface UsersService {
 
 export function createUsersService(
   database: UsersExecutor,
-  options: { readonly defaultRole?: string } = {},
+  options: { readonly defaultRole?: string; readonly audit?: AuditSink } = {},
 ): UsersService {
   const defaultRole = options.defaultRole ?? DEFAULT_USER_ROLE;
+  const audit = options.audit;
 
   async function listRolesFor(userId: string, executor: UsersExecutor): Promise<readonly string[]> {
     const rows = await executor
@@ -218,7 +220,22 @@ export function createUsersService(
     },
 
     async assignRole(userId, role, executor = database) {
-      await executor.insert(userRoles).values({ userId, role }).onConflictDoNothing();
+      const result = await executor
+        .insert(userRoles)
+        .values({ userId, role })
+        .onConflictDoNothing()
+        .returning({ role: userRoles.role });
+      if (audit !== undefined && result.length > 0) {
+        await audit.record(
+          {
+            action: 'users.role.assign',
+            outcome: 'success',
+            subjectId: userId,
+            metadata: { role },
+          },
+          executor,
+        );
+      }
     },
 
     async setPasswordHash(userId, passwordHash, executor = database) {

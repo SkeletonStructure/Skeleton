@@ -4,7 +4,7 @@ This is a lightweight, dated snapshot of the SkeletonStructure foundation. It ex
 
 Snapshot date: **2026-11-27**
 Released baseline: **v0.1.0** (`9d665ff3462cfc3b4f7adb7f96a2b95974f7ffff`)
-Observed local state during the skill update: branch `docs/skill-continuity-pr-workflow`, local QA head `dde23ba59df044ce766932ceeeeded5a8c6b2f05`, stale local `origin/main` at `9d665ff`, GitHub `main` at `b71653cfc45553101a7968002818220a50bffa6e`.
+Observed during M11 work on 2026-11-27: dedicated branch `task/m11-security-hardening`, verified GitHub `main` at `2ae68eaa9a356127611a51dbbb553044a4f5daac`, and preserved refs `docs/skill-continuity-pr-workflow` at `557406bb7776b6e6ef5a7bd86ddc90bbe884ee49` and local QA `1111`/`dde23ba59df044ce766932ceeeeded5a8c6b2f05`. The M11 branch is unreleased and must not be described as merged or as a new tag.
 
 ## Refresh before relying on this snapshot
 
@@ -22,12 +22,12 @@ Then verify the relevant implementation directly. For a capability inventory, st
 
 ## Current status
 
-- No new feature milestone is verified as active.
-- The foundation is in post-release maintenance and QA hardening after `v0.1.0`.
+- M11 security and operational hardening is the active unreleased work: governance cleanup, shared rate-limit storage seam, persistent audit events, structured logging, graceful shutdown, and failure-path regressions.
+- The foundation remains in post-release maintenance/QA hardening after `v0.1.0`; no M11 tag or merge is claimed.
 - M1–M10, M9a, and the `v0.1.0` release are complete. M9b restaurant demo is **planned/deferred**, not started.
 - Six shared modules exist: `users`, `auth`, `catalog`, `products`, `inventory`, `orders`. The demo cart is app-local.
 - The public SDK is workspace/source distributed; it is not published to npm.
-- The project is an early foundation and is **not** production-ready beyond the tested scope.
+- The project is an early foundation and is **not** production-ready beyond the tested scope. M11 does not remove the need for independent review, monitoring, or operator hardening.
 - No Orgo implementation or reference was found. The local bookstore workspace is the concrete dependent-application example, but it is not upstream-documented.
 - The website is a separate repository; backend work must not rewrite it.
 

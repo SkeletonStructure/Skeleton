@@ -19,9 +19,12 @@ export {
   validationError,
 } from './errors.js';
 export {
+  auditReadinessCheck,
   buildReadinessChecks,
   databaseReadinessCheck,
   evaluateReadiness,
+  lifecycleReadinessCheck,
+  rateLimitStoreReadinessCheck,
 } from './health.js';
 export {
   generateOpenApiDocument,
@@ -29,6 +32,19 @@ export {
   serializeOpenApiDocument,
 } from './openapi.js';
 export { buildPublicConfig } from './public-config.js';
+export {
+  createMemoryRateLimitStore,
+  createRedisRateLimitStore,
+  type MemoryRateLimitStoreOptions,
+  type RateLimitCallback,
+  type RateLimitResult,
+  type RateLimitStore,
+  type RateLimitStoreProvider,
+  REDIS_INCREMENT_SCRIPT,
+  type RedisEvalClient,
+  type RedisRateLimitStoreOptions,
+  rateLimitStoreConstructor,
+} from './rate-limit.js';
 export { newRequestId } from './request.js';
 export { registerRoutes } from './routes.js';
 export {

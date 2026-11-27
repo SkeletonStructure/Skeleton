@@ -7,7 +7,7 @@ import {
   successEnvelopeSchema,
 } from '@skeletonstructure/core/api';
 import type { AppConfig } from '@skeletonstructure/core/config';
-import type { Database } from '@skeletonstructure/core/database';
+import type { AuditSink, Database } from '@skeletonstructure/core/database';
 import type { ModuleDefinition } from '@skeletonstructure/core/modules';
 import { z } from 'zod';
 import * as schema from './schema.js';
@@ -56,6 +56,7 @@ const profileDataSchema = {
 export interface UsersModuleOptions {
   readonly appConfig: AppConfig;
   readonly database: Database;
+  readonly audit?: AuditSink;
 }
 
 export interface UsersModule {
@@ -80,7 +81,9 @@ function principalId(request: RouteRequest): string {
 
 /** Builds the optional `users` module without importing it into core. */
 export function createUsersModule(options: UsersModuleOptions): UsersModule {
-  const api = createUsersService(options.database.db);
+  const api = createUsersService(options.database.db, {
+    ...(options.audit === undefined ? {} : { audit: options.audit }),
+  });
   const allowSelfUpdate = options.appConfig.modules.users.allowSelfUpdate;
 
   const routeHandlers: readonly ApiRouteDefinition[] = [

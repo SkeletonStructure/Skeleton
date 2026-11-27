@@ -6,7 +6,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/SkeletonStructure/Skeleton.git"
+    "url": "git+https://github.com/SkeletonStructure/SkeletonStructure.git"
   },
   "homepage": "https://skeletonstructure.github.io/",
   "packageManager": "pnpm@10.34.9",

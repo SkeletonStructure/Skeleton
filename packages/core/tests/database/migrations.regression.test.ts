@@ -36,7 +36,7 @@ describe('migration no-op regression', () => {
     });
 
     const database = await initializeDatabase(config.database);
-    expect(await database.migrate()).toEqual({ appliedCount: 1, upToDate: false });
+    expect(await database.migrate()).toEqual({ appliedCount: 2, upToDate: false });
     expect(await database.migrate()).toEqual({ appliedCount: 0, upToDate: true });
   });
 });

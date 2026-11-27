@@ -4,6 +4,34 @@ All notable changes are recorded here. The format is based on Keep a Changelog a
 
 ## [Unreleased]
 
+### Added
+
+- M11.1 governance evidence for rulesets, CodeQL alerts, secret scanning, and the latest `main` CI failure; the eight pre-existing Biome formatting errors on `main` are fixed in this branch.
+- M11.2 provider-independent shared rate limiting: core `RateLimitStoreProvider` port, default in-memory store, optional injected ioredis-compatible adapter, explicit `security.rateLimit.store`, and fail-closed `skipOnError: false` enforcement before authorization/CSRF hooks.
+- M11.3 persistent append-only audit events: `core_audit_events` table, database triggers, validated core sink, transaction-aware auth/users events, readiness check, and ADRs for audit logging and integrity.
+- M11.4 dependency-free structured logging with JSON/pretty formats, configured redaction, request correlation, explicit lifecycle states, a bounded graceful-shutdown coordinator, and ADRs 0011–0012.
+- M11.5 regression coverage for redaction, level filtering, request correlation, failed rate-limit storage, failed audit writes, named readiness failures, lifecycle transitions, and shutdown timeout behavior.
+
+### Changed
+
+- Rate limits can now be shared across instances when an application injects the Redis provider; the zero-configuration in-memory behavior and all existing configuration defaults remain unchanged.
+- Startup scripts now create the configured logger, mark readiness only after `listen()`, drain readiness before closing resources, and re-raise the original termination signal.
+- Skill, architecture, security, API, database, QA, and current-state documentation reflects the post-v0.1.0 implementation without rewriting the tagged release record.
+
+### Fixed
+
+- Logout session revocation and its audit row now share one transaction, so an audit failure cannot leave an unrecorded revocation.
+- Log messages are restricted to stable event names; arbitrary text, including embedded credentials, is replaced with `log.invalid_message`.
+- Rate-limit and audit close hooks are attempted independently, so one failure cannot skip the other.
+- Audit timestamps are always server-generated; callers can no longer supply `occurredAt`.
+- An audit failure while recording a `429` now returns a safe `500 INTERNAL` envelope instead of letting Fastify expose raw exception text.
+- The default memory limiter is capped at 5,000 keys with least-recently-used eviction, matching the bounded behavior of the previous Fastify store.
+
+### Security
+
+- Shared limiter storage errors no longer permit unmetered requests, audit writes no longer fail silently, and readiness reports `RATE_LIMIT_STORE_UNAVAILABLE`, `AUDIT_STORE_UNAVAILABLE`, or lifecycle reasons instead of generic success.
+- No CodeQL alert was dismissed, no repository setting was changed, and no CI result is claimed from this local branch.
+
 ## [0.1.0] - 2026-11-24
 
 ### Added

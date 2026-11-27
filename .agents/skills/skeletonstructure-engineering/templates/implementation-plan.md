@@ -58,14 +58,14 @@ Use for substantial, multi-file, architectural, API, database, security, depende
 ## Proposed changes
 
 | File | Change | Reason |
-|---|---|---|
-|  |  |  |
+| ---- | ------ | ------ |
+|      |        |        |
 
 ## Reuse decisions
 
 | Need | Existing capability chosen | Why not add something new |
-|---|---|---|
-|  |  |  |
+| ---- | -------------------------- | ------------------------- |
+|      |                            |                           |
 
 ## Compatibility and migration strategy
 

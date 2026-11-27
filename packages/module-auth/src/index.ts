@@ -9,7 +9,7 @@ import {
   successEnvelopeSchema,
 } from '@skeletonstructure/core/api';
 import type { AppConfig } from '@skeletonstructure/core/config';
-import type { Database } from '@skeletonstructure/core/database';
+import type { AuditSink, Database } from '@skeletonstructure/core/database';
 import type { ModuleDefinition } from '@skeletonstructure/core/modules';
 import { runUsersMigrations, type UsersService } from '@skeletonstructure/module-users';
 import type { FastifyReply, FastifyRequest } from 'fastify';
@@ -88,11 +88,19 @@ function readString(body: Record<string, unknown>, key: string): string {
   return typeof value === 'string' ? value : '';
 }
 
+function auditContext(request: FastifyRequest) {
+  return {
+    requestId: request.requestId,
+    ...(request.principal === undefined ? {} : { actorId: request.principal.id }),
+  };
+}
+
 export interface AuthModuleOptions {
   readonly appConfig: AppConfig;
   readonly database: Database;
   readonly users: UsersService;
   readonly emailProvider?: EmailProvider;
+  readonly audit?: AuditSink;
 }
 
 export interface AuthModule {
@@ -108,6 +116,7 @@ export function createAuthModule(options: AuthModuleOptions): AuthModule {
     database: options.database,
     users: options.users,
     emailProvider: options.emailProvider ?? createConsoleEmailProvider(),
+    ...(options.audit === undefined ? {} : { audit: options.audit }),
   });
   const passwordMinLength = options.appConfig.modules.auth.passwordMinLength;
 
@@ -139,7 +148,7 @@ export function createAuthModule(options: AuthModuleOptions): AuthModule {
           password: readString(body, 'password'),
           ...(typeof body.displayName === 'string' ? { displayName: body.displayName } : {}),
         };
-        const result = await api.register(input, reply);
+        const result = await api.register(input, reply, auditContext(request));
         return {
           user: result.user,
           csrfToken: result.session.csrfToken,
@@ -169,7 +178,12 @@ export function createAuthModule(options: AuthModuleOptions): AuthModule {
           email: readString(body, 'email'),
           password: readString(body, 'password'),
         };
-        const result = await api.login(input, api.presentedToken(request), reply);
+        const result = await api.login(
+          input,
+          api.presentedToken(request),
+          reply,
+          auditContext(request),
+        );
         return {
           user: result.user,
           csrfToken: result.session.csrfToken,
@@ -187,7 +201,7 @@ export function createAuthModule(options: AuthModuleOptions): AuthModule {
         properties: {},
       }),
       handler: async (request: FastifyRequest, reply: FastifyReply) => {
-        await api.logout(api.presentedToken(request), reply);
+        await api.logout(api.presentedToken(request), reply, auditContext(request));
         return {};
       },
     },
@@ -220,7 +234,7 @@ export function createAuthModule(options: AuthModuleOptions): AuthModule {
       },
       handler: async (request: FastifyRequest) => {
         const body = asBody(request);
-        await api.requestPasswordReset(readString(body, 'email'));
+        await api.requestPasswordReset(readString(body, 'email'), auditContext(request));
         return {
           message: 'If an account exists, a password reset message has been sent.',
         };
@@ -249,7 +263,7 @@ export function createAuthModule(options: AuthModuleOptions): AuthModule {
           token: readString(body, 'token'),
           password: readString(body, 'password'),
         };
-        const result = await api.confirmPasswordReset(input, reply);
+        const result = await api.confirmPasswordReset(input, reply, auditContext(request));
         return {
           user: result.user,
           csrfToken: result.session.csrfToken,

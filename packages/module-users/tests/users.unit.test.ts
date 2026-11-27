@@ -1,10 +1,11 @@
-import type { Database } from '@skeletonstructure/core/database';
+import type { AuditEvent, AuditSink, Database } from '@skeletonstructure/core/database';
 import { createModuleRegistry } from '@skeletonstructure/core/modules';
 import { describe, expect, it } from 'vitest';
 
 import { defineConfig, env, loadConfig } from '../../core/src/config/index.js';
 import type { ModuleConfigSource } from '../../core/src/modules/index.js';
 import { createUsersModule, isValidEmail, normalizeEmail } from '../src/index.js';
+import { createUsersService } from '../src/service.js';
 
 const DATABASE_URL = 'postgres://skeleton:skeleton@localhost:5432/skeleton';
 
@@ -76,5 +77,57 @@ describe('users module (unit)', () => {
     expect(report.routes).toEqual([
       { moduleId: 'users', method: 'GET', path: '/users/me', permission: 'users:read:self' },
     ]);
+  });
+
+  it('audits successful role assignment through the same executor', async () => {
+    const events: Array<{ readonly event: AuditEvent; readonly executor: unknown }> = [];
+    const audit: AuditSink = {
+      record: async (event, executor) => {
+        events.push({ event, executor });
+      },
+    };
+    const executor = {
+      insert: () => ({
+        values: () => ({
+          onConflictDoNothing: () => ({ returning: async () => [{ role: 'admin' }] }),
+        }),
+      }),
+    } as never;
+    const users = createUsersService(executor, { audit });
+
+    await users.assignRole('user_1', 'admin', executor);
+
+    expect(events).toEqual([
+      {
+        event: {
+          action: 'users.role.assign',
+          outcome: 'success',
+          subjectId: 'user_1',
+          metadata: { role: 'admin' },
+        },
+        executor,
+      },
+    ]);
+  });
+
+  it('does not audit a role assignment that made no change', async () => {
+    const events: AuditEvent[] = [];
+    const audit: AuditSink = {
+      record: async (event) => {
+        events.push(event);
+      },
+    };
+    const executor = {
+      insert: () => ({
+        values: () => ({
+          onConflictDoNothing: () => ({ returning: async () => [] }),
+        }),
+      }),
+    } as never;
+    const users = createUsersService(executor, { audit });
+
+    await users.assignRole('user_1', 'admin', executor);
+
+    expect(events).toEqual([]);
   });
 });

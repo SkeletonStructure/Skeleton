@@ -1,9 +1,14 @@
 import { createServer } from '@skeletonstructure/core/api';
 import type { AppConfig } from '@skeletonstructure/core/config';
-import type { Database } from '@skeletonstructure/core/database';
+import {
+  type AuditSink,
+  auditEvents,
+  createDatabaseAuditSink,
+  type Database,
+} from '@skeletonstructure/core/database';
 import { hashToken } from '@skeletonstructure/core/security';
 import { PostgreSqlContainer, type StartedPostgreSqlContainer } from '@testcontainers/postgresql';
-import { sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { defineConfig, env, loadConfig } from '../../core/src/config/index.js';
 import { closeDatabase, initializeDatabase } from '../../core/src/database/index.js';
@@ -14,6 +19,7 @@ import {
   createInMemoryEmailProvider,
   passwordResetTokens,
   runAuthUsersMigrations,
+  sessions,
 } from '../src/index.js';
 
 type EmailProvider = ReturnType<typeof createInMemoryEmailProvider>;
@@ -144,6 +150,25 @@ async function resetTokenFor(emailProvider: EmailProvider, email: string): Promi
   return token;
 }
 
+async function auditedRows(requestId: string) {
+  return database.db
+    .select({
+      action: auditEvents.action,
+      outcome: auditEvents.outcome,
+      actorId: auditEvents.actorId,
+      subjectId: auditEvents.subjectId,
+      metadata: auditEvents.metadata,
+    })
+    .from(auditEvents)
+    .where(eq(auditEvents.requestId, requestId));
+}
+
+function requestIdOf(response: { headers: Record<string, unknown> }): string {
+  const requestId = response.headers['x-request-id'];
+  if (typeof requestId !== 'string') throw new Error('Response has no request id.');
+  return requestId;
+}
+
 describe('authentication security regressions', () => {
   it('rejects a rotated CSRF token replay after /auth/me', async () => {
     await withApp(async ({ app }) => {
@@ -218,5 +243,228 @@ describe('authentication security regressions', () => {
       expect(expired.statusCode).toBe(400);
       expect(bodyOf(expired).error?.code).toBe('VALIDATION_ERROR');
     });
+  });
+
+  it('records registration with request correlation and never persists credentials', async () => {
+    const appConfig = await makeConfig();
+    const audit: AuditSink = createDatabaseAuditSink(database);
+    const composition = await createAuthUsersComposition({
+      appConfig,
+      database,
+      emailProvider: createInMemoryEmailProvider(),
+      audit,
+    });
+    const app = await createServer({
+      appConfig,
+      database,
+      activationReport: composition.activationReport,
+      routeHandlers: composition.routeHandlers,
+      authenticator: composition.authenticator,
+      csrfGuard: composition.csrfGuard,
+      auditSink: audit,
+    });
+
+    try {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/v1/auth/register',
+        payload: { email: 'audit-regression@example.com', password: PASSWORD },
+      });
+      expect(response.statusCode).toBe(200);
+      const requestId = response.headers['x-request-id'];
+      if (typeof requestId !== 'string') throw new Error('Response has no request id.');
+
+      const rows = await database.db
+        .select({
+          action: auditEvents.action,
+          outcome: auditEvents.outcome,
+          requestId: auditEvents.requestId,
+          actorId: auditEvents.actorId,
+          metadata: auditEvents.metadata,
+        })
+        .from(auditEvents)
+        .where(eq(auditEvents.requestId, requestId));
+
+      expect(rows).toHaveLength(1);
+      expect(rows[0]).toMatchObject({
+        action: 'auth.register',
+        outcome: 'success',
+        metadata: {},
+      });
+      expect(rows[0]?.actorId).toMatch(/^[0-9a-f-]{36}$/u);
+      const serialized = JSON.stringify(rows);
+      expect(serialized).not.toContain(PASSWORD);
+      expect(serialized).not.toContain('audit-regression@example.com');
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('rolls back logout when its audit event cannot be recorded', async () => {
+    const appConfig = await makeConfig();
+    const emailProvider = createInMemoryEmailProvider();
+    const databaseAudit = createDatabaseAuditSink(database);
+    const audit: AuditSink = {
+      ...databaseAudit,
+      async record(event, executor) {
+        if (event.action === 'auth.logout') {
+          throw new Error('audit store unavailable');
+        }
+        await databaseAudit.record(event, executor);
+      },
+    };
+    const composition = await createAuthUsersComposition({
+      appConfig,
+      database,
+      emailProvider,
+      audit,
+    });
+    const app = await createServer({
+      appConfig,
+      database,
+      activationReport: composition.activationReport,
+      routeHandlers: composition.routeHandlers,
+      authenticator: composition.authenticator,
+      csrfGuard: composition.csrfGuard,
+      auditSink: audit,
+    });
+
+    try {
+      const registered = await app.inject({
+        method: 'POST',
+        url: '/v1/auth/register',
+        payload: { email: 'logout-audit-failure@example.com', password: PASSWORD },
+      });
+      expect(registered.statusCode).toBe(200);
+      const token = cookieValue(registered);
+
+      const logout = await app.inject({
+        method: 'POST',
+        url: '/v1/auth/logout',
+        headers: cookieHeaders(token, stringData(bodyOf(registered), 'csrfToken')),
+        payload: {},
+      });
+      expect(logout.statusCode).toBe(500);
+      expect(bodyOf(logout).error?.code).toBe('INTERNAL');
+      expect(await auditedRows(requestIdOf(logout))).toEqual([]);
+
+      const sessionsAfterFailure = await database.db
+        .select({ revokedAt: sessions.revokedAt })
+        .from(sessions)
+        .where(eq(sessions.tokenHash, hashToken(token)))
+        .limit(1);
+      expect(sessionsAfterFailure[0]?.revokedAt).toBeNull();
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('records auth success and failure events with request correlation', async () => {
+    const email = 'audit-events@example.com';
+    const appConfig = await makeConfig();
+    const emailProvider = createInMemoryEmailProvider();
+    const audit: AuditSink = createDatabaseAuditSink(database);
+    const composition = await createAuthUsersComposition({
+      appConfig,
+      database,
+      emailProvider,
+      audit,
+    });
+    const app = await createServer({
+      appConfig,
+      database,
+      activationReport: composition.activationReport,
+      routeHandlers: composition.routeHandlers,
+      authenticator: composition.authenticator,
+      csrfGuard: composition.csrfGuard,
+      auditSink: audit,
+    });
+
+    try {
+      const registered = await app.inject({
+        method: 'POST',
+        url: '/v1/auth/register',
+        payload: { email, password: PASSWORD },
+      });
+      expect(registered.statusCode).toBe(200);
+      expect(await auditedRows(requestIdOf(registered))).toMatchObject([
+        { action: 'auth.register', outcome: 'success' },
+      ]);
+
+      const failedLogin = await app.inject({
+        method: 'POST',
+        url: '/v1/auth/login',
+        payload: { email, password: 'wrong-password-value' },
+      });
+      expect(failedLogin.statusCode).toBe(401);
+      expect(await auditedRows(requestIdOf(failedLogin))).toMatchObject([
+        { action: 'auth.login', outcome: 'failure' },
+      ]);
+
+      const loggedIn = await app.inject({
+        method: 'POST',
+        url: '/v1/auth/login',
+        payload: { email, password: PASSWORD },
+      });
+      expect(loggedIn.statusCode).toBe(200);
+      expect(await auditedRows(requestIdOf(loggedIn))).toMatchObject([
+        { action: 'auth.login', outcome: 'success' },
+      ]);
+      const logout = await app.inject({
+        method: 'POST',
+        url: '/v1/auth/logout',
+        headers: cookieHeaders(cookieValue(loggedIn), stringData(bodyOf(loggedIn), 'csrfToken')),
+        payload: {},
+      });
+      expect(logout.statusCode).toBe(200);
+      expect(await auditedRows(requestIdOf(logout))).toMatchObject([
+        { action: 'auth.logout', outcome: 'success' },
+      ]);
+
+      const missingAccount = await app.inject({
+        method: 'POST',
+        url: '/v1/auth/password-reset/request',
+        payload: { email: 'missing@example.com' },
+      });
+      expect(missingAccount.statusCode).toBe(200);
+      expect(await auditedRows(requestIdOf(missingAccount))).toMatchObject([
+        { action: 'auth.password_reset.request', outcome: 'failure' },
+      ]);
+
+      const resetRequested = await app.inject({
+        method: 'POST',
+        url: '/v1/auth/password-reset/request',
+        payload: { email },
+      });
+      expect(resetRequested.statusCode).toBe(200);
+      expect(await auditedRows(requestIdOf(resetRequested))).toMatchObject([
+        { action: 'auth.password_reset.request', outcome: 'success' },
+      ]);
+
+      const badConfirm = await app.inject({
+        method: 'POST',
+        url: '/v1/auth/password-reset/confirm',
+        payload: { token: 'x'.repeat(40), password: NEW_PASSWORD },
+      });
+      expect(badConfirm.statusCode).toBe(400);
+      expect(await auditedRows(requestIdOf(badConfirm))).toMatchObject([
+        { action: 'auth.password_reset.confirm', outcome: 'failure' },
+      ]);
+
+      const confirmed = await app.inject({
+        method: 'POST',
+        url: '/v1/auth/password-reset/confirm',
+        payload: {
+          token: await resetTokenFor(emailProvider, email),
+          password: NEW_PASSWORD,
+        },
+      });
+      expect(confirmed.statusCode).toBe(200);
+      expect(await auditedRows(requestIdOf(confirmed))).toMatchObject([
+        { action: 'auth.password_reset.confirm', outcome: 'success' },
+      ]);
+    } finally {
+      await app.close();
+    }
   });
 });

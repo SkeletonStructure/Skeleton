@@ -24,22 +24,22 @@ Never mark a decision superseded merely because an implementation detail evolved
 
 ## Blueprint decisions (historical approval, current boundaries)
 
-| ID | Decision | Current consequence |
-|---|---|---|
-| D-01 | Modular monolith | Keep shared capabilities in one explicit foundation, not many repos. |
-| D-02 | Technology stack | TypeScript/Fastify/Drizzle/PostgreSQL/Zod/Vitest/Biome/pnpm are established. |
-| D-03 | Config file + env secrets | Use `defineConfig()` and `env(...)`; never literal secrets. |
-| D-04 | Module contract + registry | Explicit `ModuleDefinition`; no disk discovery. |
-| D-05 | Opaque server-side sessions | Do not switch to JWT/stateless sessions without an ADR. |
-| D-06 | OpenAPI artifact + thin SDK | Generate artifacts; keep SDK browser-safe. |
-| D-07 | Narrow DB port, PostgreSQL-only | One shared pool; no module-owned pools or extra engines in v0.1.0. |
-| D-08 | Monorepo with packages | Keep private workspace packages; no per-module repos. |
-| D-09 | Catalog core with domain extensions | Domain details live in extensions, not generic catalog core. |
-| D-10 | Single-tenant v0.1 | Multi-tenancy is deferred. |
-| D-11 | Website/organization boundary | Static site stays separate; do not rewrite it from backend work. |
-| D-12 | Catalog extension design | Extensions own tables/snapshots and use generic expansion. |
-| D-13 | Demo sequencing | M9a e-commerce first; M9b restaurant later and explicitly approved. |
-| D-14 | Immutable order snapshots + guest ownership seam | Snapshots are immutable; guest buyer ref exists but is rejected in v0.1.0. |
+| ID   | Decision                                         | Current consequence                                                          |
+| ---- | ------------------------------------------------ | ---------------------------------------------------------------------------- |
+| D-01 | Modular monolith                                 | Keep shared capabilities in one explicit foundation, not many repos.         |
+| D-02 | Technology stack                                 | TypeScript/Fastify/Drizzle/PostgreSQL/Zod/Vitest/Biome/pnpm are established. |
+| D-03 | Config file + env secrets                        | Use `defineConfig()` and `env(...)`; never literal secrets.                  |
+| D-04 | Module contract + registry                       | Explicit `ModuleDefinition`; no disk discovery.                              |
+| D-05 | Opaque server-side sessions                      | Do not switch to JWT/stateless sessions without an ADR.                      |
+| D-06 | OpenAPI artifact + thin SDK                      | Generate artifacts; keep SDK browser-safe.                                   |
+| D-07 | Narrow DB port, PostgreSQL-only                  | One shared pool; no module-owned pools or extra engines in v0.1.0.           |
+| D-08 | Monorepo with packages                           | Keep private workspace packages; no per-module repos.                        |
+| D-09 | Catalog core with domain extensions              | Domain details live in extensions, not generic catalog core.                 |
+| D-10 | Single-tenant v0.1                               | Multi-tenancy is deferred.                                                   |
+| D-11 | Website/organization boundary                    | Static site stays separate; do not rewrite it from backend work.             |
+| D-12 | Catalog extension design                         | Extensions own tables/snapshots and use generic expansion.                   |
+| D-13 | Demo sequencing                                  | M9a e-commerce first; M9b restaurant later and explicitly approved.          |
+| D-14 | Immutable order snapshots + guest ownership seam | Snapshots are immutable; guest buyer ref exists but is rejected in v0.1.0.   |
 
 ## ADR 0001 — Explicit module registry
 
@@ -120,3 +120,11 @@ Never mark a decision superseded merely because an implementation detail evolved
 - **Reasoning:** Strengthen CI while preserving released behavior.
 - **Consequences:** `v0.1.0` remains the compatibility baseline; QA artifacts are post-release hardening.
 - **Status:** Merged; not part of the tag.
+
+## M11 security and operational hardening (unreleased)
+
+- **Context:** Post-release work needed shared rate limiting, durable audit history, functional structured logging, predictable shutdown, and documented failure behavior without adding a default Redis dependency or changing public routes.
+- **Decisions:** In-repo ADRs 0008–0012 record the rate-limit storage port, persistent audit logging, append-only audit integrity, structured logging/request correlation, and fail-closed security infrastructure behavior.
+- **Reasoning:** Keep infrastructure in core, make optional providers explicit, preserve the v0.1.0 compatibility baseline, and prefer bounded deterministic failure over silent security weakening.
+- **Consequences:** The default remains zero-configuration in-memory; shared Redis requires an injected client. Audit rows are append-only at the database privilege boundary. Logging is redacted and request-correlated. Shutdown drains readiness before a bounded close.
+- **Status:** Accepted on the unreleased M11 branch; not part of the `v0.1.0` tag. No earlier ADR is superseded.

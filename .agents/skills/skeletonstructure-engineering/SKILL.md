@@ -1,12 +1,13 @@
 ---
+
 name: skeletonstructure-engineering
 description: Institutional engineering guide for the SkeletonStructure backend foundation. Use when working in the foundation repository or on an application that composes it, to preserve its architecture, compatibility, verification, and security conventions.
 license: MIT
 metadata:
-  skill-version: "1.1.0"
-  project-baseline: "v0.1.0"
-  repository: "SkeletonStructure/SkeletonStructure"
-  verified-on: "2026-11-27"
+skill-version: "1.1.0"
+project-baseline: "v0.1.0"
+repository: "SkeletonStructure/SkeletonStructure"
+verified-on: "2026-11-27"
 ---
 
 # SkeletonStructure Engineering
@@ -51,20 +52,20 @@ If any of these checks cannot be performed, say so explicitly and state what rem
 
 ## Read the relevant reference before acting
 
-| Read this | When |
-|---|---|
-| [Project vision](references/project-vision.md) | You need purpose, users, scope, or the foundation/application relationship. |
-| [Current state](references/current-state.md) | You are starting a session or need a dated snapshot of present status. |
-| [Feature inventory](references/feature-inventory.md) | You need to know what exists, is partial, deferred, planned, or absent. |
-| [Architecture](references/architecture.md) | You are changing code, modules, APIs, DB, config, composition, SDK, or deployment behavior. |
-| [Engineering principles](references/engineering-principles.md) | You need naming, typing, error, logging, dependency, compatibility, or reusability conventions. |
-| [Development workflow](references/development-workflow.md) | For every implementation task; it defines the inspection-to-report loop and exact commands. |
-| [Roadmap and current status](references/roadmap.md) | You need to know what is complete, current, planned, deferred, blocked, or stale. |
-| [Architectural decisions](references/architectural-decisions.md) | Your change touches an established boundary or could imply a new architectural rule. |
-| [Testing and quality](references/testing-and-quality.md) | You are choosing verification commands, adding tests, or interpreting CI. |
-| [Security](references/security.md) | Your change touches auth, authz, CSRF, resets, validation, secrets, rate limits, DB, or errors. |
-| [Ecosystem](references/ecosystem.md) | You work on an independent application, Orgo/Bookstore context, SDK consumption, or upgrades. |
-| [Known limitations](references/known-limitations.md) | You are about to assume a capability exists, or need gotchas and unresolved facts. |
+| Read this                                                        | When                                                                                            |
+| ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| [Project vision](references/project-vision.md)                   | You need purpose, users, scope, or the foundation/application relationship.                     |
+| [Current state](references/current-state.md)                     | You are starting a session or need a dated snapshot of present status.                          |
+| [Feature inventory](references/feature-inventory.md)             | You need to know what exists, is partial, deferred, planned, or absent.                         |
+| [Architecture](references/architecture.md)                       | You are changing code, modules, APIs, DB, config, composition, SDK, or deployment behavior.     |
+| [Engineering principles](references/engineering-principles.md)   | You need naming, typing, error, logging, dependency, compatibility, or reusability conventions. |
+| [Development workflow](references/development-workflow.md)       | For every implementation task; it defines the inspection-to-report loop and exact commands.     |
+| [Roadmap and current status](references/roadmap.md)              | You need to know what is complete, current, planned, deferred, blocked, or stale.               |
+| [Architectural decisions](references/architectural-decisions.md) | Your change touches an established boundary or could imply a new architectural rule.            |
+| [Testing and quality](references/testing-and-quality.md)         | You are choosing verification commands, adding tests, or interpreting CI.                       |
+| [Security](references/security.md)                               | Your change touches auth, authz, CSRF, resets, validation, secrets, rate limits, DB, or errors. |
+| [Ecosystem](references/ecosystem.md)                             | You work on an independent application, Orgo/Bookstore context, SDK consumption, or upgrades.   |
+| [Known limitations](references/known-limitations.md)             | You are about to assume a capability exists, or need gotchas and unresolved facts.              |
 
 Use [implementation-plan.md](templates/implementation-plan.md) for substantial work and [completion-report.md](templates/completion-report.md) for the final report.
 

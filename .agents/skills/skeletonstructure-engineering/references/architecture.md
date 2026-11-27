@@ -24,7 +24,7 @@ scripts/                      start, migrate, cleanup, artifact generation
 
 `pnpm-workspace.yaml` includes `templates/*`, but no such directory exists in the current tree.
 
-Core public subpaths: `.`, `./api`, `./config`, `./database`, `./modules`, `./security`. The SDK exposes one root entrypoint and has zero runtime dependencies. All packages/apps are private and version `0.1.0`.
+Core public subpaths: `.`, `./api`, `./config`, `./database`, `./lifecycle`, `./logging`, `./modules`, `./security`. The SDK exposes one root entrypoint and has zero runtime dependencies. All packages/apps are private and version `0.1.0`.
 
 ## Module contract and registry
 
@@ -34,15 +34,15 @@ The frozen `ModuleContext` exposes config, app config, database, scoped permissi
 
 Verified module graph:
 
-| Module | Hard `requires` | Provides | Consumes |
-|---|---|---|---|
-| `users` | — | public API | — |
-| `auth` | `users` | `buyer-context@1` | — |
-| `catalog` | — | public API | — |
-| `products` | `catalog` | `price-resolver@1` | — |
-| `inventory` | `catalog` | `inventory@1` | — |
-| `orders` | `auth`, `users`, `catalog` | public API | required `buyer-context@1`; optional `price-resolver@1`, `inventory@1` |
-| demo `cart` | `catalog`, `products`, `orders` | public API | `buyer-context@1` |
+| Module      | Hard `requires`                 | Provides           | Consumes                                                               |
+| ----------- | ------------------------------- | ------------------ | ---------------------------------------------------------------------- |
+| `users`     | —                               | public API         | —                                                                      |
+| `auth`      | `users`                         | `buyer-context@1`  | —                                                                      |
+| `catalog`   | —                               | public API         | —                                                                      |
+| `products`  | `catalog`                       | `price-resolver@1` | —                                                                      |
+| `inventory` | `catalog`                       | `inventory@1`      | —                                                                      |
+| `orders`    | `auth`, `users`, `catalog`      | public API         | required `buyer-context@1`; optional `price-resolver@1`, `inventory@1` |
+| demo `cart` | `catalog`, `products`, `orders` | public API         | `buyer-context@1`                                                      |
 
 Port IDs are mirrored as strings across modules to avoid implementation coupling. Catalog owns generic port contracts (`PriceResolverPort`, `InventoryPort`, money/context/snapshot types). Orders depends on auth/users in the module graph but imports only public APIs injected by composition.
 
@@ -57,7 +57,7 @@ Port IDs are mirrored as strings across modules to avoid implementation coupling
 5. Filters route handlers to the activation report.
 6. Returns registry, activation report, route handlers, authenticator, CSRF guard, and public APIs.
 
-`additionalModules` is for applications declaring their own static providers; it is not plugin discovery. Startup loads config, initializes the database, composes modules, creates one Fastify server, installs graceful shutdown, and listens. Composition failures happen before listen.
+`additionalModules` is for applications declaring their own static providers; it is not plugin discovery. Startup loads config, creates the configured logger and lifecycle, initializes the database, composes modules with an audit sink, creates one Fastify server, installs the bounded shutdown coordinator, listens, then marks readiness. Composition failures happen before listen.
 
 ## Request/data flow
 
@@ -85,8 +85,9 @@ The demo cart is app-local: its routes use `buyer-context@1`, never accept a buy
 - Global deny-by-default permission guard: missing principal → `401`, missing permission → `403`.
 - CSRF preHandler runs on `POST`, `PUT`, `PATCH`, `DELETE` when a guard is supplied; cookie sessions are challenged, bearer clients are intentionally exempt.
 - Exact-origin CORS only; wildcard with credentials is rejected; no configured origins means no cross-origin headers.
-- Global per-process rate limit, plus stricter auth route limits.
-- `/health/live` and `/health/ready` are unprefixed and excluded from public OpenAPI.
+- Global rate limit with a memory default or an explicitly injected Redis-compatible store, plus stricter auth route limits; storage errors fail closed.
+- Request-scoped structured logs bind the response `requestId`; bodies, headers, and raw URLs are not logged.
+- `/health/live` and `/health/ready` are unprefixed, excluded from public OpenAPI, and exempt from rate limiting. Readiness includes optional lifecycle/store/audit checks.
 - `/v1/config/public` is an allowlist: `appName`, `apiBaseUrl: '/v1'`, `authMode: 'session'`, enabled module IDs.
 - Committed public OpenAPI contains 21 operations across 14 paths. Generated artifact checks compare exact bytes.
 
@@ -97,7 +98,7 @@ Consumers must not add health/private config to public OpenAPI or hand-edit gene
 - Core owns one `Database` singleton: `initializeDatabase()`, `getDatabase()`, `closeDatabase()`, `db`, `transaction()`, `health()`, `migrate()`. Modules do not create pools.
 - Initialization runs `SELECT 1`; health maps failures to `DATABASE_UNAVAILABLE` or `DATABASE_NOT_INITIALIZED`.
 - Migrations run under advisory lock `(1934793174, 1)` and report applied/up-to-date by comparing migration counts.
-- Core baseline migration intentionally contains no application tables.
+- The pinned v0.1.0 core baseline migration intentionally contains no application tables; M11 appends a core migration for the append-only `core_audit_events` table before the users/auth migrations.
 - M8 migration order: core → users → auth → catalog → products → inventory → orders. Demo adds its cart migration after shared migrations.
 - Each module owns a Drizzle config and migration folder. Future migrations are appended and reviewed; production must not auto-migrate on startup.
 - Important constraints: unique user email, unique catalog slug, unique SKU, non-negative prices/stock, unique `(buyer_ref, idempotency_key)`, buyer kind `user`, confirmed order status, and immutable order-line snapshots.
@@ -120,7 +121,7 @@ Production validation requires secure cookies, JSON logs, CSRF enabled, no wildc
 - **App-local additions**: pass static providers in `additionalModules`; declare their own migrations, routes, permissions, and public APIs.
 - **Catalog extensions**: expansion providers keyed by `kind`; domain extensions own their tables and snapshots.
 - **Optional capabilities**: `price-resolver@1` and `inventory@1` are consumed only when declared and unambiguously provided.
-- **Readiness**: injected `ReadinessCheck` seam exists; default startup does not pass a migration check.
+- **Readiness**: injected `ReadinessCheck` seam exists; core reserves `config`, `database`, `rateLimitStore`, `audit`, and `lifecycle` IDs, and default startup does not pass a migration check.
 - **Clients**: shared SDK for public routes; app-local generated client for app-only routes.
 - **Artifacts**: deterministic generators/checks for OpenAPI, SDK types, demo client, and config reference.
 

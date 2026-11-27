@@ -268,14 +268,32 @@ describe('database migrations', () => {
     expect(connect).toHaveBeenCalledTimes(2);
   });
 
-  it('keeps the committed migration baseline free of application tables', async () => {
+  it('keeps the baseline empty and restricts new core tables to audit infrastructure', async () => {
     const folder = defaultMigrationsFolder();
     const files = (await readdir(folder)).filter((file) => file.endsWith('.sql'));
+    const baseline = files.filter((file) => file.startsWith('0000_'));
+    const audit = files.find((file) => file.startsWith('0001_'));
 
-    expect(files.length).toBeGreaterThan(0);
-    for (const file of files) {
-      const sql = await readFile(`${folder}/${file}`, 'utf8');
-      expect(sql.replace(/--.*$/gm, '').trim()).toBe('');
+    expect(baseline).toHaveLength(1);
+    expect(audit).toBeDefined();
+    if (baseline[0] === undefined || audit === undefined) {
+      throw new Error('Core migration baseline is incomplete.');
+    }
+    expect((await readFile(`${folder}/${baseline[0]}`, 'utf8')).replace(/--.*$/gm, '').trim()).toBe(
+      '',
+    );
+
+    const sql = await readFile(`${folder}/${audit}`, 'utf8');
+    expect(sql).toContain('CREATE TABLE "core_audit_events"');
+    for (const table of [
+      'users_users',
+      'auth_sessions',
+      'catalog_items',
+      'commerce_products',
+      'inventory_items',
+      'orders_orders',
+    ]) {
+      expect(sql).not.toContain(`CREATE TABLE "${table}"`);
     }
   });
 });

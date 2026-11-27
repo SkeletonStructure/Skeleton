@@ -130,6 +130,8 @@ function defaultConfigInput(): ConfigInput {
       rateLimit: {
         max: envInt('RATE_LIMIT_MAX', 100),
         windowMs: envInt('RATE_LIMIT_WINDOW_MS', 60_000),
+        store: env('RATE_LIMIT_STORE', 'memory') as AppConfig['security']['rateLimit']['store'],
+        redis: { keyPrefix: env('RATE_LIMIT_REDIS_KEY_PREFIX', 'skel:ratelimit:') },
       },
     },
   });

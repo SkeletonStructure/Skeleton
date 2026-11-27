@@ -11,5 +11,7 @@ export function foundationIdentity(): FoundationIdentity {
 export * as api from './api/index.js';
 export * as config from './config/index.js';
 export * as database from './database/index.js';
+export * as lifecycle from './lifecycle/index.js';
+export * as logging from './logging/index.js';
 export * as modules from './modules/index.js';
 export * as security from './security/index.js';

@@ -42,6 +42,10 @@ Regression tests already pin these invariants:
 - CSRF tokens cannot be replayed after rotation; password reset tokens cannot be replayed or used after expiry.
 - Concurrent orders with the same idempotency key resolve to one order.
 - Email validation preserves v0.1.0 acceptance while parsing pathological input linearly; bearer headers and SDK base URLs also handle pathological input linearly.
+- Structured logs filter by level, redact nested secret paths, control unsafe values, tolerate a broken sink, and bind `requestId` to request logs.
+- Shared limiters are isolated per route, fail closed on storage errors, and report an injected store as unready.
+- Audit rows are append-only, validated, transaction-bound, and emitted for auth success/failure and role assignment.
+- Lifecycle transitions are monotonic, readiness drains before close, shutdown is one-shot, and a hung close ends with `SIGKILL` after the configured timeout.
 
 ## Commands before opening a pull request
 
@@ -64,6 +68,18 @@ pnpm audit --audit-level=high
 
 `pnpm run ci` is also available as a shorter local check, but CI runs the explicit steps above.
 
+## M11 verification snapshot
+
+The complete PR-level gate was executed locally for the M11 branch before documentation was committed:
+
+- `pnpm install --frozen-lockfile`, `pnpm typecheck`, and `pnpm lint` passed.
+- Unit: 19 files / 133 tests; integration: 12 files / 62 tests; contract: 5 files / 16 tests; regression: 10 files / 31 tests; `pnpm test`: 46 files / 242 tests.
+- `pnpm test:migration-smoke`, `pnpm openapi:check`, `pnpm sdk:check`, `pnpm demo:ecommerce:verify` (including Playwright E2E), and the demo production build passed.
+- `pnpm config:docs` produced no `docs/config/reference.md` drift.
+- `pnpm audit --audit-level=high` passed with 0 high/critical advisories and 3 moderate transitive dev/test advisories.
+
+These are local results. No GitHub CI or review result is claimed for the unmerged branch; re-query after the PR is pushed.
+
 ## CI behavior
 
 `.github/workflows/ci.yml` runs on every pull request and on pushes to `main`. It fails the workflow if any required check fails. Actions are pinned to verified commit SHAs, permissions are limited to `contents: read`, and superseded runs are cancelled.
@@ -72,16 +88,16 @@ The verify job reports the migration CLI smoke check as its own step. The workfl
 
 ## CodeQL triage
 
-GitHub CodeQL default setup is configured outside the repository. The initial run produced five warning-level findings. Current disposition:
+GitHub CodeQL default setup is configured outside the repository. The initial run produced five warning-level findings. GitHub state queried on 2026-11-27 (re-query before relying on it):
 
-| Finding                        | Location                                                    | Disposition                                                                                                                                                                                                       |
-| ------------------------------ | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `js/missing-rate-limiting` × 2 | `packages/core/src/api/server.ts` pre-handler hooks         | Accepted. The global Fastify rate-limit plugin is registered later in the same `createServer` function; CodeQL analyzes the hooks in isolation. Owner action is required to annotate or dismiss these two alerts. |
-| `js/polynomial-redos`          | `packages/sdk/src/client.ts` base URL normalization         | Fixed with a linear trailing-slash loop; regression test added. The GitHub alert remains open until CodeQL rescans the pushed change.                                                                             |
-| `js/polynomial-redos`          | `packages/module-users/src/service.ts` email validation     | Fixed with linear parsing that preserves v0.1.0 acceptance; regression test added. The GitHub alert remains open until CodeQL rescans the pushed change.                                                          |
-| `js/polynomial-redos`          | `packages/module-auth/src/service.ts` bearer header parsing | Fixed with a linear prefix/whitespace scan; regression test added. The GitHub alert remains open until CodeQL rescans the pushed change.                                                                          |
+| Finding                        | Location                                             | GitHub state        | Disposition                                                                                                                                                                                              |
+| ------------------------------ | ---------------------------------------------------- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `js/missing-rate-limiting` × 2 | `packages/core/src/api/server.ts` pre-handler hooks  | open (#4 and #5)    | The limiter existed but was registered after those hooks; M11 registers explicit shared policies before the hooks. No dismissal: re-query after merge and record fresh evidence before any owner action. |
+| `js/polynomial-redos`          | `packages/sdk/src/client.ts` base URL normalization  | fixed on 2026-11-26 | Fixed with a linear trailing-slash loop; regression test retained.                                                                                                                                       |
+| `js/polynomial-redos`          | `packages/module-users/src/service.ts` email parsing | fixed on 2026-11-26 | Fixed with linear parsing that preserves v0.1.0 acceptance; regression test retained.                                                                                                                    |
+| `js/polynomial-redos`          | `packages/module-auth/src/service.ts` bearer parsing | fixed on 2026-11-26 | Fixed with a linear prefix/whitespace scan; regression test retained.                                                                                                                                    |
 
-New CodeQL findings must be triaged before merge: fix them or record a written justification in this file.
+New CodeQL findings must be triaged before merge: fix them or record a written justification in this file. Evidence, exact alert IDs, and owner actions are in [`security/github-governance.md`](./security/github-governance.md).
 
 ## Compatibility strategy
 
@@ -94,11 +110,12 @@ Compatibility is checked without adding a second demonstration application.
 
 ## GitHub settings not enforced by files
 
-The following must be configured by a repository owner in GitHub settings:
+The following must be configured by a repository owner in GitHub settings. The active `protect-main` ruleset currently has zero required checks and zero required approvals:
 
-- Branch protection for `main` with required status checks and approvals.
-- A valid CODEOWNERS team or individual owners (currently `@MrUranium1`), plus at least one second maintainer with write access.
-- Optional secret-scanning enhancements: non-provider patterns and validity checks.
-- Confirmation that CodeQL checks are required status checks for pull requests.
+- Require these exact status checks: `verify`, `demo-ecommerce-e2e`, `Analyze (javascript-typescript)`, and `Analyze (actions)`. The last two are CodeQL **job** names; the CodeQL workflow run name is dynamic.
+- Require at least one approving review, dismiss stale approvals on new pushes, and keep deletion, non-fast-forward, PR-only, and no-bypass rules active.
+- Add a second maintainer with write access and update CODEOWNERS if independent review is required. Current CODEOWNERS is `* @MrUranium1`.
+- Confirm secret scanning and push protection; enable non-provider patterns and validity checks if accepted by the owner.
+- Confirm Dependabot security updates in addition to the committed version-update file.
 
-See `.github/pull_request_template.md` and the repository security settings for the current checklist.
+See [`security/github-governance.md`](./security/github-governance.md) for the dated API evidence and exact commands, and `.github/pull_request_template.md` for the PR checklist.

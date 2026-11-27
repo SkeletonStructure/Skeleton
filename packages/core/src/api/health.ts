@@ -1,5 +1,7 @@
-import type { Database } from '../database/index.js';
+import type { AuditSink, Database } from '../database/index.js';
+import type { Lifecycle } from '../lifecycle/index.js';
 import { ApiConfigurationError } from './config.js';
+import type { RateLimitStoreProvider } from './rate-limit.js';
 import type {
   HealthResult,
   ReadinessCheck,
@@ -25,8 +27,48 @@ export function databaseReadinessCheck(database: Database | undefined): Readines
   };
 }
 
+export function rateLimitStoreReadinessCheck(provider: RateLimitStoreProvider): ReadinessCheck {
+  return {
+    id: 'rateLimitStore',
+    check: async () => {
+      try {
+        const result = await provider.health();
+        return result.status === 'ok'
+          ? { status: 'ok' }
+          : { status: 'error', reason: result.reason ?? 'RATE_LIMIT_STORE_UNAVAILABLE' };
+      } catch {
+        return { status: 'error', reason: 'RATE_LIMIT_STORE_UNAVAILABLE' };
+      }
+    },
+  };
+}
+
+export function auditReadinessCheck(sink: AuditSink): ReadinessCheck {
+  return {
+    id: 'audit',
+    check: async () => {
+      if (sink.health === undefined) return { status: 'ok' };
+      try {
+        const result = await sink.health();
+        return result.status === 'ok'
+          ? { status: 'ok' }
+          : { status: 'error', reason: result.reason ?? 'AUDIT_STORE_UNAVAILABLE' };
+      } catch {
+        return { status: 'error', reason: 'AUDIT_STORE_UNAVAILABLE' };
+      }
+    },
+  };
+}
+
+export function lifecycleReadinessCheck(lifecycle: Lifecycle): ReadinessCheck {
+  return {
+    id: 'lifecycle',
+    check: () => lifecycle.check(),
+  };
+}
+
 export function buildReadinessChecks(options: ResolvedApiServerOptions): readonly ReadinessCheck[] {
-  const reserved = new Set(['config', 'database']);
+  const reserved = new Set(['config', 'database', 'rateLimitStore', 'audit', 'lifecycle']);
   for (const check of options.readinessChecks) {
     if (reserved.has(check.id)) {
       throw new ApiConfigurationError(
@@ -40,6 +82,11 @@ export function buildReadinessChecks(options: ResolvedApiServerOptions): readonl
     { id: 'config', check: () => ({ status: 'ok' }) },
     databaseReadinessCheck(options.database),
     ...options.readinessChecks,
+    ...(options.lifecycle === undefined ? [] : [lifecycleReadinessCheck(options.lifecycle)]),
+    ...(options.rateLimitStore === undefined
+      ? []
+      : [rateLimitStoreReadinessCheck(options.rateLimitStore)]),
+    ...(options.auditSink === undefined ? [] : [auditReadinessCheck(options.auditSink)]),
   ];
 }
 

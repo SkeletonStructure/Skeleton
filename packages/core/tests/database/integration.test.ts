@@ -45,7 +45,8 @@ describe('PostgreSQL integration (Testcontainers)', () => {
     expect(await database.health()).toEqual({ status: 'ok' });
 
     const firstRun = await database.migrate();
-    expect(firstRun.appliedCount).toBe(1);
+    // Core now applies the empty baseline plus the append-only audit table.
+    expect(firstRun.appliedCount).toBe(2);
     expect(firstRun.upToDate).toBe(false);
 
     const secondRun = await database.migrate();

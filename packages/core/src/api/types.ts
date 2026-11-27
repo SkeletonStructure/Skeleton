@@ -1,8 +1,11 @@
 import type { FastifyReply, FastifyRequest, FastifySchema } from 'fastify';
 
 import type { AppConfig } from '../config/index.js';
-import type { Database } from '../database/index.js';
+import type { AuditSink, Database } from '../database/index.js';
+import type { Lifecycle } from '../lifecycle/index.js';
+import type { Logger } from '../logging/index.js';
 import type { ActivationReport, ModuleHttpMethod } from '../modules/index.js';
+import type { RateLimitStoreProvider } from './rate-limit.js';
 
 export interface RequestPrincipal {
   readonly id: string;
@@ -82,6 +85,14 @@ export interface ApiServerOptions {
   readonly readinessChecks?: readonly ReadinessCheck[];
   /** Read-only migration-state check supplied by the application. */
   readonly migrationCheck?: ReadinessCheck;
+  /** Replaceable limiter storage; required when `security.rateLimit.store` is `redis`. */
+  readonly rateLimitStore?: RateLimitStoreProvider;
+  /** Optional append-only audit sink supplied by the application. */
+  readonly auditSink?: AuditSink;
+  /** Structured logger; callers normally build it from `appConfig.logging`. */
+  readonly logger?: Logger;
+  /** Explicit process state used by readiness and graceful shutdown. */
+  readonly lifecycle?: Lifecycle;
 }
 
 export interface ResolvedApiServerOptions {
@@ -93,11 +104,16 @@ export interface ResolvedApiServerOptions {
   readonly routeHandlers: readonly ApiRouteDefinition[];
   readonly readinessChecks: readonly ReadinessCheck[];
   readonly migrationCheck: ReadinessCheck | undefined;
+  readonly rateLimitStore: RateLimitStoreProvider | undefined;
+  readonly auditSink: AuditSink | undefined;
+  readonly logger: Logger | undefined;
+  readonly lifecycle: Lifecycle | undefined;
 }
 
 declare module 'fastify' {
   interface FastifyRequest {
     requestId: string;
+    logger: Logger;
     principal?: RequestPrincipal;
   }
 }

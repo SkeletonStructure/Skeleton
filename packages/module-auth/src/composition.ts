@@ -1,5 +1,5 @@
 import type { AppConfig } from '@skeletonstructure/core/config';
-import type { Database } from '@skeletonstructure/core/database';
+import type { AuditSink, Database } from '@skeletonstructure/core/database';
 import { composeModuleRegistry, type ModuleConfigSource } from '@skeletonstructure/core/modules';
 import { createUsersModule } from '@skeletonstructure/module-users';
 import type { EmailProvider } from './email.js';
@@ -9,6 +9,7 @@ export interface AuthUsersCompositionOptions {
   readonly appConfig: AppConfig;
   readonly database: Database;
   readonly emailProvider?: EmailProvider;
+  readonly audit?: AuditSink;
   readonly moduleConfig?: ModuleConfigSource;
 }
 
@@ -34,12 +35,14 @@ export async function createAuthUsersComposition(
   const usersModule = createUsersModule({
     appConfig: options.appConfig,
     database: options.database,
+    ...(options.audit === undefined ? {} : { audit: options.audit }),
   });
   const authModule = createAuthModule({
     appConfig: options.appConfig,
     database: options.database,
     users: usersModule.api,
     ...(options.emailProvider === undefined ? {} : { emailProvider: options.emailProvider }),
+    ...(options.audit === undefined ? {} : { audit: options.audit }),
   });
 
   const registry = composeModuleRegistry({

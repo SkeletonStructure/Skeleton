@@ -43,10 +43,20 @@ Security guarantees are part of the foundation's identity. Never weaken authenti
 
 ## Rate limiting
 
-- Global `fastify/rate-limit`: enabled by default, 100 requests / 60s, `429 RATE_LIMITED`; per process only.
-- Auth routes (register, login, reset request/confirm) use stricter 10 / 60s limits.
-- No shared Redis limiter, per-account limiter, CAPTCHA, or MFA in v0.1.0.
-- Two CodeQL `js/missing-rate-limiting` findings on pre-handler hooks are accepted in docs because the global plugin is registered later in `createServer`; owner annotation/dismissal is still required. Do not dismiss automatically.
+- Global `fastify/rate-limit`: enabled by default, 100 requests / 60s, `429 RATE_LIMITED`.
+- The M11 core `RateLimitStoreProvider` defaults to an in-process map. `security.rateLimit.store = 'redis'` requires an application-injected ioredis-compatible client via `createRedisRateLimitStore()`; the foundation adds no Redis dependency and never creates a client.
+- The limiter is registered after request correlation but before CSRF and permission hooks. `skipOnError: false` makes storage errors fail closed as `500 INTERNAL`; breaches return `429 RATE_LIMITED` and may create `security.rate_limit` audit failures.
+- Auth routes (register, login, reset request/confirm) use stricter 10 / 60s limits; health probes are exempt.
+- Per-account limits, CAPTCHA, and MFA remain absent. Two CodeQL `js/missing-rate-limiting` findings were open at M11 preparation; the code pattern is addressed but owner re-triage/dismissal after fresh evidence is still required. Do not dismiss automatically.
+
+## Audit and operational failure behavior
+
+- M11 adds `core_audit_events`, a core-owned append-only table with outcome constraints and database triggers against `UPDATE`/`DELETE`.
+- `createDatabaseAuditSink()` validates action/outcome, request ID format, identifiers, and bounded primitive metadata. Identity-changing auth/users events use the domain transaction executor, so the event and state change commit or roll back together.
+- Failed audit writes propagate before protected responses are returned. Readiness probes the audit table and reports `AUDIT_STORE_UNAVAILABLE` rather than relying only on `SELECT 1`.
+- Rate-limit store and audit exceptions are normalized to safe reason codes; no exception text, credential, URL, or host detail is exposed.
+- Structured logs use configured levels/formats/redaction, event-name-only messages, and bind `requestId` to request logs. Log transport failures are isolated from request handling.
+- Lifecycle transitions are monotonic; readiness is drained before close. Shutdown is one-shot, bounded by a default 10-second timeout, and re-raises the original signal.
 
 ## Validation and parsing
 
@@ -73,4 +83,4 @@ Security guarantees are part of the foundation's identity. Never weaken authenti
 
 ## Known gaps to preserve honestly
 
-No MFA/OAuth/CAPTCHA, no real email adapter, no persistent audit logging, no shared rate limiter, no multi-tenancy, no payment/cancellation/refund flow, and no production deployment manifests. Do not describe these as implemented.
+No MFA/OAuth/CAPTCHA, no real email adapter, no per-account limiter, no multi-tenancy, no payment/cancellation/refund flow, and no production deployment manifests. M11 adds persistent audit logging and a shared-limiter seam in unreleased code; Redis still requires an injected client. Do not describe v0.1.0 as having these M11 controls.
