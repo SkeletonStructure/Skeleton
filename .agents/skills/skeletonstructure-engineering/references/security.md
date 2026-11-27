@@ -47,11 +47,11 @@ Security guarantees are part of the foundation's identity. Never weaken authenti
 - The M11 core `RateLimitStoreProvider` defaults to an in-process map. `security.rateLimit.store = 'redis'` requires an application-injected ioredis-compatible client via `createRedisRateLimitStore()`; the foundation adds no Redis dependency and never creates a client.
 - The limiter is registered after request correlation but before CSRF and permission hooks. `skipOnError: false` makes storage errors fail closed as `500 INTERNAL`; breaches return `429 RATE_LIMITED` and may create `security.rate_limit` audit failures.
 - Auth routes (register, login, reset request/confirm) use stricter 10 / 60s limits; health probes are exempt.
-- Per-account limits, CAPTCHA, and MFA remain absent. Two CodeQL `js/missing-rate-limiting` findings were open at M11 preparation; the code pattern is addressed but owner re-triage/dismissal after fresh evidence is still required. Do not dismiss automatically.
+- Per-account limits, CAPTCHA, and MFA remain absent. CodeQL `js/missing-rate-limiting` findings #4/#5 were marked `fixed` after PR #7 with no dismissal; re-query GitHub before any future annotation.
 
 ## Audit and operational failure behavior
 
-- M11 adds `core_audit_events`, a core-owned append-only table with outcome constraints and database triggers against `UPDATE`/`DELETE`.
+- M11, merged on `main` after `v0.1.0`, adds `core_audit_events`, a core-owned append-only table with outcome constraints and database triggers against `UPDATE`/`DELETE`.
 - `createDatabaseAuditSink()` validates action/outcome, request ID format, identifiers, and bounded primitive metadata. Identity-changing auth/users events use the domain transaction executor, so the event and state change commit or roll back together.
 - Failed audit writes propagate before protected responses are returned. Readiness probes the audit table and reports `AUDIT_STORE_UNAVAILABLE` rather than relying only on `SELECT 1`.
 - Rate-limit store and audit exceptions are normalized to safe reason codes; no exception text, credential, URL, or host detail is exposed.
@@ -79,8 +79,8 @@ Security guarantees are part of the foundation's identity. Never weaken authenti
 - Secrets come from env via `env(...)`; never commit `.env` or literal `database.url`.
 - Production requires secure cookies, JSON logs, CSRF enabled, exact CORS origins, and protected redaction defaults.
 - Least-privilege DB role, TLS/secret management, backups, and updates are operator responsibilities.
-- GitHub secret scanning and push protection were observed enabled on 2026-11-27, with non-provider patterns and validity checks disabled; re-query GitHub before relying on that state. There is no dedicated CI secret scanner.
+- Native secret scanning and push protection were recorded as enabled during the v0.1.0 review; current toggle values are not verifiable with the available API. There is no dedicated CI secret scanner.
 
 ## Known gaps to preserve honestly
 
-No MFA/OAuth/CAPTCHA, no real email adapter, no per-account limiter, no multi-tenancy, no payment/cancellation/refund flow, and no production deployment manifests. M11 adds persistent audit logging and a shared-limiter seam in unreleased code; Redis still requires an injected client. Do not describe v0.1.0 as having these M11 controls.
+No MFA/OAuth/CAPTCHA, no real email adapter, no per-account limiter, no multi-tenancy, no payment/cancellation/refund flow, and no production deployment manifests. M11 adds persistent audit logging and a shared-limiter seam on `main` after `v0.1.0`; Redis still requires an injected client. Do not describe the tagged `v0.1.0` as having these M11 controls.

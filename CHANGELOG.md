@@ -4,9 +4,11 @@ All notable changes are recorded here. The format is based on Keep a Changelog a
 
 ## [Unreleased]
 
+The M11 entries below were merged to `main` through PR #7 after `v0.1.0`; no new version tag was created.
+
 ### Added
 
-- M11.1 governance evidence for rulesets, CodeQL alerts, secret scanning, and the latest `main` CI failure; the eight pre-existing Biome formatting errors on `main` are fixed in this branch.
+- M11.1 governance evidence for rulesets, CodeQL alerts, secret scanning, and the latest `main` CI failure; the eight pre-existing Biome formatting errors on `main` were fixed in PR #7.
 - M11.2 provider-independent shared rate limiting: core `RateLimitStoreProvider` port, default in-memory store, optional injected ioredis-compatible adapter, explicit `security.rateLimit.store`, and fail-closed `skipOnError: false` enforcement before authorization/CSRF hooks.
 - M11.3 persistent append-only audit events: `core_audit_events` table, database triggers, validated core sink, transaction-aware auth/users events, readiness check, and ADRs for audit logging and integrity.
 - M11.4 dependency-free structured logging with JSON/pretty formats, configured redaction, request correlation, explicit lifecycle states, a bounded graceful-shutdown coordinator, and ADRs 0011–0012.
@@ -30,7 +32,7 @@ All notable changes are recorded here. The format is based on Keep a Changelog a
 ### Security
 
 - Shared limiter storage errors no longer permit unmetered requests, audit writes no longer fail silently, and readiness reports `RATE_LIMIT_STORE_UNAVAILABLE`, `AUDIT_STORE_UNAVAILABLE`, or lifecycle reasons instead of generic success.
-- No CodeQL alert was dismissed, no repository setting was changed, and no CI result is claimed from this local branch.
+- No CodeQL alert was dismissed and no repository setting was changed. PR #7's five checks and two post-merge runs on `main` passed; no approving review was recorded.
 
 ## [0.1.0] - 2026-11-24
 

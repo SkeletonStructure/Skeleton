@@ -23,16 +23,17 @@ Tag: annotated `v0.1.0` → release commit `9d665ff3462cfc3b4f7adb7f96a2b95974f7
 
 Verified as merged, not part of the `v0.1.0` tag:
 
-| Change                                                                                     | Evidence                                                                                                                    |
-| ------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
-| Layered QA/CI, compatibility baselines, regression tests, ReDoS fixes, migration CLI smoke | PR #1, head `dde23ba59df044ce766932ceeeeded5a8c6b2f05`, merged as `1940dfc1537e27d4c91e8930d1f7dd26408c285b` on 2026-11-26. |
-| Dependabot action/dependency bumps                                                         | PRs #2–#5 merged; remote `main` at `b71653cfc45553101a7968002818220a50bffa6e` on 2026-11-27.                                |
+| Change                                                                                     | Evidence                                                                                                                             |
+| ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Layered QA/CI, compatibility baselines, regression tests, ReDoS fixes, migration CLI smoke | PR #1, head `dde23ba59df044ce766932ceeeeded5a8c6b2f05`, merged as `1940dfc1537e27d4c91e8930d1f7dd26408c285b` on 2026-11-26.          |
+| Dependabot action/dependency bumps                                                         | PRs #2–#5 merged; remote `main` at `b71653cfc45553101a7968002818220a50bffa6e` on 2026-11-27.                                         |
+| M11 security and operational hardening                                                     | PR #7 head `b09356fb45b250fd28a5cf9592eaf1fb0ae08de0`, merged as `b399a21cf86866a725eb29b9c95ff3405853c7b8` on 2026-11-27T11:04:44Z. |
 
 PR #1 reported all checks successful: `verify`, `demo-ecommerce-e2e`, `Analyze (javascript-typescript)`, `Analyze (actions)`, `CodeQL`, and Dependabot config check. Remote `main` at `b71653c` also had successful `CI` and `Push on main` runs at the time of research. Confirm with `gh run list` before repeating these results.
 
-## Unreleased M11 branch
+## M11 security and operational hardening (merged)
 
-Prepared on `task/m11-security-hardening` from GitHub `main` at `2ae68eaa9a356127611a51dbbb553044a4f5daac`; not merged at the time of this snapshot:
+Prepared on `task/m11-security-hardening` from GitHub `main` at `2ae68eaa9a356127611a51dbbb553044a4f5daac` and merged through PR #7 as `b399a21cf86866a725eb29b9c95ff3405853c7b8` at 2026-11-27T11:04:44Z. M11 is on `main` but is not part of the `v0.1.0` tag and has no separate tag.
 
 | Workstream | Scope                                                                                                                                         |
 | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -41,15 +42,17 @@ Prepared on `task/m11-security-hardening` from GitHub `main` at `2ae68eaa9a35612
 | M11.3      | Append-only `core_audit_events` migration, validated core sink, auth/users integration, readiness check, ADRs 0009/0010.                      |
 | M11.4      | Core structured logger and lifecycle/shutdown coordinator, API/request correlation integration, startup-script wiring, ADRs 0011/0012.        |
 | M11.5      | Regression coverage for redaction, request correlation, audit failure, limiter failure, readiness reasons, lifecycle, and shutdown timeout.   |
-| M11.6      | Documentation and PR readiness; live CI/review results must be re-queried after the branch is pushed.                                         |
+| M11.6      | Documentation and PR readiness, plus two read-only review passes that fixed six concrete defects before merge.                                |
+
+PR #7 reported five successful checks: `verify` and `demo-ecommerce-e2e` in run `45986862863`, `Analyze (javascript-typescript)` and `Analyze (actions)` in run `45986855658`, and `CodeQL`. No approving review was recorded. Post-merge runs `45987449807` (`CI`) and `45987449130` (`Push on main`) also succeeded at `b399a21`.
 
 ## Current development state
 
-- M11 security/operational hardening is active on a dedicated unreleased branch; no merge, release, or tag is claimed.
-- The foundation is in post-release maintenance/QA hardening.
-- GitHub `main` was verified at `2ae68ea`; local tracking refs may still be stale. Do not reset from an unverified ref.
-- Remote workflow steps match the local CI workflow, but action SHA pins were bumped by Dependabot. The latest observed `main` CI run `45969317303` failed in lint/format before M11.1's fixes; do not claim green CI.
-- Three CodeQL ReDoS alerts were marked `fixed` after PR #1; two `js/missing-rate-limiting` alerts remain open and were not dismissed. M11 changes the code pattern but owner triage is still pending.
+- M11 security/operational hardening is merged on `main`; no M11 release tag is claimed.
+- The foundation is in post-release maintenance/QA hardening; `v0.1.0` remains the tagged baseline.
+- GitHub `main` was verified at `b399a21`; local tracking refs may still be stale. Do not reset from an unverified ref.
+- The pre-M11 `main` CI run `45969317303` failed in lint/format; M11.1 fixed those eight errors, PR #7 checks passed, and post-merge runs at `b399a21` passed.
+- All five CodeQL alerts are now marked `fixed` by GitHub, including #4/#5 (`js/missing-rate-limiting`) at 2026-11-27T11:05:45Z. No alert was dismissed.
 - The current `protect-main` ruleset enforces deletion/non-fast-forward and PR-only changes, but has zero required status checks and zero required approvals; CODEOWNERS review is disabled in that ruleset.
 - CODEOWNERS is `* @MrUranium1`; no second write maintainer is verified. `chocolatemilk-as` has pull-only access.
 
@@ -73,7 +76,7 @@ From release notes, blueprint, ADRs, and QA docs:
 
 - Independent second-maintainer security review.
 - Real required status checks/approvals and a second maintainer.
-- CodeQL alert triage: rescan/annotate or dismiss the two open rate-limit findings with fresh documented rationale after M11 is deployed; M11 changes the registration order but does not dismiss them.
+- CodeQL alert triage: all five alerts are now `fixed`; #4/#5 were closed by GitHub after the merge with no dismissal. Re-query before any annotation and record fresh evidence if a future scan reopens them.
 - Real email adapter; per-account limits, CAPTCHA, and MFA. Shared limiter storage exists in M11, but an application still must inject the Redis client.
 - Payment ADR, payments, refunds, cancellations, inventory release.
 - Guest checkout. Persistent audit logging exists in M11; retention/export procedures and stronger tamper evidence remain future work.
@@ -86,10 +89,10 @@ From release notes, blueprint, ADRs, and QA docs:
 
 - No independent second maintainer; v0.1.0 security sign-off is documented owner self-review.
 - GitHub ruleset does not currently require named checks or approvals.
-- `docs/quality-assurance.md` still describes three ReDoS alerts as open; GitHub now marks them fixed.
+- M11 merged without an approving review; the ruleset still does not require checks or approvals.
 - Blueprint still says implementation never started; several ADRs describe only the state at their milestone.
 - No production deployment manifests; no documented fork-upgrade process.
-- Local clone lags upstream; verify before relying on local refs.
+- Local tracking refs can lag GitHub; verify before relying on them.
 
 ## Technical debt / unresolved questions
 

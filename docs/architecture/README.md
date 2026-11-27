@@ -19,4 +19,4 @@ Use `adr/0000-template.md` for new architectural decisions.
 - [ADR 0011 — Structured logging and request correlation](./adr/0011-structured-logging.md)
 - [ADR 0012 — Security infrastructure failure behavior](./adr/0012-security-infrastructure-failure-behavior.md)
 
-ADRs 0008–0012 record unreleased M11 hardening after the `v0.1.0` tag; they do not retroactively change that release.
+ADRs 0008–0012 record M11 hardening merged on `main` after the `v0.1.0` tag; they do not retroactively change that release.
