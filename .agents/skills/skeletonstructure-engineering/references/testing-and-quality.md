@@ -1,6 +1,6 @@
 # Testing and quality
 
-Counts below are a verified snapshot of the current M11 branch before its documentation commit; re-run to confirm current numbers after dependency or test changes. All four Vitest layers, the frozen install, artifact checks, migration smoke, demo E2E/build, config drift, and `pnpm audit --audit-level=high` were executed successfully in that verification pass.
+Counts below are from the final M11 verification pass at head `b09356fb45b250fd28a5cf9592eaf1fb0ae08de0`; PR #7's five checks and two post-merge runs at `b399a21` also passed. Re-run to confirm numbers after dependency or test changes. All four Vitest layers, the frozen install, artifact checks, migration smoke, demo E2E/build, config drift, and `pnpm audit --audit-level=high` were executed successfully in that local pass.
 
 ## Test layers
 
@@ -88,10 +88,10 @@ Remote `main` retained these steps after Dependabot bumped action versions.
 ## Security checks
 
 - `pnpm audit --audit-level=high` passed on the M11 verification pass with 0 high/critical advisories; it reported 3 moderate dev/transitive advisories (`esbuild` via `drizzle-kit`, and `glob`/`minimatch` via `testcontainers > archiver`). Re-run after dependency changes; no audit output is committed.
-- CodeQL default setup is outside the repository. GitHub/API state on 2026-11-27 (re-query before relying on it):
+- CodeQL default setup is outside the repository. GitHub/API state re-queried after PR #7 on 2026-11-27 (re-query before relying on it):
   - #1–#3 `js/polynomial-redos` — **fixed** after PR #1.
-  - #4–#5 `js/missing-rate-limiting` in `packages/core/src/api/server.ts` — **open**, not dismissed; written rationale exists in `docs/quality-assurance.md` and owner action is still required.
-  - `docs/quality-assurance.md` is stale for #1–#3; trust GitHub state and update the doc.
+  - #4–#5 `js/missing-rate-limiting` in `packages/core/src/api/server.ts` — **fixed** at 2026-11-27T11:05:45Z after PR #7; the merged source registers the limiter before the authorization/CSRF hooks with `skipOnError: false`, and no alert was dismissed.
+  - Alert evidence and exact commands are in `docs/quality-assurance.md` and `docs/security/github-governance.md`.
 
 ## Verification discipline
 

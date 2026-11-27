@@ -16,7 +16,7 @@ SkeletonStructure uses layered tests and CI checks to catch regressions before m
 | Artifact checks | `pnpm sdk:check`, `pnpm openapi:check`, `pnpm demo:ecommerce:verify`   | Generated artifacts match their committed sources                                                                |
 | Config docs     | `pnpm config:docs && git diff --exit-code -- docs/config/reference.md` | Configuration reference matches the live schema                                                                  |
 
-`pnpm test` is the local convenience command. CI runs the layers separately so each result is visible as its own required status.
+`pnpm test` is the local convenience command. CI runs the layers separately so each result is visible as its own check result; these are not currently required by the `protect-main` ruleset.
 
 Integration, browser E2E, the migration smoke test, and several regression tests require Docker because they start real PostgreSQL containers. Pure unit and artifact tests do not.
 
@@ -68,9 +68,11 @@ pnpm audit --audit-level=high
 
 `pnpm run ci` is also available as a shorter local check, but CI runs the explicit steps above.
 
-## M11 verification snapshot
+## M11 verification evidence
 
-The complete PR-level gate was executed locally for the M11 branch before documentation was committed:
+### Local verification before merge
+
+The complete PR-level gate was executed locally on the final pushed head `b09356fb45b250fd28a5cf9592eaf1fb0ae08de0`:
 
 - `pnpm install --frozen-lockfile`, `pnpm typecheck`, and `pnpm lint` passed.
 - Unit: 19 files / 133 tests; integration: 12 files / 62 tests; contract: 5 files / 16 tests; regression: 10 files / 31 tests; `pnpm test`: 46 files / 242 tests.
@@ -78,7 +80,26 @@ The complete PR-level gate was executed locally for the M11 branch before docume
 - `pnpm config:docs` produced no `docs/config/reference.md` drift.
 - `pnpm audit --audit-level=high` passed with 0 high/critical advisories and 3 moderate transitive dev/test advisories.
 
-These are local results. No GitHub CI or review result is claimed for the unmerged branch; re-query after the PR is pushed.
+These are local results from before merge, not a substitute for GitHub CI.
+
+### GitHub PR CI verification
+
+PR #7 was merged at 2026-11-27T11:04:44Z as `b399a21cf86866a725eb29b9c95ff3405853c7b8`. `gh pr checks 7` reported five completed, successful checks:
+
+- `verify` and `demo-ecommerce-e2e` — [run `45986862863`](https://github.com/SkeletonStructure/SkeletonStructure/actions/runs/45986862863).
+- `Analyze (javascript-typescript)` and `Analyze (actions)` — [run `45986855658`](https://github.com/SkeletonStructure/SkeletonStructure/actions/runs/45986855658).
+- `CodeQL` — [check run `140464885436`](https://github.com/SkeletonStructure/SkeletonStructure/runs/140464885436).
+
+`gh pr view 7` recorded no reviews and no approving review decision. Passing checks are not evidence of independent review.
+
+### Post-merge verification
+
+`gh run list --commit b399a21cf86866a725eb29b9c95ff3405853c7b8` reported two successful completed runs at the merge commit:
+
+- [`CI` run `45987449807`](https://github.com/SkeletonStructure/SkeletonStructure/actions/runs/45987449807).
+- [`Push on main` run `45987449130`](https://github.com/SkeletonStructure/SkeletonStructure/actions/runs/45987449130).
+
+Re-query GitHub before relying on these external facts later.
 
 ## CI behavior
 
@@ -88,14 +109,14 @@ The verify job reports the migration CLI smoke check as its own step. The workfl
 
 ## CodeQL triage
 
-GitHub CodeQL default setup is configured outside the repository. The initial run produced five warning-level findings. GitHub state queried on 2026-11-27 (re-query before relying on it):
+GitHub CodeQL default setup is configured outside the repository. The initial run produced five warning-level findings. GitHub state re-queried after the PR #7 merge on 2026-11-27 (re-query before relying on it):
 
-| Finding                        | Location                                             | GitHub state        | Disposition                                                                                                                                                                                              |
-| ------------------------------ | ---------------------------------------------------- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `js/missing-rate-limiting` × 2 | `packages/core/src/api/server.ts` pre-handler hooks  | open (#4 and #5)    | The limiter existed but was registered after those hooks; M11 registers explicit shared policies before the hooks. No dismissal: re-query after merge and record fresh evidence before any owner action. |
-| `js/polynomial-redos`          | `packages/sdk/src/client.ts` base URL normalization  | fixed on 2026-11-26 | Fixed with a linear trailing-slash loop; regression test retained.                                                                                                                                       |
-| `js/polynomial-redos`          | `packages/module-users/src/service.ts` email parsing | fixed on 2026-11-26 | Fixed with linear parsing that preserves v0.1.0 acceptance; regression test retained.                                                                                                                    |
-| `js/polynomial-redos`          | `packages/module-auth/src/service.ts` bearer parsing | fixed on 2026-11-26 | Fixed with a linear prefix/whitespace scan; regression test retained.                                                                                                                                    |
+| Finding                        | Location                                             | GitHub state                           | Disposition                                                                                                                                                                                     |
+| ------------------------------ | ---------------------------------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `js/missing-rate-limiting` × 2 | `packages/core/src/api/server.ts` pre-handler hooks  | fixed 2026-11-27T11:05:45Z (#4 and #5) | M11 registers the shared limiter before the authorization/CSRF hooks with `skipOnError: false`; the merged source was inspected directly. GitHub marked both fixed; no dismissal was performed. |
+| `js/polynomial-redos`          | `packages/sdk/src/client.ts` base URL normalization  | fixed on 2026-11-26                    | Fixed with a linear trailing-slash loop; regression test retained.                                                                                                                              |
+| `js/polynomial-redos`          | `packages/module-users/src/service.ts` email parsing | fixed on 2026-11-26                    | Fixed with linear parsing that preserves v0.1.0 acceptance; regression test retained.                                                                                                           |
+| `js/polynomial-redos`          | `packages/module-auth/src/service.ts` bearer parsing | fixed on 2026-11-26                    | Fixed with a linear prefix/whitespace scan; regression test retained.                                                                                                                           |
 
 New CodeQL findings must be triaged before merge: fix them or record a written justification in this file. Evidence, exact alert IDs, and owner actions are in [`security/github-governance.md`](./security/github-governance.md).
 
@@ -108,9 +129,9 @@ Compatibility is checked without adding a second demonstration application.
 3. **Database:** fresh migration and no-op re-run tests are part of the integration and regression suites, and `pnpm test:migration-smoke` exercises the real `pnpm db:migrate` CLI against a temporary PostgreSQL container. `docs/compatibility/v0.1.0-migrations.json` pins the SHA-256 of every v0.1.0 migration so the baseline cannot be altered; future migrations must be appended, not rewritten.
 4. **Breaking changes:** any incompatible API, SDK, configuration, or schema change must be marked under `Breaking` in `CHANGELOG.md`, added to the release notes, and released with an appropriate version bump.
 
-## GitHub settings not enforced by files
+## Recommended owner-side GitHub settings (not enforced)
 
-The following must be configured by a repository owner in GitHub settings. The active `protect-main` ruleset currently has zero required checks and zero required approvals:
+The active `protect-main` ruleset enforces PR-only changes, deletion protection, and non-fast-forward protection, but has zero required status checks and zero required approvals. The PR #7 checks above passed without being required. The following remain recommendations, not active protections:
 
 - Require these exact status checks: `verify`, `demo-ecommerce-e2e`, `Analyze (javascript-typescript)`, and `Analyze (actions)`. The last two are CodeQL **job** names; the CodeQL workflow run name is dynamic.
 - Require at least one approving review, dismiss stale approvals on new pushes, and keep deletion, non-fast-forward, PR-only, and no-bypass rules active.

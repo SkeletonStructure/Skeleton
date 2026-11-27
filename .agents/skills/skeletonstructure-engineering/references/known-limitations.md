@@ -7,7 +7,7 @@ Use this as a checklist before claiming a capability or starting work.
 - `v0.1.0` is a first usable release, **not** production-ready beyond tested scope.
 - M9b restaurant demo is deferred, not implemented or started.
 - No payments, guest checkout, refunds, cancellations, inventory release, MFA, OAuth, CAPTCHA, per-account limits, real email, file uploads, webhooks, multi-tenancy, or extra database engines.
-- Unreleased M11 adds persistent audit events and shared rate-limit storage, but the tagged `v0.1.0` does not. Shared Redis requires an application-injected client; no Redis dependency or default service is bundled. The memory limiter caps keys at 5,000 with LRU eviction and reclaims keys on reuse or close, not by periodic sweep; it remains a single-process default.
+- M11, merged on `main` after `v0.1.0` with no separate tag, adds persistent audit events and shared rate-limit storage; the tagged `v0.1.0` does not. Shared Redis requires an application-injected client; no Redis dependency or default service is bundled. The memory limiter caps keys at 5,000 with LRU eviction and reclaims keys on reuse or close, not by periodic sweep; it remains a single-process default.
 - CSRF and rate-limit audit failures precede authentication and normally have no `actorId`; the request ID is the reliable correlation key.
 - No npm publication; all packages/apps are private.
 - No production deployment manifests or documented fork-upgrade procedure.
@@ -18,7 +18,7 @@ Use this as a checklist before claiming a capability or starting work.
 - The blueprint says no backend code has been written; that was true before `16bf2c8` and is stale now.
 - ADR 0002 says OpenAPI only contains `/v1/config/public`; current artifact has 21 operations.
 - ADR 0004 says the SDK has three namespaces; current SDK has seven.
-- `docs/quality-assurance.md` says three ReDoS alerts remain open; GitHub marked them fixed on 2026-11-26.
+- QA and governance docs now distinguish local verification, PR #7 CI results, post-merge runs, and GitHub alert state; re-query GitHub before relying on external facts.
 - `CONTRIBUTING.md` and some milestone docs still mention `pnpm test` as the main gate; use `docs/quality-assurance.md` and the PR template.
 - README's `test:migration-smoke` table entry is self-referential; `package.json` has the real command.
 - `templates/*` is in workspace config/README but the directory is absent.
@@ -28,7 +28,7 @@ Use this as a checklist before claiming a capability or starting work.
 
 ## Repository/remote state
 
-- Local refs and GitHub diverged: the local branch was ahead of its stale tracking ref (`dde23ba` vs local `origin/main` `9d665ff`), while GitHub `main` was separately at `b71653c`. Always verify; do not reset based on an unverified ref.
+- GitHub `main` was verified at `b399a21` after PR #7; local tracking refs can still lag. Always verify; do not reset based on an unverified ref.
 - `v0.1.0` points to `9d665ff`; post-tag QA hardening is not in the tag.
 - GitHub canonical repo is `SkeletonStructure/SkeletonStructure`; old remote URL redirects.
 - `Skeleton-0.1.0.zip` provenance/checksum is not documented in repository docs.
@@ -38,10 +38,10 @@ Use this as a checklist before claiming a capability or starting work.
 
 - Current `protect-main` ruleset enforces deletion/non-fast-forward and PR-only changes, but has zero required status checks and zero required approvals; CODEOWNERS review is disabled in that ruleset.
 - CODEOWNERS is `* @MrUranium1`; a second write maintainer is not verified. Security sign-off is owner self-review.
-- Two CodeQL `js/missing-rate-limiting` alerts remain open and were not dismissed; M11 changes the registration order, but owner re-triage with fresh evidence is still pending.
-- No dedicated CI secret scanner; native secret scanning/push protection are enabled, non-provider patterns/validity checks disabled.
+- All five CodeQL alerts are now `fixed`; #4/#5 were closed by GitHub after PR #7 with no dismissal. Re-query before any future annotation.
+- No dedicated CI secret scanner. Native secret scanning/push protection were recorded as enabled during v0.1.0, but current toggle values are not verifiable with the available API.
 - Three moderate dev/transitive advisories were present during research: `esbuild` via `drizzle-kit`, `glob` and `minimatch` via `testcontainers > archiver`. `pnpm audit --audit-level=high` passed then; re-run it after dependency changes.
-- For current CodeQL alert state, query GitHub; `docs/quality-assurance.md` is stale for the three fixed ReDoS alerts.
+- Alert evidence is recorded in `docs/quality-assurance.md` and `docs/security/github-governance.md`; re-query GitHub before relying on it.
 
 ## Architecture/implementation gotchas
 

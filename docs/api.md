@@ -1,6 +1,6 @@
 # API infrastructure
 
-M5 added the HTTP adapter around the existing M2 config, M3 database, and M4 module registry. M6 keeps that adapter unchanged in purpose and supplies the optional `users` and `auth` modules that implement sessions, login, CSRF, and authorization. Unreleased M11 hardening adds replaceable rate-limit storage, persistent audit events, structured request logs, and explicit lifecycle/readiness state. It still exposes only core HTTP infrastructure; module behavior lives in module packages.
+M5 added the HTTP adapter around the existing M2 config, M3 database, and M4 module registry. M6 keeps that adapter unchanged in purpose and supplies the optional `users` and `auth` modules that implement sessions, login, CSRF, and authorization. M11 hardening, merged after `v0.1.0`, adds replaceable rate-limit storage, persistent audit events, structured request logs, and explicit lifecycle/readiness state. It still exposes only core HTTP infrastructure; module behavior lives in module packages.
 
 ## Composition
 

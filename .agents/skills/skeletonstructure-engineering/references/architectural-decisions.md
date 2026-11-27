@@ -4,7 +4,7 @@ Record important decisions in ADR style. Do not turn temporary implementation ch
 
 ## Authority and status
 
-- `docs/architecture/adr/0001`–`0007` are accepted implementation ADRs.
+- `docs/architecture/adr/0001`–`0012` are accepted implementation ADRs; ADRs 0008–0012 were merged after `v0.1.0` through PR #7.
 - `SkeletonStructure-blueprint/ARCHITECTURE_BLUEPRINT.md` records approved bootstrap decisions D-01–D-14. It lives outside this repository, has not been imported into `docs/architecture/`, predates implementation, and contains stale status text. If it is unavailable, use `docs/architecture/README.md` and the accepted ADRs as the in-repo record.
 - Release scope narrowed after blueprint approval: M9b was deferred. No detailed ADR records that change.
 - Future significant decisions need their own ADR and human approval.
@@ -121,10 +121,10 @@ Never mark a decision superseded merely because an implementation detail evolved
 - **Consequences:** `v0.1.0` remains the compatibility baseline; QA artifacts are post-release hardening.
 - **Status:** Merged; not part of the tag.
 
-## M11 security and operational hardening (unreleased)
+## M11 security and operational hardening (merged)
 
 - **Context:** Post-release work needed shared rate limiting, durable audit history, functional structured logging, predictable shutdown, and documented failure behavior without adding a default Redis dependency or changing public routes.
 - **Decisions:** In-repo ADRs 0008–0012 record the rate-limit storage port, persistent audit logging, append-only audit integrity, structured logging/request correlation, and fail-closed security infrastructure behavior.
 - **Reasoning:** Keep infrastructure in core, make optional providers explicit, preserve the v0.1.0 compatibility baseline, and prefer bounded deterministic failure over silent security weakening.
 - **Consequences:** The default remains zero-configuration in-memory; shared Redis requires an injected client. Audit rows are append-only at the database privilege boundary. Logging is redacted and request-correlated. Shutdown drains readiness before a bounded close.
-- **Status:** Accepted on the unreleased M11 branch; not part of the `v0.1.0` tag. No earlier ADR is superseded.
+- **Status:** Accepted and merged on `main` through PR #7; not part of the `v0.1.0` tag and no separate tag was created. No earlier ADR is superseded.

@@ -4,7 +4,7 @@ A self-hosted, MIT-licensed backend foundation built as a modular monolith. This
 
 ## Status
 
-v0.1.0 is the first usable release of the backend foundation. It includes M1–M8, the complete M9a e-commerce demonstration, and the M10 release documentation and verification work. M9b (the restaurant demonstration) is deliberately deferred and is not required for this release. The e-commerce demo is the primary demonstration application. The current working tree also contains unreleased post-v0.1.0 M11 security and operational hardening; see [`CHANGELOG.md`](./CHANGELOG.md) for its scope.
+v0.1.0 is the first usable release of the backend foundation. It includes M1–M8, the complete M9a e-commerce demonstration, and the M10 release documentation and verification work. M9b (the restaurant demonstration) is deliberately deferred and is not required for this release. The e-commerce demo is the primary demonstration application. Post-v0.1.0 M11 security and operational hardening is merged on `main` through PR #7 but has no separate release tag; see [`CHANGELOG.md`](./CHANGELOG.md) for its scope.
 
 This is an early foundation, not a production-ready platform. It has no payments, MFA, CAPTCHA, per-account limits, real email adapter, or multi-tenancy. M11 adds provider-independent shared rate limiting and a persistent append-only audit log, but a Redis store must still be supplied explicitly by the application, and operators remain responsible for deployment hardening. Careful defaults lower risk, but they do not replace review, testing, and updates. See [`SECURITY.md`](./SECURITY.md), [`docs/security/checklist.md`](./docs/security/checklist.md), and [`docs/releases/v0.1.0.md`](./docs/releases/v0.1.0.md) for explicit limitations.
 
@@ -167,7 +167,7 @@ M6 implements sessions, login, CSRF, roles/permissions, and password reset behin
 
 ## Operational hardening
 
-Unreleased M11 work adds four foundation-owned capabilities without changing the public route contract:
+M11, merged on `main` after `v0.1.0`, adds four foundation-owned capabilities without changing the public route contract:
 
 - **Shared rate limiting:** `security.rateLimit.store` selects an in-memory default or an optional Redis provider. Redis requires an application-injected ioredis-compatible client; no Redis dependency is added and storage errors fail closed.
 - **Persistent audit events:** auth, authorization, CSRF, rate-limit, and role-assignment events are written to the append-only `core_audit_events` table through a core-owned sink. Identity-changing events share the domain transaction.

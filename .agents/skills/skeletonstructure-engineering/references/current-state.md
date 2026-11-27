@@ -4,7 +4,7 @@ This is a lightweight, dated snapshot of the SkeletonStructure foundation. It ex
 
 Snapshot date: **2026-11-27**
 Released baseline: **v0.1.0** (`9d665ff3462cfc3b4f7adb7f96a2b95974f7ffff`)
-Observed during M11 work on 2026-11-27: dedicated branch `task/m11-security-hardening`, verified GitHub `main` at `2ae68eaa9a356127611a51dbbb553044a4f5daac`, and preserved refs `docs/skill-continuity-pr-workflow` at `557406bb7776b6e6ef5a7bd86ddc90bbe884ee49` and local QA `1111`/`dde23ba59df044ce766932ceeeeded5a8c6b2f05`. The M11 branch is unreleased and must not be described as merged or as a new tag.
+Verified after M11 on 2026-11-27: PR #7 was merged into `main` as `b399a21cf86866a725eb29b9c95ff3405853c7b8` at 2026-11-27T11:04:44Z from head `b09356fb45b250fd28a5cf9592eaf1fb0ae08de0`. Its five PR checks passed, and post-merge `CI` (`45987449807`) and `Push on main` (`45987449130`) succeeded. M11 is merged on `main` but is not part of the `v0.1.0` tag; no new tag was created. Historical refs `docs/skill-continuity-pr-workflow` at `557406bb7776b6e6ef5a7bd86ddc90bbe884ee49` and local QA `1111`/`dde23ba59df044ce766932ceeeeded5a8c6b2f05` remain preserved.
 
 ## Refresh before relying on this snapshot
 
@@ -22,8 +22,9 @@ Then verify the relevant implementation directly. For a capability inventory, st
 
 ## Current status
 
-- M11 security and operational hardening is the active unreleased work: governance cleanup, shared rate-limit storage seam, persistent audit events, structured logging, graceful shutdown, and failure-path regressions.
-- The foundation remains in post-release maintenance/QA hardening after `v0.1.0`; no M11 tag or merge is claimed.
+- M11 security and operational hardening is merged through PR #7: governance cleanup, shared rate-limit storage seam, persistent audit events, structured logging, graceful shutdown, and failure-path regressions.
+- The foundation remains in post-release maintenance/QA hardening after `v0.1.0`; M11 is on `main` but has no separate tag or release record.
+- The active `protect-main` ruleset still enforces PR-only changes, deletion protection, and non-fast-forward protection, but requires zero status checks and zero approvals. No independent second maintainer is verified; PR #7 had no approving review.
 - M1–M10, M9a, and the `v0.1.0` release are complete. M9b restaurant demo is **planned/deferred**, not started.
 - Six shared modules exist: `users`, `auth`, `catalog`, `products`, `inventory`, `orders`. The demo cart is app-local.
 - The public SDK is workspace/source distributed; it is not published to npm.

@@ -41,7 +41,7 @@ These are the conventions agents should preserve. They are derived from current 
 - Logging is configuration-driven: level, format, and redaction keys. Production requires JSON logs.
 - Fastify's own logger stays disabled (`logger: false`). Core binds a request-scoped child `Logger` to the same `requestId` returned in `x-request-id`.
 - Redact password, token, cookie, authorization, and `database.url`. Never log bodies, raw URLs, headers, reset links, tokens, or email content. A broken log transport must not alter a request result.
-- Persistent audit logging is an unreleased M11 addition, not part of `v0.1.0`; it uses an append-only table and a validated core sink.
+- Persistent audit logging is an M11 addition merged after `v0.1.0`, not part of that tag; it uses an append-only table and a validated core sink.
 - Lifecycle state is explicit and monotonic. Shutdown drains readiness before one bounded close attempt and re-raises the original signal.
 
 ## Configuration management
